@@ -11,29 +11,25 @@ echo 4) development-misc
 set /p branch_setting=
 if "%branch_setting%" == "1" (
     git add .
-	git commit -m %commit_name%
+	git commit -m "%commit_name%"
 	git push origin development-backend
 	git push origin development-web
 	git push origin development-misc
 ) else if "%branch_setting%" == "2" (
     git add .
-	git commit -m %commit_name%
+	git commit -m "%commit_name%"
 	git push origin development-backend
 ) else if "%branch_setting%" == "3" (
     git add .
-	git commit -m %commit_name%
+	git commit -m "%commit_name%"
 	git push origin development-web
 ) else if "%branch_setting%" == "4" (
     git add .
-	git commit -m %commit_name%
+	git commit -m "%commit_name%"
 	git push origin development-misc
 ) else (
     goto end
 )
-pause
-exit
 
 :end
 echo Aborting...
-pause
-exit
