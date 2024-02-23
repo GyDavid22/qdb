@@ -30,10 +30,6 @@ if "%branch_setting%" == "1" (
 ) else (
     goto end
 )
-pause
-exit
 
 :end
 echo Aborting...
-pause
-exit
