@@ -49,4 +49,15 @@ export class HeaderBarComponent {
     e.preventDefault();
     this.qService.logout();
   }
+
+  public searchButtonHandler(e: Event) {
+    e.preventDefault();
+    let searchField = document.getElementById("search_field") as HTMLInputElement;
+    searchField.classList.remove("is-invalid");
+    if (!searchField.value) {
+      searchField.classList.add("is-invalid");
+      return;
+    }
+    // TODO
+  }
 }
