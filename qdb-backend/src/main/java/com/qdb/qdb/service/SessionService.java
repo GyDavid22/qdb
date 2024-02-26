@@ -54,7 +54,11 @@ public class SessionService {
     public char[] createSession(User u) {
         Session newSession = new Session();
         newSession.setUser(u);
-        newSession.setSessionId(generateSessionId());
+        char[] newSessionId = generateSessionId();
+        while (repo.findBySessionId(newSessionId).isPresent()) {
+            newSessionId = generateSessionId();
+        }
+        newSession.setSessionId(newSessionId);
         newSession.setLastInteraction(LocalDateTime.now());
         repo.saveAndFlush(newSession);
         return newSession.getSessionId();
