@@ -1,6 +1,10 @@
-<div class="p-2">
-    <h5>Tags:</h5>
-    <span *ngFor="let i of this.tagsWithCount" class="mx-1">
-        {{i.name}} ({{i.count}})
-    </span>
+<div class="d-flex">
+    <div class="col-9">
+        <div *ngFor="let i of this.questions">
+            <app-question-card [question]="i" />
+        </div>
+    </div>
+    <div class="col-3 p-2">
+        <app-tags-box [tagsWithCount]="this.tagsWithCount"></app-tags-box>
+    </div>
 </div>
