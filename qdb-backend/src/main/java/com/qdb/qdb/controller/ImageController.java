@@ -21,6 +21,12 @@ public class ImageController {
         this.service = service;
     }
 
+    /**
+     * Responds with the image specified by its name.
+     *
+     * @param name
+     * @return
+     */
     @GetMapping(path = "{name}")
     public ResponseEntity<?> getImage(@PathVariable String name) {
         byte[] result = service.getImageContent(name);

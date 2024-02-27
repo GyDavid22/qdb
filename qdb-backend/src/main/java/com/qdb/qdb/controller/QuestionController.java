@@ -30,6 +30,12 @@ public class QuestionController {
         this.sService = sService;
     }
 
+    /**
+     * Responds with Question metadata of Question of the given ID
+     *
+     * @param id
+     * @return
+     */
     @GetMapping(path = "{id}")
     public ResponseEntity<?> getQuestion(@PathVariable long id) {
         Question result = service.getById(id);
@@ -39,6 +45,12 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.OK).body(QuestionDTO.toDto(result));
     }
 
+    /**
+     * Responds with markdown body text of Question of the given ID
+     *
+     * @param id
+     * @return
+     */
     @GetMapping(path = "/body/{id}")
     public ResponseEntity<?> getQuestionBody(@PathVariable long id) {
         Question result = service.getById(id);
@@ -48,6 +60,15 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_MARKDOWN_VALUE + ";charset=UTF8").body(result.getMdbody());
     }
 
+    /**
+     * Updates tags of Question of the given ID. Requires a valid session
+     *
+     * @param id
+     * @param tags
+     * @param request
+     * @param response
+     * @return
+     */
     @PutMapping(path = "{id}/tags")
     public ResponseEntity<?> updateTags(@PathVariable long id, @RequestBody TagDTO tags, HttpServletRequest request, HttpServletResponse response) {
         if (sService.checkCookieValidity(request.getCookies(), response) == null) {
@@ -64,6 +85,16 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    /**
+     * Provides a flexible endpoint for querying Questions. All criteria are interpreted with AND connection
+     *
+     * @param pageNumber The number of page in case of pagination
+     * @param pageSize   The size of a page in case of pagination
+     * @param search     Search term
+     * @param searchType Case-insensitive, see QuestionService.SearchType
+     * @param tags       List of tags to search for
+     * @return
+     */
     @GetMapping
     public ResponseEntity<?> getQuestions(@RequestParam(required = false) Integer pageNumber, @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, @RequestParam(required = false) List<String> tags) {
         List<Question> results = new ArrayList<>();
@@ -81,7 +112,7 @@ public class QuestionController {
             results = service.filterByTags(results, tags);
         }
         // formatting
-        if (pageNumber == null || pageSize == null || pageNumber < 0 || pageSize < 1) {
+        if (pageNumber == null || pageSize == null) {
             return ResponseEntity.status(HttpStatus.OK).body(results.stream().map(QuestionDTO::toDto));
         }
         List<Question> resultsPaged = service.getQuestionPagedFromList(pageNumber, pageSize, results);

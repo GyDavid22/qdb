@@ -14,6 +14,7 @@ public class QuestionService {
     private final QuestionRepository repo;
     @Autowired
     private final TagService tService;
+
     public QuestionService(QuestionRepository repo, TagService tService) {
         this.repo = repo;
         this.tService = tService;
@@ -61,8 +62,16 @@ public class QuestionService {
         }
     }
 
+    /**
+     * Paginates results
+     *
+     * @param indexOfPage Index of the desired page, starts with 0.
+     * @param pageSize    Desired size of a page
+     * @param questions   Source list to paginate
+     * @return Returns with the list of results on the page determined by the parameters, returns null if indexOfPage or pageSize is invalid
+     */
     public List<Question> getQuestionPagedFromList(int indexOfPage, int pageSize, List<Question> questions) {
-        if (numberOfPages(pageSize, questions) - 1 < indexOfPage) {
+        if (indexOfPage < 0 || pageSize < 1 || numberOfPages(pageSize, questions) - 1 < indexOfPage) {
             return null;
         }
         int start = pageSize * indexOfPage;
@@ -74,6 +83,11 @@ public class QuestionService {
         return repo.findAll();
     }
 
+    /**
+     * @param pageSize
+     * @param questions
+     * @return The maximum number of pages with the given pageSize on the given list.
+     */
     public long numberOfPages(int pageSize, List<Question> questions) {
         return questions.size() % pageSize == 0 ? questions.size() / pageSize : questions.size() / pageSize + 1;
     }
@@ -82,6 +96,11 @@ public class QuestionService {
         return repo.count();
     }
 
+    /**
+     * @param term
+     * @param searchType
+     * @return A list of Questions matching the search criteria. An empty list, if no results were found, null is searchType is invalid
+     */
     public List<Question> search(String term, String searchType) {
         if (searchType == null) {
             return repo.searchByStringInTitleAndBody(term);
