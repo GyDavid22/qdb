@@ -4,13 +4,9 @@ import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.Tag;
 import com.qdb.qdb.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class QuestionService {
@@ -18,7 +14,6 @@ public class QuestionService {
     private final QuestionRepository repo;
     @Autowired
     private final TagService tService;
-
     public QuestionService(QuestionRepository repo, TagService tService) {
         this.repo = repo;
         this.tService = tService;
@@ -66,20 +61,79 @@ public class QuestionService {
         }
     }
 
-    public List<Question> getQuestionPaged(int indexOfPage, int pageSize) {
-        return repo.findAll(PageRequest.of(indexOfPage, pageSize)).toList();
+    public List<Question> getQuestionPagedFromList(int indexOfPage, int pageSize, List<Question> questions) {
+        if (numberOfPages(pageSize, questions) - 1 < indexOfPage) {
+            return null;
+        }
+        int start = pageSize * indexOfPage;
+        int end = Math.min(start + pageSize, questions.size());
+        return questions.subList(start, end);
     }
 
     public List<Question> getQuestions() {
         return repo.findAll();
     }
 
-    public long numberOfPages(int pageSize) {
-        long count = repo.count();
-        return count % pageSize == 0 ? count / pageSize : count / pageSize + 1;
+    public long numberOfPages(int pageSize, List<Question> questions) {
+        return questions.size() % pageSize == 0 ? questions.size() / pageSize : questions.size() / pageSize + 1;
     }
 
     public long getNumberOfQuestions() {
         return repo.count();
+    }
+
+    public List<Question> search(String term, String searchType) {
+        if (searchType == null) {
+            return repo.searchByStringInTitleAndBody(term);
+        }
+        try {
+            return switch (SearchType.valueOf(searchType.toUpperCase())) {
+                case ALL -> repo.searchByStringInTitleAndBody(term);
+                case BODY -> repo.searchByStringInBody(term);
+                case TITLE -> repo.searchByStringInTitle(term);
+            };
+        } catch (IllegalArgumentException ignored) {
+        }
+        return null;
+    }
+
+    /**
+     * Returns a list with the Questions which have all tags from the tags list. If the tags list is empty, returns Questions without any tags.
+     *
+     * @param questions
+     * @param tags
+     * @return
+     */
+    public List<Question> filterByTags(List<Question> questions, List<String> tags) {
+        List<Question> potentialResults = new ArrayList<>();
+        if (!tags.isEmpty()) {
+            potentialResults.addAll(questions);
+            for (String s : tags) {
+                Tag t = tService.getTagByName(s);
+                if (t == null) {
+                    potentialResults.clear();
+                    return potentialResults;
+                }
+                int i = 0;
+                while (i < potentialResults.size()) {
+                    if (!t.getQuestions().contains(potentialResults.get(i))) {
+                        potentialResults.remove(i);
+                    } else {
+                        i++;
+                    }
+                }
+            }
+        } else {
+            for (Question q : questions) {
+                if (q.getTags().isEmpty()) {
+                    potentialResults.add(q);
+                }
+            }
+        }
+        return potentialResults;
+    }
+
+    private enum SearchType {
+        TITLE, BODY, ALL
     }
 }

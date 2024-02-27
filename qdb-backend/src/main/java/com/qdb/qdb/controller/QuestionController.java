@@ -14,6 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/api/question")
 public class QuestionController {
@@ -62,14 +65,30 @@ public class QuestionController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getQuestions(@RequestParam(required = false) Integer pageNumber, @RequestParam(required = false) Integer pageSize) {
-        if (pageNumber == null || pageSize == null) {
-            return ResponseEntity.status(HttpStatus.OK).body(service.getQuestions().stream().map(QuestionDTO::toDto).toList());
+    public ResponseEntity<?> getQuestions(@RequestParam(required = false) Integer pageNumber, @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, @RequestParam(required = false) List<String> tags) {
+        List<Question> results = new ArrayList<>();
+        // filtering
+        if (search == null) {
+            results.addAll(service.getQuestions());
+        } else {
+            List<Question> searchResults = service.search(search, searchType);
+            if (searchResults == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+            results.addAll(searchResults);
         }
-        if (service.numberOfPages(pageSize) - 1 < pageNumber) {
+        if (tags != null) {
+            results = service.filterByTags(results, tags);
+        }
+        // formatting
+        if (pageNumber == null || pageSize == null || pageNumber < 0 || pageSize < 1) {
+            return ResponseEntity.status(HttpStatus.OK).body(results.stream().map(QuestionDTO::toDto));
+        }
+        List<Question> resultsPaged = service.getQuestionPagedFromList(pageNumber, pageSize, results);
+        if (resultsPaged == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).body(service.getQuestionPaged(pageNumber, pageSize).stream().map(QuestionDTO::toDto).toList());
+        return ResponseEntity.status(HttpStatus.OK).body(resultsPaged.stream().map(QuestionDTO::toDto));
     }
 
     @GetMapping(path = "count")
