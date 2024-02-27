@@ -3,6 +3,7 @@ import { Constants } from '../../constants';
 import { LoginResponse } from '../entities/LoginResponse';
 import { Router } from '@angular/router';
 import { TagResponse } from '../entities/TagResponse';
+import { QuestionMetadata } from '../entities/QuestionMetadata';
 
 @Injectable({
   providedIn: 'root'
@@ -67,6 +68,28 @@ export class QueryService {
   }
 
   public async tagsWithCounts(): Promise<TagResponse[]> {
-    return await (await this.queryBase("tags", "GET")).json() as TagResponse[]
+    return await (await this.queryBase("tags", "GET")).json() as TagResponse[];
+  }
+
+  public async getQuestionsMetadata(pageNumber: number | undefined = undefined, pageSize: number | undefined = undefined, search: string | undefined = undefined, searchType: "ALL" | "TITLE" | "BODY" | undefined = undefined, tags: string[] | undefined = undefined): Promise<QuestionMetadata[]> {
+    let queryString = "?";
+    if (pageNumber || pageNumber === 0) {
+      queryString += `&pageNumber=${pageNumber}`;
+    }
+    if (pageSize) {
+      queryString += `&pageSize=${pageSize}`;
+    }
+    if (search) {
+      queryString += `&search=${search}`;
+    }
+    if (searchType) {
+      queryString += `&searchType=${searchType}`;
+    }
+    if (tags) {
+      for (let tag of tags) {
+        queryString += `&tags=${tag}`;
+      }
+    }
+    return await (await this.queryBase(`question${queryString}`, "GET")).json() as QuestionMetadata[];
   }
 }
