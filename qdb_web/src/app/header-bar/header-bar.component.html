@@ -1,0 +1,39 @@
+<nav class="navbar fixed-top bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" routerLink="">Java Question Database</a>
+        <div class="d-flex" id="navbar-content">
+            <form>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search here..." id="search_field" required>
+                    <button type="submit" class="btn btn-outline-primary"
+                        (click)="this.searchButtonHandler($event)">Search</button>
+                </div>
+            </form>
+            <div class="login-state">
+                <div *ngIf="this.qService.isLoggedIn; else elseBlock"
+                    class="d-flex justify-content-center align-items-center">
+                    Hello, {{this.qService.username}}!
+                    <button class="btn btn-outline-secondary logout-button"
+                        (click)="this.logoutButtonHandler($event)">Logout</button>
+                </div>
+                <ng-template #elseBlock>
+                    <form>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Username" id="username_login_field"
+                                required>
+                            <input type="password" class="form-control" placeholder="Password" id="password_login_field"
+                                required>
+                            <button type="submit" class="btn btn-outline-primary"
+                                (click)="this.loginButtonHandler($event)">Login</button>
+                        </div>
+                    </form>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="login-error-box">
+    <div *ngFor="let i of this.errorList">
+        <ng-container *ngComponentOutlet="i.component; inputs: i.inputs;"></ng-container>
+    </div>
+</div>
