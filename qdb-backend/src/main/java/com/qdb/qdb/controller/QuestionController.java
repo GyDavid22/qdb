@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/api/question")
+@RequestMapping(path = "question")
 public class QuestionController {
     @Autowired
     private final QuestionService service;

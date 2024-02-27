@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import static com.qdb.qdb.service.SessionService.COOKIE_NAME;
 
 @RestController
-@RequestMapping(path = "/api/session")
+@RequestMapping(path = "session")
 public class SessionController {
     @Autowired
     private final SessionService sService;
