@@ -1,8 +1,7 @@
 @echo off
 
 set /p commit_name=Title of commit: 
-if "%commit_name%" == "" goto end
-set branch_names
+if "%commit_name%" == "" goto endmessage
 echo Select branch to push:
 echo 1) All
 echo 2) development-backend
@@ -28,8 +27,11 @@ if "%branch_setting%" == "1" (
 	git commit -m "%commit_name%"
 	git push origin development-misc
 ) else (
-    goto end
+    goto endmessage
 )
+goto end
+
+:endmessage
+echo Aborting...
 
 :end
-echo Aborting...
