@@ -1,8 +1,17 @@
 .tag-margin {
-    margin: 0.1rem!important;
+    margin: 0.1rem;
 }
 
 .card-regular-text {
-    color: inherit!important;
-    text-decoration: inherit!important;
+    color: inherit;
+    text-decoration: inherit;
+}
+
+.card:hover {
+    box-shadow: 0 0 0.2rem;
+    transition: box-shadow linear 0.1s;
+}
+
+.card {
+    transition: box-shadow linear 0.3s;
 }
