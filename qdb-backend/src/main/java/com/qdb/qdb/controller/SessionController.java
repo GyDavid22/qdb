@@ -42,9 +42,9 @@ public class SessionController {
             char[] sessionId = sService.createSession(u);
             Cookie c = new Cookie(COOKIE_NAME, new String(sessionId));
             c.setHttpOnly(true);
-            c.setPath("/");
-            c.setAttribute("SameSite", "None");
-            c.setSecure(true);
+            c.setPath("/java");
+            //c.setAttribute("SameSite", "None");
+            //c.setSecure(true);
             response.addCookie(c);
             return ResponseEntity.status(HttpStatus.OK).body(new UsernameDTO(u.getUserName()));
         }
