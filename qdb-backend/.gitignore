@@ -33,4 +33,5 @@ build/
 .vscode/
 
 importdata
-qdb.trace.db
+database/qdb.trace.db
+out
