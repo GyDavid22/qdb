@@ -4,21 +4,12 @@
             <h5 class="card-title">
                 {{question.title}}
             </h5>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras maximus turpis mauris, a imperdiet nisi
-            posuere
-            ac. Ut porta metus quis odio dictum eleifend. Etiam arcu orci, consectetur sed facilisis porta, posuere a
-            lectus. Mauris feugiat odio ullamcorper odio rutrum dapibus. Sed felis lectus, iaculis ac velit et, semper
-            lacinia justo. Aliquam dui augue, convallis vel blandit in, convallis sed lacus. Proin lacus risus, cursus
-            vel
-            dapibus non, sollicitudin sit amet mi. Suspendisse vehicula ligula at arcu venenatis tempus. Duis ut nisl
-            commodo, sollicitudin lacus non, ornare magna. Pellentesque vel nisi dui.
+            <div *ngFor="let i of this.body.split('\n')">
+                {{i}}
+            </div>
         </div>
     </a>
-    <div class="card-footer d-flex" *ngIf="this.question.tags.length > 0">
-        <div *ngFor="let i of this.question.tags">
-            <a [routerLink]="'/tag/' + i">
-                <span class="badge text-bg-primary tag-margin">{{i}}</span>
-            </a>
-        </div>
+    <div class="card-footer" *ngIf="this.question.tags.length > 0">
+        <app-tag-badges [tags]="this.question.tags"></app-tag-badges>
     </div>
 </div>

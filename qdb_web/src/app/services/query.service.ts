@@ -90,6 +90,26 @@ export class QueryService {
         queryString += `&tags=${tag}`;
       }
     }
-    return await (await this.queryBase(`question${queryString}`, "GET")).json() as QuestionMetadata[];
+    let response = await this.queryBase(`question${queryString}`, "GET");
+    if (!response.ok) {
+      this.router.navigate(["404"]);
+    }
+    return await (response).json() as QuestionMetadata[];
+  }
+
+  public async getQuestionMetadata(id: number): Promise<QuestionMetadata> {
+    let response = await this.queryBase(`question/${id}`, "GET");
+    if (!response.ok) {
+      this.router.navigate(["404"]);
+    }
+    return await (response).json() as QuestionMetadata;
+  }
+
+  public async getQuestionBody(id: number): Promise<string> {
+    let response = await this.queryBase(`question/body/${id}`, "GET");
+    if (!response.ok) {
+      this.router.navigate(["404"]);
+    }
+    return await (response).text();
   }
 }
