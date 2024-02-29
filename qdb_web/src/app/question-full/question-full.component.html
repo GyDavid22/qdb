@@ -1,0 +1,22 @@
+<div class="container py-3">
+    <div class="d-flex flex-column col-9">
+        <div class="d-flex w-100 justify-content-between">
+            <button class="btn btn-outline-primary" (click)="this.backButtonHandler($event)">Back</button>
+            <div *ngIf="this.qService.isLoggedIn">
+                <button class="btn btn-outline-primary">Edit</button>
+            </div>
+        </div>
+        <div class="my-3">
+            <h2>{{this.question?.title}}</h2>
+            <div *ngFor="let i of this.questionBody?.split('\n')">
+                {{i}}
+            </div>
+        </div>
+        <div *ngIf="this.question?.tags?.length">
+            <h5>
+                Tags:
+            </h5>
+            <app-tag-badges [tags]="this.question?.tags!"></app-tag-badges>
+        </div>
+    </div>
+</div>
