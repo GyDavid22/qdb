@@ -1,0 +1,7 @@
+<div class="d-flex">
+    <div *ngFor="let i of this.tags">
+        <a [routerLink]="'/tag/' + i">
+            <span class="badge text-bg-primary tag-margin">{{i}}</span>
+        </a>
+    </div>
+</div>
