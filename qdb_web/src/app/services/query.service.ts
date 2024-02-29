@@ -9,7 +9,7 @@ import { QuestionMetadata } from '../entities/QuestionMetadata';
   providedIn: 'root'
 })
 export class QueryService {
-  private static readonly BASE_URL = `${Constants.WEBPAGE_URL}api/`;
+  private static readonly BASE_URL = `${Constants.WEBPAGE_URL}java/api/`;
   private _isLoggedIn: boolean = false;
   set isLoggedIn(value: boolean) {
     this._isLoggedIn = value;
