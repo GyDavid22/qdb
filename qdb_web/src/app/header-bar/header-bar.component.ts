@@ -3,18 +3,27 @@ import { QueryService } from '../services/query.service';
 import { NgComponentOutlet, NgFor, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ErrorAlertComponent } from './error-alert/error-alert.component';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header-bar',
   standalone: true,
-  imports: [NgIf, RouterLink, ErrorAlertComponent, NgComponentOutlet, NgFor],
+  imports: [NgIf, RouterLink, ErrorAlertComponent, NgComponentOutlet, NgFor, FormsModule],
   templateUrl: './header-bar.component.html',
   styleUrl: './header-bar.component.css'
 })
 export class HeaderBarComponent {
   public errorList: { component: Type<any>, inputs: Record<string, unknown> }[] = [];
+  public searchText: string = "";
+  public get isLoggedIn(): boolean {
+    return this.qService.isLoggedIn;
+  }
+  public get username(): string {
+    return this.qService.username;
+  }
 
-  public constructor(public qService: QueryService) { }
+  public constructor(private qService: QueryService, private router: Router) { }
 
   public async loginButtonHandler(e: Event) {
     e.preventDefault();
@@ -58,6 +67,10 @@ export class HeaderBarComponent {
       searchField.classList.add("is-invalid");
       return;
     }
-    // TODO
+    this.router.navigate(["/search"], {
+      queryParams: {
+        "search": this.searchText
+      }
+    });
   }
 }
