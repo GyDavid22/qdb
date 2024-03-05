@@ -2,9 +2,9 @@ import { NgFor } from '@angular/common';
 import { Component } from '@angular/core';
 import { QueryService } from '../services/query.service';
 import { TagResponse } from '../entities/TagResponse';
-import { QuestionMetadata } from '../entities/QuestionMetadata';
 import { QuestionCardComponent } from '../question-card/question-card.component';
 import { TagsBoxComponent } from '../tags-box/tags-box.component';
+import { QuestionMetadataList } from '../entities/QuestionMetadataList';
 
 @Component({
   selector: 'app-main-page',
@@ -21,10 +21,7 @@ export class MainPageComponent {
   public get tagsWithCount(): TagResponse[] {
     return this._tagsWithCount;
   }
-  private _questions!: QuestionMetadata[];
-  public get questions(): QuestionMetadata[] {
-    return this._questions;
-  }
+  public questions: QuestionMetadataList | undefined;
   private pageIndex: number = 0;
   private pageSize: number = 50;
 
@@ -33,8 +30,8 @@ export class MainPageComponent {
       this.tagsWithCount = value;
     });
 
-    qService.getQuestionsMetadata(this.pageIndex, this.pageSize).then((value) => {
-      this._questions = value;
+    qService.getQuestionMetadataList(this.pageIndex, this.pageSize).then((value) => {
+      this.questions = value;
     });
   }
 }

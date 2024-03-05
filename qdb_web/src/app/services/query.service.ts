@@ -4,6 +4,7 @@ import { LoginResponse } from '../entities/LoginResponse';
 import { Router } from '@angular/router';
 import { TagResponse } from '../entities/TagResponse';
 import { QuestionMetadata } from '../entities/QuestionMetadata';
+import { QuestionMetadataList } from '../entities/QuestionMetadataList';
 
 @Injectable({
   providedIn: 'root'
@@ -71,7 +72,7 @@ export class QueryService {
     return await (await this.queryBase("tags", "GET")).json() as TagResponse[];
   }
 
-  public async getQuestionsMetadata(pageNumber: number | undefined = undefined, pageSize: number | undefined = undefined, search: string | undefined = undefined, searchType: "ALL" | "TITLE" | "BODY" | undefined = undefined, tags: string[] | undefined = undefined): Promise<QuestionMetadata[]> {
+  public async getQuestionMetadataList(pageNumber: number | undefined = undefined, pageSize: number | undefined = undefined, search: string | undefined = undefined, searchType: "ALL" | "TITLE" | "BODY" | undefined = undefined, tags: string[] | undefined = undefined): Promise<QuestionMetadataList> {
     let queryString = "?";
     if (pageNumber || pageNumber === 0) {
       queryString += `&pageNumber=${pageNumber}`;
@@ -94,7 +95,7 @@ export class QueryService {
     if (!response.ok) {
       this.router.navigate(["404"]);
     }
-    return await (response).json() as QuestionMetadata[];
+    return await (response).json() as QuestionMetadataList;
   }
 
   public async getQuestionMetadata(id: number): Promise<QuestionMetadata> {
