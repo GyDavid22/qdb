@@ -1,6 +1,6 @@
 import { NgFor } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { TagResponse } from '../entities/TagResponse';
+import { TagResponse } from '../../../entities/TagResponse';
 import { RouterLink } from '@angular/router';
 
 @Component({

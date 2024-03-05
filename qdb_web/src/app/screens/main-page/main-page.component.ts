@@ -1,10 +1,10 @@
 import { NgFor } from '@angular/common';
 import { Component } from '@angular/core';
-import { QueryService } from '../services/query.service';
-import { TagResponse } from '../entities/TagResponse';
-import { QuestionCardComponent } from '../question-card/question-card.component';
-import { TagsBoxComponent } from '../tags-box/tags-box.component';
-import { QuestionMetadataList } from '../entities/QuestionMetadataList';
+import { QueryService } from '../../services/query.service';
+import { TagResponse } from '../../entities/TagResponse';
+import { QuestionCardComponent } from '../common-elements/question-card/question-card.component';
+import { TagsBoxComponent } from '../common-elements/tags-box/tags-box.component';
+import { QuestionMetadataList } from '../../entities/QuestionMetadataList';
 
 @Component({
   selector: 'app-main-page',

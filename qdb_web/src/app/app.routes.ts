@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
-import { MainPageComponent } from './main-page/main-page.component';
-import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
-import { QuestionFullComponent } from './question-full/question-full.component';
+import { MainPageComponent } from './screens/main-page/main-page.component';
+import { PageNotFoundComponent } from './screens/page-not-found/page-not-found.component';
+import { QuestionFullComponent } from './screens/question-full/question-full.component';
 
 export const routes: Routes = [
     { path: "", component: MainPageComponent },

@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { QuestionMetadata } from '../entities/QuestionMetadata';
-import { QueryService } from '../services/query.service';
+import { QuestionMetadata } from '../../entities/QuestionMetadata';
+import { QueryService } from '../../services/query.service';
 import { NgFor, NgIf } from '@angular/common';
-import { TagBadgesComponent } from '../tag-badges/tag-badges.component';
+import { TagBadgesComponent } from '../common-elements/tags-box/tag-badges/tag-badges.component';
 
 @Component({
   selector: 'app-question-full',
