@@ -86,7 +86,7 @@ export class QueryService {
     if (searchType) {
       queryString += `&searchType=${searchType}`;
     }
-    if (tags) {
+    if (tags !== undefined) {
       for (let tag of tags) {
         queryString += `&tags=${tag}`;
       }
