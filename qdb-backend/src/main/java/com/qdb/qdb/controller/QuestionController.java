@@ -1,6 +1,7 @@
 package com.qdb.qdb.controller;
 
 import com.qdb.qdb.dto.QuestionDTO;
+import com.qdb.qdb.dto.QuestionDTOWithCount;
 import com.qdb.qdb.dto.TagDTO;
 import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.service.QuestionService;
@@ -111,19 +112,15 @@ public class QuestionController {
         if (tags != null) {
             results = service.filterByTags(results, tags);
         }
+        int count = results.size();
         // formatting
         if (pageNumber == null || pageSize == null) {
-            return ResponseEntity.status(HttpStatus.OK).body(results.stream().map(QuestionDTO::toDto));
+            return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(count, results.stream().map(QuestionDTO::toDto).toList()));
         }
         List<Question> resultsPaged = service.getQuestionPagedFromList(pageNumber, pageSize, results);
         if (resultsPaged == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).body(resultsPaged.stream().map(QuestionDTO::toDto));
-    }
-
-    @GetMapping(path = "count")
-    public ResponseEntity<?> getNumOfQuestions() {
-        return ResponseEntity.status(HttpStatus.OK).body(service.getNumberOfQuestions());
+        return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(count, resultsPaged.stream().map(QuestionDTO::toDto).toList()));
     }
 }
