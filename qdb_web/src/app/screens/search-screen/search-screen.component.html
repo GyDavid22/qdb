@@ -1,6 +1,10 @@
 <div class="d-flex py-3">
     <div class="col-9">
         <h5 *ngIf="this.search">You searched for: {{this.search}}</h5>
-        <app-questions-paged [message]="'Total results:'" [params]="this.params"></app-questions-paged>
+        <app-paginating [message]="'Total results:'" [totalCount]="this.results?.resultsCount"
+            (selectedPagesize)="this.pageSizeFromPaginating = $event" />
+        <div *ngFor="let i of this.results?.questions">
+            <app-question-card [question]="i" />
+        </div>
     </div>
 </div>
