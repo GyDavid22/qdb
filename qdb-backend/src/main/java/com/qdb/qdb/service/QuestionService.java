@@ -71,6 +71,9 @@ public class QuestionService {
      * @return Returns with the list of results on the page determined by the parameters, returns null if indexOfPage or pageSize is invalid
      */
     public List<Question> getQuestionPagedFromList(int indexOfPage, int pageSize, List<Question> questions) {
+        if (questions.isEmpty()) {
+            return questions;
+        }
         if (indexOfPage < 0 || pageSize < 1 || numberOfPages(pageSize, questions) - 1 < indexOfPage) {
             return null;
         }
