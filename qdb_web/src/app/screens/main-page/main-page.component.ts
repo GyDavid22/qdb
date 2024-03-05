@@ -5,11 +5,12 @@ import { TagResponse } from '../../entities/TagResponse';
 import { QuestionCardComponent } from '../common-elements/question-card/question-card.component';
 import { TagsBoxComponent } from '../common-elements/tags-box/tags-box.component';
 import { QuestionMetadataList } from '../../entities/QuestionMetadataList';
+import { PaginatingComponent } from '../common-elements/paginating/paginating.component';
 
 @Component({
   selector: 'app-main-page',
   standalone: true,
-  imports: [NgFor, QuestionCardComponent, TagsBoxComponent],
+  imports: [NgFor, QuestionCardComponent, TagsBoxComponent, PaginatingComponent],
   templateUrl: './main-page.component.html',
   styleUrl: './main-page.component.css'
 })
@@ -23,14 +24,21 @@ export class MainPageComponent {
   }
   public questions: QuestionMetadataList | undefined;
   private pageIndex: number = 0;
-  private pageSize: number = 50;
+  private _pageSize: number | undefined = PaginatingComponent.DEFAULT_PAGESIZE;
+  public set pageSize(value: number | undefined) {
+    this._pageSize = value;
+    this.performQuery();
+  }
 
-  constructor(public qService: QueryService) {
+  constructor(private qService: QueryService) {
     this.qService.tagsWithCounts().then((value) => {
       this.tagsWithCount = value;
     });
+    this.performQuery();
+  }
 
-    qService.getQuestionMetadataList(this.pageIndex, this.pageSize).then((value) => {
+  private performQuery() {
+    this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize).then((value) => {
       this.questions = value;
     });
   }

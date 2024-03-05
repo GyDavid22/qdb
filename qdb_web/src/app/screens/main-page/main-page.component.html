@@ -1,6 +1,7 @@
 <div class="d-flex">
     <div class="col-9">
-        <p class="m-3">Total results: {{this.questions?.resultsCount ?? 0}}</p>
+        <app-paginating [message]="'Total number of questions:'" [totalCount]="this.questions?.resultsCount ?? 0"
+            (selectedPagesize)="this.pageSize = $event"></app-paginating>
         <div *ngFor="let i of this.questions?.questions">
             <app-question-card [question]="i" />
         </div>

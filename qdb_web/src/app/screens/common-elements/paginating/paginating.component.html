@@ -1,0 +1,9 @@
+<div class="my-3 mx-1 d-flex justify-content-between align-items-center">
+    {{this.message}} {{this.totalCount}}
+    <div class="col-3">
+        <select class="form-control" [(ngModel)]="this.pageSizeFormValue">
+            <option disabled selected value="default">Page size</option>
+            <option *ngFor="let i of this.pageSizes" (value)="i.value">{{i.display}}</option>
+        </select>
+    </div>
+</div>
