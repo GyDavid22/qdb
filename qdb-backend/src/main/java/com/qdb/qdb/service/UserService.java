@@ -92,4 +92,8 @@ public class UserService {
         sr.nextBytes(id);
         return Base64.getEncoder().encodeToString(id).toCharArray();
     }
+
+    public boolean checkRights(User u, User.Rank minRequired) {
+        return u.getRank().compareTo(minRequired) <= 0;
+    }
 }

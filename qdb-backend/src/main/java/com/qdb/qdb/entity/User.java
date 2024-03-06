@@ -14,10 +14,14 @@ public class User {
     @GeneratedValue
     private long id;
     private String userName;
+    @Enumerated(EnumType.STRING)
+    private Rank rank;
     private char[] hashedPassword;
     private char[] salt;
     @OneToMany(mappedBy = "user")
     private Collection<Session> sessions;
+    @OneToMany(mappedBy = "owner")
+    private Collection<Question> questions;
 
     public User() {
     }
@@ -60,5 +64,25 @@ public class User {
 
     public void setSessions(Collection<Session> sessions) {
         this.sessions = sessions;
+    }
+
+    public Rank getRank() {
+        return rank;
+    }
+
+    public void setRank(Rank rank) {
+        this.rank = rank;
+    }
+
+    public Collection<Question> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(Collection<Question> questions) {
+        this.questions = questions;
+    }
+
+    public enum Rank {
+        ADMIN, BASIC, RESTRICTED, PENDING;
     }
 }

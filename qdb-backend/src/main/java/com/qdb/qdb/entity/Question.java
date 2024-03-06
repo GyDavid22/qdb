@@ -16,6 +16,8 @@ public class Question {
     private String title;
     @Lob
     private String mdbody;
+    @ManyToOne
+    private User owner;
     @ManyToMany(mappedBy = "questions")
     private Collection<Tag> tags;
     @OneToMany(mappedBy = "question")
@@ -62,5 +64,13 @@ public class Question {
 
     public void setImages(Collection<Image> images) {
         this.images = images;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 }

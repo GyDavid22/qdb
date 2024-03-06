@@ -4,6 +4,8 @@ import com.qdb.qdb.dto.QuestionDTO;
 import com.qdb.qdb.dto.QuestionDTOWithCount;
 import com.qdb.qdb.dto.TagDTO;
 import com.qdb.qdb.entity.Question;
+import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.service.QuestionService;
 import com.qdb.qdb.service.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -72,7 +74,8 @@ public class QuestionController {
      */
     @PutMapping(path = "{id}/tags")
     public ResponseEntity<?> updateTags(@PathVariable long id, @RequestBody TagDTO tags, HttpServletRequest request, HttpServletResponse response) {
-        if (sService.checkCookieValidity(request.getCookies(), response) == null) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         Question result = service.getById(id);
@@ -82,7 +85,11 @@ public class QuestionController {
         if (tags == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        service.updateTags(result, tags.getTags());
+        try {
+            service.updateTags(result, tags.getTags(), u);
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

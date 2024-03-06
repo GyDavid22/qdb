@@ -2,6 +2,8 @@ package com.qdb.qdb.service;
 
 import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.Tag;
+import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,13 @@ public class QuestionService {
     private final QuestionRepository repo;
     @Autowired
     private final TagService tService;
+    @Autowired
+    private final UserService uService;
 
-    public QuestionService(QuestionRepository repo, TagService tService) {
+    public QuestionService(QuestionRepository repo, TagService tService, UserService uService) {
         this.repo = repo;
         this.tService = tService;
+        this.uService = uService;
     }
 
     public Question getById(long id) {
@@ -31,7 +36,8 @@ public class QuestionService {
      * @param q
      * @param tags
      */
-    public void updateTags(Question q, List<String> tags) {
+    public void updateTags(Question q, List<String> tags, User u) throws NoRightException {
+        checkEditingRights(q, u);
         Set<String> toAdd = new HashSet<>();
         Set<Tag> tagObj = new HashSet<>();
         for (String i : tags) {
@@ -153,6 +159,12 @@ public class QuestionService {
             }
         }
         return potentialResults;
+    }
+
+    private void checkEditingRights(Question q, User u) throws NoRightException {
+        if ((!uService.checkRights(u, User.Rank.BASIC) && (u.getRank().equals(User.Rank.RESTRICTED) && q.getOwner() != u))) {
+            throw new NoRightException();
+        }
     }
 
     private enum SearchType {

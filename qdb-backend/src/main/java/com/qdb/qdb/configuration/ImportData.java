@@ -70,14 +70,15 @@ public class ImportData implements ApplicationRunner {
         u.setUserName("QuestionEditor");
         u.setSalt("d8ee5dG/lBjn5H1WYS5/c2QqjuA1mOMLdltOR22VkJI=".toCharArray());
         u.setHashedPassword("FhfmDIt/UbqKAfOhY4bv+HrbzDBLXghnMBVfXYA4acQ=".toCharArray());
+        u.setRank(User.Rank.ADMIN);
         uRepo.saveAndFlush(u);
         importImages();
-        importQuestions();
+        importQuestions(u);
         bindImagesToQuestions();
         SpringApplication.exit(context);
     }
 
-    private void importQuestions() {
+    private void importQuestions(User u) {
         qRepo.deleteAll();
         try (FileReader fr = new FileReader("importdata/content.json")) {
             JSONParser p = new JSONParser();
@@ -91,6 +92,7 @@ public class ImportData implements ApplicationRunner {
                 Question q = new Question();
                 q.setTitle(title);
                 q.setMdbody(content);
+                q.setOwner(u);
                 qRepo.save(q);
                 count++;
                 if (count % BATCH_SIZE == 0) {
