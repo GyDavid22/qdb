@@ -32,12 +32,15 @@ public class UserService {
      * @param password
      * @return With the user object if succeeded, false otherwise
      */
-    public User authenticate(String userName, char[] password) {
+    public User authenticate(String userName, char[] password) throws NoRightException {
         Optional<User> result = repo.findByUserName(userName);
         if (result.isEmpty()) {
             return null;
         }
         User u = result.get();
+        if (u.getRank().equals(User.Rank.PENDING)) {
+            throw new NoRightException();
+        }
         if (Arrays.equals(u.getHashedPassword(), hashPassword(password, u.getSalt()))) {
             return u;
         }

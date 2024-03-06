@@ -3,6 +3,7 @@ package com.qdb.qdb.controller;
 import com.qdb.qdb.dto.UserLoginDTO;
 import com.qdb.qdb.dto.UsernameDTO;
 import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.service.SessionService;
 import com.qdb.qdb.service.UserService;
 import jakarta.servlet.http.Cookie;
@@ -37,7 +38,11 @@ public class SessionController {
         if (u != null) {
             return ResponseEntity.status(HttpStatus.OK).body(new UsernameDTO(u.getUserName()));
         }
-        u = uService.authenticate(loginCredentials.getUsername(), loginCredentials.getPassword());
+        try {
+            u = uService.authenticate(loginCredentials.getUsername(), loginCredentials.getPassword());
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("An admin haven't approved your registration yet.");
+        }
         if (u != null) {
             char[] sessionId = sService.createSession(u);
             Cookie c = new Cookie(COOKIE_NAME, new String(sessionId));
@@ -48,7 +53,7 @@ public class SessionController {
             response.addCookie(c);
             return ResponseEntity.status(HttpStatus.OK).body(new UsernameDTO(u.getUserName()));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Wrong username or password.");
     }
 
     @PostMapping(path = "/logout")
