@@ -10,6 +10,11 @@ class Globals:
 def main():
     traverse(os.listdir())
     print(f"Replaced text {Globals.NUM_OF_REPLACES} times")
+    dirname: str = ROOT_PATH.lstrip("/")
+    os.mkdir(dirname)
+    for i in os.listdir():
+        if (os.path.isfile(i)) or (os.path.isdir(i) and i == "assets"):
+            os.replace(i, f"{dirname}/{i}")
 
 def traverse(root: list[str], prefix = ""):
     for i in root:
