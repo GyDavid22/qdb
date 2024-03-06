@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -72,7 +73,7 @@ public class UserService {
      * @return The newly created user, null if username taken
      */
     public User createUser(String username, char[] password) {
-        if (repo.findByUserName(username).isPresent()) {
+        if (username.equalsIgnoreCase("null") || username.equalsIgnoreCase("all") || repo.findByUserName(username).isPresent()) {
             return null;
         }
         User u = new User();
@@ -82,6 +83,27 @@ public class UserService {
         u.setRank(User.Rank.PENDING);
         repo.saveAndFlush(u);
         return u;
+    }
+
+    /**
+     * Get User by username
+     *
+     * @param username
+     * @return User object with the given username, null if doesn't exist
+     */
+    public User getByUserName(String username, User admin) throws NoRightException {
+        if (!checkRights(admin, User.Rank.ADMIN)) {
+            throw new NoRightException();
+        }
+        Optional<User> res = repo.findByUserName(username);
+        return res.orElse(null);
+    }
+
+    public List<User> getAllUsers(User admin) throws NoRightException {
+        if (!checkRights(admin, User.Rank.ADMIN)) {
+            throw new NoRightException();
+        }
+        return repo.findAll();
     }
 
     /**

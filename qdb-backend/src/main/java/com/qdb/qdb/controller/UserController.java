@@ -1,7 +1,9 @@
 package com.qdb.qdb.controller;
 
+import com.qdb.qdb.dto.UserDTO;
 import com.qdb.qdb.dto.UserLoginDTO;
 import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.service.SessionService;
 import com.qdb.qdb.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "user")
@@ -49,5 +53,47 @@ public class UserController {
         }
         service.deleteUser(u.getId());
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getCurrentUserData(HttpServletRequest request, HttpServletResponse response) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(UserDTO.toDTO(u));
+    }
+
+    @GetMapping(path = "/{username}")
+    public ResponseEntity<?> getUserData(HttpServletRequest request, HttpServletResponse response, @PathVariable String username) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User res;
+        try {
+            res = service.getByUserName(username, u);
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (res == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(UserDTO.toDTO(res));
+    }
+
+    @GetMapping(path = "/all")
+    public ResponseEntity<?> getAllUser(HttpServletRequest request, HttpServletResponse response) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<User> res;
+        try {
+            res = service.getAllUsers(u);
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(res.stream().map(UserDTO::toDTO));
     }
 }
