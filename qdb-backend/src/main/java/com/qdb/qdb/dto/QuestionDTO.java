@@ -13,17 +13,19 @@ public class QuestionDTO {
     private String bodyUrl;
     private Collection<String> tags;
     private Collection<String> imagesUrls;
+    private String createdby;
 
-    public QuestionDTO(long id, String title, String bodyUrl, Collection<String> tags, Collection<String> imagesUrls) {
+    public QuestionDTO(long id, String title, String bodyUrl, Collection<String> tags, Collection<String> imagesUrls, String createdby) {
         this.id = id;
         this.title = title;
         this.bodyUrl = bodyUrl;
         this.tags = tags;
         this.imagesUrls = imagesUrls;
+        this.createdby = createdby;
     }
 
     public static QuestionDTO toDto(Question q) {
-        return new QuestionDTO(q.getId(), q.getTitle(), "/api/question/body/" + q.getId(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(i -> "/api/image/" + i.getName()).toList());
+        return new QuestionDTO(q.getId(), q.getTitle(), "/api/question/body/" + q.getId(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(i -> "/api/image/" + i.getName()).toList(), q.getOwner().getUserName());
     }
 
     public String getTitle() {
@@ -64,5 +66,13 @@ public class QuestionDTO {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getCreatedby() {
+        return createdby;
+    }
+
+    public void setCreatedby(String createdby) {
+        this.createdby = createdby;
     }
 }
