@@ -20,9 +20,9 @@ public class Question {
     @ManyToOne
     @Nullable
     private User owner;
-    @ManyToMany(mappedBy = "questions")
+    @ManyToMany(mappedBy = "questions", fetch = FetchType.EAGER)
     private Collection<Tag> tags;
-    @OneToMany(mappedBy = "question")
+    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
     private Collection<Image> images;
 
     public Question() {
