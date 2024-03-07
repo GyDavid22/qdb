@@ -1,5 +1,6 @@
 package com.qdb.qdb.service;
 
+import com.qdb.qdb.entity.ProfilePicture;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.repository.UserRepository;
@@ -7,6 +8,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -85,6 +89,7 @@ public class UserService {
         u.setSalt(generateSalt());
         u.setHashedPassword(hashPassword(password, u.getSalt()));
         u.setRank(User.Rank.PENDING);
+        u.setProfilePicture(null);
         repo.saveAndFlush(u);
         return u;
     }
@@ -199,6 +204,24 @@ public class UserService {
         byte[] id = new byte[32];
         sr.nextBytes(id);
         return Base64.getEncoder().encodeToString(id).toCharArray();
+    }
+
+    public ProfilePicture getProfilePicture(String username) {
+        Optional<User> u = repo.findByUserName(username);
+        if (u.isEmpty()) {
+            return null;
+        }
+        if (u.get().getProfilePicture() == null) {
+            try {
+                ProfilePicture pfp = new ProfilePicture();
+                pfp.setContent(Files.readAllBytes(Path.of("assets/default.png")));
+                pfp.setFormat(ProfilePicture.Format.PNG);
+                return pfp;
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        return u.get().getProfilePicture();
     }
 
     /**

@@ -4,6 +4,7 @@ import com.qdb.qdb.dto.SetPasswordDTO;
 import com.qdb.qdb.dto.SetRankDTO;
 import com.qdb.qdb.dto.UserDTO;
 import com.qdb.qdb.dto.UserLoginDTO;
+import com.qdb.qdb.entity.ProfilePicture;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.service.SessionService;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -151,5 +153,19 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have permission to change one's password");
         }
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping(path = "/picture/{username}", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    ResponseEntity<?> getProfilePicture(@PathVariable String username) {
+        ProfilePicture pfp = service.getProfilePicture(username);
+        if (pfp == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        MediaType contentType = switch (pfp.getFormat()) {
+            case JPG -> MediaType.IMAGE_JPEG;
+            case PNG -> MediaType.IMAGE_PNG;
+            default -> MediaType.IMAGE_JPEG;
+        };
+        return ResponseEntity.status(HttpStatus.OK).contentType(contentType).body(pfp.getContent());
     }
 }

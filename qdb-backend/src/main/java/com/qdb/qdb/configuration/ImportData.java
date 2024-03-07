@@ -71,6 +71,7 @@ public class ImportData implements ApplicationRunner {
         u.setSalt("d8ee5dG/lBjn5H1WYS5/c2QqjuA1mOMLdltOR22VkJI=".toCharArray());
         u.setHashedPassword("FhfmDIt/UbqKAfOhY4bv+HrbzDBLXghnMBVfXYA4acQ=".toCharArray());
         u.setRank(User.Rank.ADMIN);
+        u.setProfilePicture(null);
         uRepo.saveAndFlush(u);
         importImages();
         importQuestions(u);

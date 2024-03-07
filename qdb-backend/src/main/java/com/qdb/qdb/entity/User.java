@@ -1,5 +1,6 @@
 package com.qdb.qdb.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 
 import java.util.Collection;
@@ -16,6 +17,9 @@ public class User {
     private String userName;
     @Enumerated(EnumType.STRING)
     private Rank rank;
+    @Nullable
+    @OneToOne
+    private ProfilePicture profilePicture;
     private char[] hashedPassword;
     private char[] salt;
     @OneToMany(mappedBy = "user")
@@ -80,6 +84,15 @@ public class User {
 
     public void setQuestions(Collection<Question> questions) {
         this.questions = questions;
+    }
+
+    @Nullable
+    public ProfilePicture getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(@Nullable ProfilePicture profilePicture) {
+        this.profilePicture = profilePicture;
     }
 
     public enum Rank {
