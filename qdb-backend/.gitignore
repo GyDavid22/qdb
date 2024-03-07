@@ -34,5 +34,5 @@ build/
 
 importdata
 exportdata
-database/qdb.trace.db
+database/*
 out
