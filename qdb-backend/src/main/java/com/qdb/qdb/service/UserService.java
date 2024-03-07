@@ -10,13 +10,17 @@ import org.springframework.stereotype.Service;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService {
+    private static final Set<String> RESERVED_KEYWORDS = new HashSet<>() {
+        {
+            this.add("all");
+            this.add("null");
+            this.add("picture");
+        }
+    };
     @Autowired
     private final UserRepository repo;
     @Autowired
@@ -73,7 +77,7 @@ public class UserService {
      * @return The newly created user, null if username taken
      */
     public User createUser(String username, char[] password) {
-        if (username.equalsIgnoreCase("null") || username.equalsIgnoreCase("all") || repo.findByUserName(username).isPresent()) {
+        if (UserService.RESERVED_KEYWORDS.contains(username.toLowerCase()) || repo.findByUserName(username).isPresent()) {
             return null;
         }
         User u = new User();
