@@ -23,6 +23,7 @@ public class UserService {
             this.add("all");
             this.add("null");
             this.add("picture");
+			this.add("password");
         }
     };
     @Autowired
