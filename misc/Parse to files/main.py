@@ -11,14 +11,17 @@ def main():
     count = 0
     qDictList: list[dict[str, str]] = []
     for i in qlist:
-        with open(f"out/q{count}.md", "wt", encoding="utf-8") as f:
+        with open(f"questions/q{count}.md", "wt", encoding="utf-8") as f:
             f.write(i.body)
         qDictList.append({
-            "filename": f"q{count}.md",
-            "title" : i.title
+            "owner": None,
+            "images": [],
+            "title" : i.title,
+            "body": f"q{count}.md",
+            "tags": []
         })
         count += 1
-    with open("content.json", "wt", encoding="utf-8") as f:
+    with open("questionsmetadata.json", "wt", encoding="utf-8") as f:
         f.write(json.dumps(qDictList))
 
 def parseToList() -> list[Question]:
