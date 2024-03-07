@@ -142,7 +142,7 @@ public class UserService {
         }
         u.setSalt(generateSalt());
         u.setHashedPassword(hashPassword(newPassword, u.getSalt()));
-        u.getSessions().clear();
+        sService.deleteAllSessionOfUser(u);
         repo.flush();
     }
 
@@ -167,6 +167,7 @@ public class UserService {
         if (result.isPresent()) {
             User u = result.get();
             sService.deleteAllSessionOfUser(u);
+            u.getQuestions().forEach(q -> q.setOwner(null));
             repo.delete(u);
             repo.flush();
             return true;
