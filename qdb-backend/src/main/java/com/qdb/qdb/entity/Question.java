@@ -1,5 +1,6 @@
 package com.qdb.qdb.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 
 import java.util.Collection;
@@ -17,6 +18,7 @@ public class Question {
     @Lob
     private String mdbody;
     @ManyToOne
+    @Nullable
     private User owner;
     @ManyToMany(mappedBy = "questions")
     private Collection<Tag> tags;

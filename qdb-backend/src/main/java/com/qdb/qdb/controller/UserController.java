@@ -1,5 +1,7 @@
 package com.qdb.qdb.controller;
 
+import com.qdb.qdb.dto.SetPasswordDTO;
+import com.qdb.qdb.dto.SetRankDTO;
 import com.qdb.qdb.dto.UserDTO;
 import com.qdb.qdb.dto.UserLoginDTO;
 import com.qdb.qdb.entity.User;
@@ -39,7 +41,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Your registration request was sent to the admins");
     }
 
-    @DeleteMapping(path = "/{username}")
+    @DeleteMapping(path = {"", "/{username}"})
     public ResponseEntity<?> deleteUser(HttpServletRequest request, HttpServletResponse response, @PathVariable(required = false) String username) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
         if (u == null) {
@@ -50,8 +52,9 @@ public class UserController {
             if (!result) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You're either not an admin or the given user doesn't exist");
             }
+            return ResponseEntity.status(HttpStatus.OK).build();
         }
-        service.deleteUser(u.getId());
+        service.deleteUser(u.getUserName());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -95,5 +98,58 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.status(HttpStatus.OK).body(res.stream().map(UserDTO::toDTO));
+    }
+
+    @PostMapping(path = "/rank/{username}")
+    public ResponseEntity<?> setRank(HttpServletRequest request, HttpServletResponse response, @PathVariable String username, @RequestBody SetRankDTO rank) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            User res = service.getByUserName(username, u);
+            if (res == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            service.setRank(u, res, rank.getRank());
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have permission to set one's rank");
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    /**
+     * Endpoint to change one's password. If username not provided, user changes its own password, otherwise it expects an admin changing another user's password
+     *
+     * @param request
+     * @param response
+     * @param username
+     * @param password
+     * @return
+     */
+    @PostMapping(path = {"/password", "/password/{username}"})
+    public ResponseEntity<?> setPassword(HttpServletRequest request, HttpServletResponse response, @PathVariable(required = false) String username, @RequestBody SetPasswordDTO password) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (username == null) {
+            char[] sessionId = sService.getCurrentSessionId(request.getCookies(), response);
+            boolean result = service.changePassword(u, password.getOldPassword(), password.getNewPassword(), sessionId);
+            if (!result) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect current password");
+            }
+            return ResponseEntity.status(HttpStatus.OK).build();
+        }
+        try {
+            User res = service.getByUserName(username, u);
+            if (res == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            service.setPasswordByAdmin(u, res, password.getNewPassword());
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have permission to change one's password");
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

@@ -83,6 +83,6 @@ public class User {
     }
 
     public enum Rank {
-        ADMIN, BASIC, RESTRICTED, PENDING;
+        ADMIN, BASIC, RESTRICTED, PENDING
     }
 }

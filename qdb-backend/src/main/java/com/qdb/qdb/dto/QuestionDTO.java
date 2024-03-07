@@ -8,6 +8,8 @@ import java.util.Collection;
 
 @JsonSerialize
 public class QuestionDTO {
+    //TODO: fetch from application.properties
+    private static final String root = "/java/api";
     private long id;
     private String title;
     private String bodyUrl;
@@ -25,7 +27,7 @@ public class QuestionDTO {
     }
 
     public static QuestionDTO toDto(Question q) {
-        return new QuestionDTO(q.getId(), q.getTitle(), "/api/question/body/" + q.getId(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(i -> "/api/image/" + i.getName()).toList(), q.getOwner().getUserName());
+        return new QuestionDTO(q.getId(), q.getTitle(), root + "/question/body/" + q.getId(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(i -> root + "/image/" + i.getName()).toList(), q.getOwner() == null ? "null" : q.getOwner().getUserName());
     }
 
     public String getTitle() {

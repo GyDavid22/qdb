@@ -64,7 +64,7 @@ public class ImportData implements ApplicationRunner {
 
     public void importData() {
         for (User u : uRepo.findAll()) {
-            uService.deleteUser(u.getId());
+            uService.deleteUser(u.getUserName());
         }
         User u = new User();
         u.setUserName("QuestionEditor");

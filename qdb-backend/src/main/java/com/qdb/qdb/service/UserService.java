@@ -107,13 +107,13 @@ public class UserService {
     }
 
     /**
-     * Method to change one's password
+     * Method to change one's password, invalidates all other sessions for security
      *
      * @param u           User whose password should be changed
      * @param newPassword New password to set
      * @return False, if the current password doesn't match (no changes happen), true otherwise
      */
-    public boolean changePassword(User u, char[] oldPassword, char[] newPassword) {
+    public boolean changePassword(User u, char[] oldPassword, char[] newPassword, char[] currentSessionId) {
         try {
             if (authenticate(u.getUserName(), oldPassword) == null) {
                 return false;
@@ -123,8 +123,27 @@ public class UserService {
         }
         u.setSalt(generateSalt());
         u.setHashedPassword(hashPassword(newPassword, u.getSalt()));
+        u.getSessions().removeIf(s -> !Arrays.equals(s.getSessionId(), currentSessionId));
         repo.flush();
         return true;
+    }
+
+    /**
+     * Method to set the password of a different user, needs admin rights, invalidates all sessions for security reasons
+     *
+     * @param admin
+     * @param u
+     * @param newPassword
+     * @throws NoRightException
+     */
+    public void setPasswordByAdmin(User admin, User u, char[] newPassword) throws NoRightException {
+        if (!checkRights(admin, User.Rank.ADMIN)) {
+            throw new NoRightException();
+        }
+        u.setSalt(generateSalt());
+        u.setHashedPassword(hashPassword(newPassword, u.getSalt()));
+        u.getSessions().clear();
+        repo.flush();
     }
 
     /**
@@ -133,26 +152,26 @@ public class UserService {
      * @param admin   An admin user who sets the rank
      * @param toSet   The User whose rank is set
      * @param newRank New rank of user
-     * @return False, if admin doesn't actually have admin rights (no changes will be made), true otherwise
      */
-    public boolean setRank(User admin, User toSet, User.Rank newRank) {
+    public void setRank(User admin, User toSet, User.Rank newRank) throws NoRightException {
         if (!checkRights(admin, User.Rank.ADMIN)) {
-            return false;
+            throw new NoRightException();
         }
         toSet.setRank(newRank);
         repo.flush();
-        return true;
     }
 
     @Transactional
-    public void deleteUser(long userID) {
-        Optional<User> result = repo.findById(userID);
+    public boolean deleteUser(String username) {
+        Optional<User> result = repo.findByUserName(username);
         if (result.isPresent()) {
             User u = result.get();
             sService.deleteAllSessionOfUser(u);
             repo.delete(u);
             repo.flush();
+            return true;
         }
+        return false;
     }
 
     /**
@@ -167,15 +186,7 @@ public class UserService {
         if (!checkRights(admin, User.Rank.ADMIN)) {
             return false;
         }
-        Optional<User> result = repo.findByUserName(username);
-        if (result.isPresent()) {
-            User u = result.get();
-            sService.deleteAllSessionOfUser(u);
-            repo.delete(u);
-            repo.flush();
-            return true;
-        }
-        return false;
+        return deleteUser(username);
     }
 
     private char[] generateSalt() {

@@ -108,6 +108,24 @@ public class SessionService {
         return null;
     }
 
+    public char[] getCurrentSessionId(Cookie[] cookies, HttpServletResponse response) {
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie c : cookies) {
+            if (c.getName().equals(COOKIE_NAME)) {
+                User u = getUserOfSession(c.getValue().toCharArray());
+                if (u != null) {
+                    return c.getValue().toCharArray();
+                } else {
+                    invalidateCookie(c, response);
+                    break;
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * Invalidates cookies and attaches them to the response. If the cookie contains a valid sessionId, that session will also be deleted.
      *
