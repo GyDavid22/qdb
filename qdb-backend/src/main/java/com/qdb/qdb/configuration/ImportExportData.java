@@ -86,7 +86,7 @@ public class ImportExportData implements ApplicationRunner {
 
     private void exportUsers() throws IOException {
         JSONArray ja = new JSONArray();
-        File imagesFolder = new File("exportdata/pictures");
+        File imagesFolder = new File("exportdata/profilepictures");
         imagesFolder.mkdir();
         for (User u : uRepo.findAll()) {
             JSONObject jo = new JSONObject();
@@ -95,7 +95,7 @@ public class ImportExportData implements ApplicationRunner {
             jo.put("salt", new String(u.getSalt()));
             jo.put("rank", u.getRank().toString());
             if (u.getProfilePicture() != null) {
-                try (FileOutputStream fos = new FileOutputStream("exportdata/pictures/" + u.getUserName() + "." + u.getProfilePicture().getFormat().toString().toLowerCase())) {
+                try (FileOutputStream fos = new FileOutputStream("exportdata/profilepictures/" + u.getUserName() + "." + u.getProfilePicture().getFormat().toString().toLowerCase())) {
                     fos.write(u.getProfilePicture().getContent());
                 }
             }
