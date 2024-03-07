@@ -71,8 +71,7 @@ public class ImportExportData implements ApplicationRunner {
             if (!outputfolder.exists()) {
                 outputfolder.mkdir();
             } else {
-                outputfolder.delete();
-                outputfolder.mkdir();
+                deleteExportFolderContent(outputfolder.listFiles());
             }
 
             exportUsers();
@@ -82,6 +81,17 @@ public class ImportExportData implements ApplicationRunner {
             e.printStackTrace();
         }
         SpringApplication.exit(context);
+    }
+
+    private void deleteExportFolderContent(File[] files) {
+        for (File i : files) {
+            if (i.isFile()) {
+                i.delete();
+            } else {
+                deleteExportFolderContent(i.listFiles());
+                i.delete();
+            }
+        }
     }
 
     private void exportUsers() throws IOException {
