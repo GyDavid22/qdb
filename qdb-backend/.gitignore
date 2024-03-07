@@ -35,4 +35,5 @@ build/
 importdata
 exportdata
 database/qdb.trace.db
+database/qdb.mv.db
 out
