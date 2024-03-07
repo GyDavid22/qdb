@@ -130,7 +130,7 @@ public class ImportExportData implements ApplicationRunner {
                 tags.add(tag);
             }
             jo.put("tags", tags);
-            jo.put("owner", q.getOwner() == null ? "null" : q.getOwner().getUserName());
+            jo.put("owner", q.getOwner() == null ? null : q.getOwner().getUserName());
             JSONArray images = new JSONArray();
             for (Image i : q.getImages()) {
                 JSONObject image = new JSONObject();
