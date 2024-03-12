@@ -40,7 +40,7 @@ public class ImageService {
         }
     }
 
-    public void addImage(byte[] content, String mediaType) throws UnsupportedFileFormatException {
+    public Image addImage(byte[] content, String mediaType) throws UnsupportedFileFormatException {
         if ((mediaType == null) || (!mediaType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) && !mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE))) {
             throw new UnsupportedFileFormatException();
         }
@@ -51,6 +51,7 @@ public class ImageService {
         // TODO name check
         i.setName(i.getId() + (mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg"));
         repo.flush();
+        return i;
     }
 
     public void bindImageToQuestion(Image i, Question q) {

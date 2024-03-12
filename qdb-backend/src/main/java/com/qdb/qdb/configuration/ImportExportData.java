@@ -4,11 +4,15 @@ import com.qdb.qdb.entity.Image;
 import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.Tag;
 import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.repository.ImageRepository;
 import com.qdb.qdb.repository.QuestionRepository;
+import com.qdb.qdb.repository.TagRepository;
 import com.qdb.qdb.repository.UserRepository;
+import com.qdb.qdb.service.ImageService;
+import com.qdb.qdb.service.QuestionService;
 import com.qdb.qdb.service.UserService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,20 +27,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Class to import and export data from the database if the application is launched with the corresponding command line argument.
  */
 @Configuration
 public class ImportExportData implements ApplicationRunner {
-    private final int BATCH_SIZE = 50;
     @Autowired
     private final ApplicationContext context;
     @Autowired
@@ -47,13 +48,22 @@ public class ImportExportData implements ApplicationRunner {
     private final ImageRepository iRepo;
     @Autowired
     private final UserRepository uRepo;
+    @Autowired
+    private final TagRepository tRepo;
+    @Autowired
+    private final ImageService iService;
+    @Autowired
+    private final QuestionService qService;
 
-    public ImportExportData(ApplicationContext context, UserService uService, QuestionRepository qRepo, ImageRepository iRepo, UserRepository uRepo) {
+    public ImportExportData(ApplicationContext context, UserService uService, QuestionRepository qRepo, ImageRepository iRepo, UserRepository uRepo, TagRepository tRepo, ImageService iService, QuestionService qService) {
         this.context = context;
         this.uService = uService;
         this.qRepo = qRepo;
         this.iRepo = iRepo;
         this.uRepo = uRepo;
+        this.tRepo = tRepo;
+        this.iService = iService;
+        this.qService = qService;
     }
 
     @Override
@@ -161,7 +171,6 @@ public class ImportExportData implements ApplicationRunner {
 
     private void importData() {
         importUsers();
-        importImages();
         importQuestions();
         bindImagesToQuestions();
         SpringApplication.exit(context);
@@ -206,58 +215,46 @@ public class ImportExportData implements ApplicationRunner {
     }
 
     private void importQuestions() {
+        iRepo.deleteAll();
+        tRepo.deleteAll();
         qRepo.deleteAll();
-        try (FileReader fr = new FileReader("importdata/content.json")) {
+        User mockUser = new User();
+        mockUser.setRank(User.Rank.ADMIN);
+        try (FileReader fr = new FileReader("importdata/questionsmetadata.json")) {
             JSONParser p = new JSONParser();
-            JSONArray ja = (JSONArray) p.parse(fr);
-            int count = 0;
-            for (Object i : ja) {
-                JSONObject jo = (JSONObject) i;
-                String filename = (String) jo.get("filename");
-                String title = (String) jo.get("title");
-                String content = String.join("\n", Files.readAllLines(Paths.get("importdata/files/" + filename), StandardCharsets.UTF_8));
+            JSONArray questions = (JSONArray) p.parse(fr);
+            for (Object i : questions) {
+                JSONObject question = (JSONObject) i;
                 Question q = new Question();
+                String owner = (String) question.get("owner");
+                String title = (String) question.get("title");
+                String body = (String) question.get("body");
+                String bodyContent = String.join("\n", Files.readAllLines(Path.of("importdata/questions/" + body)));
+                JSONArray images = (JSONArray) question.get("images");
+                q.setImages(new ArrayList<>());
+                JSONArray tags = (JSONArray) question.get("tags");
+                q.setOwner(uService.getByUserName(owner, mockUser));
                 q.setTitle(title);
-                q.setMdbody(content);
-                q.setOwner(null);
-                qRepo.save(q);
-                count++;
-                if (count % BATCH_SIZE == 0) {
-                    count = 0;
-                    qRepo.flush();
+                q.setMdbody(bodyContent);
+                q.setTags(new ArrayList<>());
+                qRepo.saveAndFlush(q);
+                for (Object j : images) {
+                    String imagename = (String) ((JSONObject) j).get("name");
+                    byte[] content = Files.readAllBytes(Path.of("importdata/questions/" + imagename));
+                    Image image = iService.addImage(content, imagename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE);
+                    iService.bindImageToQuestion(image, q);
+                    iRepo.saveAndFlush(image);
                 }
+                qService.updateTags(q, tags.stream().map(t -> (String) ((JSONObject) t).get("name")).toList(), mockUser);
+                qRepo.flush();
             }
-        } catch (IOException | ParseException e) {
+        } catch (IOException | ParseException | NoRightException | UnsupportedFileFormatException e) {
             e.printStackTrace();
         }
-        qRepo.flush();
-    }
-
-    private void importImages() {
-        iRepo.deleteAll();
-        File imageDir = new File("importdata/images");
-        if (imageDir.isDirectory() && imageDir.listFiles() != null) {
-            int count = 0;
-            for (File i : Objects.requireNonNull(imageDir.listFiles())) {
-                Image image = new Image();
-                image.setName(i.getName());
-                try {
-                    image.setContent(Files.readAllBytes(Paths.get(i.getPath())));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                iRepo.save(image);
-                count++;
-                if (count % BATCH_SIZE == 0) {
-                    iRepo.flush();
-                }
-            }
-        }
-        iRepo.flush();
     }
 
     private void bindImagesToQuestions() {
-        List<Image> images = iRepo.findAll();
+        Collection<Image> images = iRepo.findByQuestionIsNull();
         List<Image> found = new ArrayList<>();
         for (Question i : qRepo.findAll()) {
             String bodyInLowerCase = i.getMdbody().toLowerCase();
