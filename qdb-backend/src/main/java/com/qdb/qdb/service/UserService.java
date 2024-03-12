@@ -258,6 +258,22 @@ public class UserService {
         repo.flush();
     }
 
+    public void deleteProfilePicture(String username) throws UserNotFoundException {
+        Optional<User> res = repo.findByUserName(username);
+        if (res.isEmpty()) {
+            throw new UserNotFoundException();
+        }
+        User u = res.get();
+        if (u.getProfilePicture() != null) {
+            ProfilePicture pic = u.getProfilePicture();
+            pic.setOwner(null);
+            u.setProfilePicture(null);
+            pRepo.delete(pic);
+            pRepo.flush();
+            repo.flush();
+        }
+    }
+
     /**
      * Checks whether an user has at least the given rank
      *

@@ -188,4 +188,15 @@ public class UserController {
         }
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @DeleteMapping(path = "/picture/{username}")
+    public ResponseEntity<?> deleteProfilePicture(@PathVariable String username) {
+        // TODO user right check
+        try {
+            service.deleteProfilePicture(username);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
