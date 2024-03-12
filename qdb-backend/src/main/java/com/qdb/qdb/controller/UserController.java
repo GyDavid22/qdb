@@ -7,6 +7,8 @@ import com.qdb.qdb.dto.UserLoginDTO;
 import com.qdb.qdb.entity.ProfilePicture;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
+import com.qdb.qdb.exception.UnsupportedFileFormatException;
+import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.service.SessionService;
 import com.qdb.qdb.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -156,7 +160,7 @@ public class UserController {
     }
 
     @GetMapping(path = "/picture/{username}", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    ResponseEntity<?> getProfilePicture(@PathVariable String username) {
+    public ResponseEntity<?> getProfilePicture(@PathVariable String username) {
         ProfilePicture pfp = service.getProfilePicture(username);
         if (pfp == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -167,5 +171,21 @@ public class UserController {
             default -> MediaType.IMAGE_JPEG;
         };
         return ResponseEntity.status(HttpStatus.OK).contentType(contentType).body(pfp.getContent());
+    }
+
+    @PostMapping(path = "/picture/{username}")
+    public ResponseEntity<?> uploadProfilePicture(@PathVariable String username, @RequestParam("file") MultipartFile file) {
+        // TODO user right check
+        if (file == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        try {
+            service.setProfilePicture(file.getBytes(), file.getContentType(), username);
+        } catch (IOException | UnsupportedFileFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

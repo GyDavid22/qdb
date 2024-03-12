@@ -1,17 +1,15 @@
 package com.qdb.qdb.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 
 @Entity
 public class ProfilePicture {
     @Id
     @GeneratedValue
     private long id;
+    @Lob
     private byte[] content;
-    @OneToOne(orphanRemoval = true)
+    @OneToOne
     private User owner;
     private Format format;
 

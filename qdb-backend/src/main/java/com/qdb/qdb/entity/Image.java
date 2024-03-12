@@ -2,6 +2,8 @@ package com.qdb.qdb.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 /**
  * Represents an image. It shouldn't exist on its own without a Question.
  */
@@ -16,6 +18,7 @@ public class Image {
     private String name;
     @ManyToOne
     private Question question;
+    private LocalDateTime timeout;
 
     public Image() {
     }
@@ -50,5 +53,13 @@ public class Image {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public LocalDateTime getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(LocalDateTime timeout) {
+        this.timeout = timeout;
     }
 }

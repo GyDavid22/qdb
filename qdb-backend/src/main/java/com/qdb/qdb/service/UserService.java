@@ -3,9 +3,13 @@ package com.qdb.qdb.service;
 import com.qdb.qdb.entity.ProfilePicture;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
+import com.qdb.qdb.exception.UnsupportedFileFormatException;
+import com.qdb.qdb.exception.UserNotFoundException;
+import com.qdb.qdb.repository.ProfilePictureRepository;
 import com.qdb.qdb.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -30,10 +34,13 @@ public class UserService {
     private final UserRepository repo;
     @Autowired
     private final SessionService sService;
+    @Autowired
+    private final ProfilePictureRepository pRepo;
 
-    public UserService(UserRepository repo, SessionService sService) {
+    public UserService(UserRepository repo, SessionService sService, ProfilePictureRepository pRepo) {
         this.repo = repo;
         this.sService = sService;
+        this.pRepo = pRepo;
     }
 
     /**
@@ -223,6 +230,32 @@ public class UserService {
             }
         }
         return u.get().getProfilePicture();
+    }
+
+    public void setProfilePicture(byte[] image, String contentType, String username) throws UserNotFoundException, UnsupportedFileFormatException {
+        Optional<User> res = repo.findByUserName(username);
+        if (res.isEmpty()) {
+            throw new UserNotFoundException();
+        }
+        User u = res.get();
+        ProfilePicture pfp = new ProfilePicture();
+        if ((contentType == null) || (!contentType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) && !contentType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE))) {
+            throw new UnsupportedFileFormatException();
+        }
+        if (u.getProfilePicture() != null) {
+            ProfilePicture pic = u.getProfilePicture();
+            pic.setOwner(null);
+            u.setProfilePicture(null);
+            pRepo.delete(pic);
+            pRepo.flush();
+            repo.flush();
+        }
+        pfp.setFormat(contentType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) ? ProfilePicture.Format.JPG : ProfilePicture.Format.PNG);
+        pfp.setContent(image);
+        pfp.setOwner(u);
+        u.setProfilePicture(pfp);
+        pRepo.saveAndFlush(pfp);
+        repo.flush();
     }
 
     /**
