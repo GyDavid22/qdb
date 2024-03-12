@@ -185,6 +185,14 @@ public class UserService {
             User u = result.get();
             sService.deleteAllSessionOfUser(u);
             u.getQuestions().forEach(q -> q.setOwner(null));
+            if (u.getProfilePicture() != null) {
+                ProfilePicture pic = u.getProfilePicture();
+                pic.setOwner(null);
+                u.setProfilePicture(null);
+                pRepo.delete(pic);
+                pRepo.flush();
+                repo.flush();
+            }
             repo.delete(u);
             repo.flush();
             return true;

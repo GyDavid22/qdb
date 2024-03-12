@@ -4,6 +4,8 @@ import com.qdb.qdb.entity.Image;
 import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.Tag;
 import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.UnsupportedFileFormatException;
+import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.repository.ImageRepository;
 import com.qdb.qdb.repository.QuestionRepository;
 import com.qdb.qdb.repository.UserRepository;
@@ -18,10 +20,12 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +69,7 @@ public class ImportExportData implements ApplicationRunner {
         }
     }
 
-    public void exportData() {
+    private void exportData() {
         try {
             File outputfolder = new File("exportdata");
             if (!outputfolder.exists()) {
@@ -108,6 +112,9 @@ public class ImportExportData implements ApplicationRunner {
                 try (FileOutputStream fos = new FileOutputStream("exportdata/profilepictures/" + u.getUserName() + "." + u.getProfilePicture().getFormat().toString().toLowerCase())) {
                     fos.write(u.getProfilePicture().getContent());
                 }
+                jo.put("profilepicture", "exportdata/profilepictures/" + u.getUserName() + "." + u.getProfilePicture().getFormat().toString().toLowerCase());
+            } else {
+                jo.put("profilepicture", null);
             }
             ja.add(jo);
         }
@@ -116,7 +123,7 @@ public class ImportExportData implements ApplicationRunner {
         }
     }
 
-    public void exportQuestions() throws IOException {
+    private void exportQuestions() throws IOException {
         JSONArray ja = new JSONArray();
         File questionsfolder = new File("exportdata/questions");
         questionsfolder.mkdir();
@@ -152,24 +159,53 @@ public class ImportExportData implements ApplicationRunner {
         }
     }
 
-    public void importData() {
-        for (User u : uRepo.findAll()) {
-            uService.deleteUser(u.getUserName());
-        }
-        User u = new User();
-        u.setUserName("QuestionEditor");
-        u.setSalt("d8ee5dG/lBjn5H1WYS5/c2QqjuA1mOMLdltOR22VkJI=".toCharArray());
-        u.setHashedPassword("FhfmDIt/UbqKAfOhY4bv+HrbzDBLXghnMBVfXYA4acQ=".toCharArray());
-        u.setRank(User.Rank.ADMIN);
-        u.setProfilePicture(null);
-        uRepo.saveAndFlush(u);
+    private void importData() {
+        importUsers();
         importImages();
-        importQuestions(u);
+        importQuestions();
         bindImagesToQuestions();
         SpringApplication.exit(context);
     }
 
-    private void importQuestions(User u) {
+    private void importUsers() {
+        for (User u : uRepo.findAll()) {
+            uService.deleteUser(u.getUserName());
+        }
+        try (FileReader fr = new FileReader("importdata/users.json")) {
+            JSONParser p = new JSONParser();
+            JSONArray users = (JSONArray) p.parse(fr);
+            for (Object i : users) {
+                JSONObject user = (JSONObject) i;
+                String username = (String) user.get("username");
+                String rank = (String) user.get("rank");
+                String salt = (String) user.get("salt");
+                String hashedpassword = (String) user.get("hashedpassword");
+                String picturename = (String) user.get("profilepicture");
+                User u = new User();
+                u.setUserName(username);
+                u.setRank(User.Rank.valueOf(rank));
+                u.setSalt(salt.toCharArray());
+                u.setHashedPassword(hashedpassword.toCharArray());
+                u.setProfilePicture(null);
+                uRepo.saveAndFlush(u);
+                if (picturename != null) {
+                    File pfp = new File("profilepictures/" + picturename);
+                    if (pfp.exists()) {
+                        byte[] content = Files.readAllBytes(Path.of(pfp.getPath()));
+                        String type = picturename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE;
+                        try {
+                            uService.setProfilePicture(content, type, u.getUserName());
+                        } catch (UserNotFoundException | UnsupportedFileFormatException ignored) {
+                        }
+                    }
+                }
+            }
+        } catch (IOException | ParseException | IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void importQuestions() {
         qRepo.deleteAll();
         try (FileReader fr = new FileReader("importdata/content.json")) {
             JSONParser p = new JSONParser();
