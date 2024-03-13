@@ -46,6 +46,14 @@ public class ImageController {
         return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_TYPE, type).body(result);
     }
 
+    /**
+     * Endpoint to upload an image. Needs active session and basic rights. The image doesn't get bound to a question just by this endpoint.
+     *
+     * @param request
+     * @param response
+     * @param file
+     * @return
+     */
     @PostMapping
     ResponseEntity<?> uploadImage(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
         User u = sService.checkCookieValidity(request.getCookies(), response);

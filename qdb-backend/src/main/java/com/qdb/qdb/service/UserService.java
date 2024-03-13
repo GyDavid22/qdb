@@ -241,6 +241,17 @@ public class UserService {
         return u.get().getProfilePicture();
     }
 
+    /**
+     * If admin is null, the profile picture will be set either way, if not, admin needs to be an admin.
+     *
+     * @param image
+     * @param contentType
+     * @param username
+     * @param admin
+     * @throws UserNotFoundException
+     * @throws UnsupportedFileFormatException
+     * @throws NoRightException
+     */
     public void setProfilePicture(byte[] image, String contentType, String username, @Nullable User admin) throws UserNotFoundException, UnsupportedFileFormatException, NoRightException {
         if (admin != null && !admin.getRank().equals(User.Rank.ADMIN)) {
             throw new NoRightException();
@@ -270,6 +281,14 @@ public class UserService {
         repo.flush();
     }
 
+    /**
+     * If admin is null, the profile picture will be deleted either way, if not, admin needs to be an admin.
+     *
+     * @param username
+     * @param admin
+     * @throws UserNotFoundException
+     * @throws NoRightException
+     */
     public void deleteProfilePicture(String username, @Nullable User admin) throws UserNotFoundException, NoRightException {
         if (admin != null && !admin.getRank().equals(User.Rank.ADMIN)) {
             throw new NoRightException();

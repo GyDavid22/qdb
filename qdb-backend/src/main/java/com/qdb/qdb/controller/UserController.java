@@ -36,6 +36,14 @@ public class UserController {
         this.sService = sService;
     }
 
+    /**
+     * Endpoint to create new user.
+     *
+     * @param request
+     * @param response
+     * @param userCredentials
+     * @return
+     */
     @PostMapping
     public ResponseEntity<?> registration(HttpServletRequest request, HttpServletResponse response, @RequestBody UserLoginDTO userCredentials) {
         if (sService.checkCookieValidity(request.getCookies(), response) != null) {
@@ -47,6 +55,14 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Your registration request was sent to the admins");
     }
 
+    /**
+     * Endpoint to delete an user. If username provided, user deletes itself, if no username provided, an admin session needed and the given user will be deleted.
+     *
+     * @param request
+     * @param response
+     * @param username
+     * @return
+     */
     @DeleteMapping(path = {"", "/{username}"})
     public ResponseEntity<?> deleteUser(HttpServletRequest request, HttpServletResponse response, @PathVariable(required = false) String username) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
@@ -64,6 +80,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    /**
+     * Endpoint to get metadata of currently logged in user.
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     @GetMapping
     public ResponseEntity<?> getCurrentUserData(HttpServletRequest request, HttpServletResponse response) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
@@ -73,6 +96,14 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(UserDTO.toDTO(u));
     }
 
+    /**
+     * Endpoint to get metadata of a given user, admin session needed.
+     *
+     * @param request
+     * @param response
+     * @param username
+     * @return
+     */
     @GetMapping(path = "/{username}")
     public ResponseEntity<?> getUserData(HttpServletRequest request, HttpServletResponse response, @PathVariable String username) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
@@ -91,6 +122,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(UserDTO.toDTO(res));
     }
 
+    /**
+     * Endpoint to get metadata of all users, admin session needed.
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     @GetMapping(path = "/all")
     public ResponseEntity<?> getAllUser(HttpServletRequest request, HttpServletResponse response) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
@@ -106,6 +144,15 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(res.stream().map(UserDTO::toDTO));
     }
 
+    /**
+     * Endpoint to set one's rank, admin session needed.
+     *
+     * @param request
+     * @param response
+     * @param username
+     * @param rank
+     * @return
+     */
     @PostMapping(path = "/rank/{username}")
     public ResponseEntity<?> setRank(HttpServletRequest request, HttpServletResponse response, @PathVariable String username, @RequestBody SetRankDTO rank) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
@@ -159,6 +206,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+
     @GetMapping(path = "/picture/{username}", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getProfilePicture(@PathVariable String username) {
         ProfilePicture pfp = service.getProfilePicture(username);
@@ -173,6 +221,15 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).contentType(contentType).body(pfp.getContent());
     }
 
+    /**
+     * Endpoint to get one's profile picture. Login required.
+     *
+     * @param request
+     * @param response
+     * @param username
+     * @param file
+     * @return
+     */
     @PostMapping(path = "/picture/{username}")
     public ResponseEntity<?> uploadProfilePicture(HttpServletRequest request, HttpServletResponse response, @PathVariable(required = false) String username, @RequestParam("file") MultipartFile file) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
@@ -198,6 +255,14 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    /**
+     * Endpoint to reset one's profile picture. If username not provided, user will set its own profile picture, if provided, an admin session needed and the given user's profile picture will be deleted.
+     *
+     * @param request
+     * @param response
+     * @param username
+     * @return
+     */
     @DeleteMapping(path = "/picture/{username}")
     public ResponseEntity<?> deleteProfilePicture(HttpServletRequest request, HttpServletResponse response, @PathVariable(required = false) String username) {
         User u = sService.checkCookieValidity(request.getCookies(), response);

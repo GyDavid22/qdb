@@ -45,6 +45,16 @@ public class ImageService {
         }
     }
 
+    /**
+     * Adds a new image to the database. Doesn't bind to a question, images not bound to a question will be deleted after 2 hours. Needs basic rights.
+     *
+     * @param content
+     * @param mediaType
+     * @param u
+     * @return
+     * @throws UnsupportedFileFormatException
+     * @throws NoRightException
+     */
     public Image addImage(byte[] content, String mediaType, User u) throws UnsupportedFileFormatException, NoRightException {
         if (!uService.checkRights(u, User.Rank.BASIC)) {
             throw new NoRightException();
@@ -61,6 +71,14 @@ public class ImageService {
         return i;
     }
 
+    /**
+     * Binds an image to a question and saves it from being automatically deleted. User either needs to be the owner of the question or be an admin.
+     *
+     * @param i
+     * @param q
+     * @param u
+     * @throws NoRightException
+     */
     public void bindImageToQuestion(Image i, Question q, User u) throws NoRightException {
         if (q.getOwner() != u && !u.getRank().equals(User.Rank.ADMIN)) {
             throw new NoRightException();
