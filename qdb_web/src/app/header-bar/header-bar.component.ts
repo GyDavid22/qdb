@@ -2,14 +2,14 @@ import { Component, Type } from '@angular/core';
 import { QueryService } from '../services/query.service';
 import { NgComponentOutlet, NgFor, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ErrorAlertComponent } from './error-alert/error-alert.component';
+import { AlertComponent } from '../screens/common-elements/alert/alert.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header-bar',
   standalone: true,
-  imports: [NgIf, RouterLink, ErrorAlertComponent, NgComponentOutlet, NgFor, FormsModule],
+  imports: [NgIf, RouterLink, AlertComponent, NgComponentOutlet, NgFor, FormsModule],
   templateUrl: './header-bar.component.html',
   styleUrl: './header-bar.component.css'
 })
@@ -43,8 +43,9 @@ export class HeaderBarComponent {
     let result = await this.qService.login(username.value, password.value);
     if (!result) {
       this.errorList.push({
-        component: ErrorAlertComponent,
+        component: AlertComponent,
         inputs: {
+          type: "ERROR",
           message: "Wrong username or password"
         }
       });
