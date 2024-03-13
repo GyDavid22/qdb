@@ -1,0 +1,8 @@
+com.qdb.qdb
+com.qdb.qdb.configuration
+com.qdb.qdb.controller
+com.qdb.qdb.dto
+com.qdb.qdb.entity
+com.qdb.qdb.exception
+com.qdb.qdb.repository
+com.qdb.qdb.service
