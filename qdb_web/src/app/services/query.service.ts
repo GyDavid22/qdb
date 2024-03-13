@@ -121,11 +121,20 @@ export class QueryService {
     return this.queryBase("user", "GET");
   }
 
-  public async setCurrentUserPassword(currentPassword: string, newPassword: string) {
+  public async setCurrentUserPassword(currentPassword: string, newPassword: string): Promise<Response> {
     return this.queryBase("user/password", "POST", JSON.stringify({
       "oldPassword": currentPassword,
       "newPassword": newPassword
     }));
+  }
+
+  public async deleteCurrentUser(): Promise<Response> {
+    let response = await this.queryBase("user", "DELETE");
+    if (response.status == 200) {
+      this.isLoggedIn = false;
+      this._username = "";
+    }
+    return response;
   }
 
   public getCurrentProfilePictureUrl(): string {

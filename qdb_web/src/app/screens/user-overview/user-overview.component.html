@@ -38,7 +38,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-outline-danger">Delete my account</button>
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"
+                    (click)="this.deleteAccountButtonHandler($event)">Delete my account</button>
             </div>
         </div>
     </div>

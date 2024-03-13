@@ -4,6 +4,7 @@ import { UserMetadata } from '../../entities/UserMetadata';
 import { NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlertService } from '../../services/alert.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-user-overview',
@@ -18,7 +19,7 @@ export class UserOverviewComponent {
   public newPassword: string = "";
   public newRePassword: string = "";
 
-  public constructor(public qService: QueryService, private aService: AlertService) {
+  public constructor(public qService: QueryService, private aService: AlertService, private router: Router) {
     (async () => {
       let response = await this.qService.getCurrentUserMetadata();
       if (response.status == 200) {
@@ -58,6 +59,14 @@ export class UserOverviewComponent {
       this.aService.pushAlert("SUCCESS", "Password successfully changed");
     } else {
       this.aService.pushAlert("ERROR", await response.text());
+    }
+  }
+
+  public async deleteAccountButtonHandler(e: Event) {
+    e.preventDefault();
+    let response = await this.qService.deleteCurrentUser();
+    if (response.status == 200) {
+      this.router.navigate([""]);
     }
   }
 }
