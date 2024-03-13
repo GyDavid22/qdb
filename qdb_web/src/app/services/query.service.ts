@@ -116,4 +116,8 @@ export class QueryService {
     }
     return await (response).text();
   }
+
+  public getCurrentProfilePictureUrl(): string {
+    return `${QueryService.BASE_URL}user/picture/${this.username}`;
+  }
 }

@@ -22,7 +22,7 @@ export class HeaderBarComponent {
     return this.qService.username;
   }
 
-  public constructor(private qService: QueryService, private router: Router) { }
+  public constructor(public qService: QueryService, private router: Router) { }
 
   public logoutButtonHandler(e: Event) {
     e.preventDefault();

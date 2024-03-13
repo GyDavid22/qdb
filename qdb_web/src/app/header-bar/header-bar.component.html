@@ -13,11 +13,14 @@
             <div class="login-state">
                 <div *ngIf="this.isLoggedIn; else elseBlock" class="d-flex justify-content-center align-items-center">
                     Hello, {{this.username}}!
+                    <img class="mini-pfp" [src]="this.qService.getCurrentProfilePictureUrl()">
                     <button class="btn btn-outline-secondary logout-button"
                         (click)="this.logoutButtonHandler($event)">Logout</button>
                 </div>
                 <ng-template #elseBlock>
-                    <button class="btn btn-outline-primary" routerLink="/login">Login</button>
+                    <a routerLink="/login">
+                        <button class="btn btn-outline-primary">Login</button>
+                    </a>
                 </ng-template>
             </div>
         </div>
