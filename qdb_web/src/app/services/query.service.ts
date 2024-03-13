@@ -37,23 +37,29 @@ export class QueryService {
     return res;
   }
 
-  public async login(username: string | undefined = undefined, password: string | undefined = undefined): Promise<boolean> {
+  public async login(username: string | undefined = undefined, password: string | undefined = undefined): Promise<Response> {
+    let result = (await this.queryBase("session", "POST", JSON.stringify({
+      "username": username,
+      "password": password
+    })));;
     try {
-      let result = (await this.queryBase("session", "POST", JSON.stringify({
-        "username": username,
-        "password": password
-      })));
       if (result.status == 200) {
         this.isLoggedIn = true;
         result.json().then((value) => {
           this._username = (value as LoginResponse).username;
         })
-        return true;
       } else if (result.status == 401) {
         this.isLoggedIn = false;
       }
     } catch (e) { }
-    return false;
+    return result;
+  }
+
+  public async registration(username: string | undefined = undefined, password: string | undefined = undefined): Promise<Response> {
+    return this.queryBase("user", "POST", JSON.stringify({
+      "username": username,
+      "password": password
+    }));
   }
 
   public logout() {

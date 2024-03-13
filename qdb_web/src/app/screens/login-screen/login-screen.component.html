@@ -9,12 +9,13 @@
                 name="repassword_login_field" required [(ngModel)]="this.passwordRepeat">
         </div>
         <div *ngIf="this.isInRegistrationMode; else elseBlock">
-            <button type="submit" class="btn btn-outline-primary my-1">Submit</button>
+            <button type="submit" class="btn btn-outline-primary my-1"
+                (click)="this.registrationButtonHandler($event)">Submit</button>
         </div>
         <ng-template #elseBlock>
             <button type="submit" class="btn btn-outline-primary my-1"
                 (click)="this.loginButtonHandler($event)">Login</button>
-            <button type="submit" class="btn btn-outline-primary my-1" (click)="this.setToRegistrationMode($event)">No
+            <button type="button" class="btn btn-outline-primary my-1" (click)="this.setToRegistrationMode($event)">No
                 account yet?</button>
         </ng-template>
     </form>
