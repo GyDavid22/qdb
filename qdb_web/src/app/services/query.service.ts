@@ -34,11 +34,6 @@ export class QueryService {
       body: body,
       credentials: "include"
     });
-    res.then((value) => {
-      if (value.status == 401) {
-        this.isLoggedIn = false;
-      }
-    });
     return res;
   }
 
@@ -54,6 +49,8 @@ export class QueryService {
           this._username = (value as LoginResponse).username;
         })
         return true;
+      } else if (result.status == 401) {
+        this.isLoggedIn = false;
       }
     } catch (e) { }
     return false;
