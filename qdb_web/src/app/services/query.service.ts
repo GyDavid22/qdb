@@ -121,6 +121,13 @@ export class QueryService {
     return this.queryBase("user", "GET");
   }
 
+  public async setCurrentUserPassword(currentPassword: string, newPassword: string) {
+    return this.queryBase("user/password", "POST", JSON.stringify({
+      "oldPassword": currentPassword,
+      "newPassword": newPassword
+    }));
+  }
+
   public getCurrentProfilePictureUrl(): string {
     return `${QueryService.BASE_URL}user/picture/${this.username}`;
   }

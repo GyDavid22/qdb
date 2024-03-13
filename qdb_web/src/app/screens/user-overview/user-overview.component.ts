@@ -53,5 +53,11 @@ export class UserOverviewComponent {
       this.aService.pushAlert("ERROR", "Passwords don't match");
       return;
     }
+    let response = await this.qService.setCurrentUserPassword(this.oldPassword, this.newPassword);
+    if (response.status == 200) {
+      this.aService.pushAlert("SUCCESS", "Password successfully changed");
+    } else {
+      this.aService.pushAlert("ERROR", await response.text());
+    }
   }
 }
