@@ -1,7 +1,12 @@
 package com.qdb.qdb.controller;
 
+import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.service.ImageService;
+import com.qdb.qdb.service.SessionService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,9 +22,12 @@ import java.io.IOException;
 public class ImageController {
     @Autowired
     private final ImageService service;
+    @Autowired
+    private final SessionService sService;
 
-    public ImageController(ImageService service) {
+    public ImageController(ImageService service, SessionService sService) {
         this.service = service;
+        this.sService = sService;
     }
 
     /**
@@ -39,12 +47,17 @@ public class ImageController {
     }
 
     @PostMapping
-    ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
-        // TODO user rights check
+    ResponseEntity<?> uploadImage(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         try {
-            service.addImage(file.getBytes(), file.getContentType());
+            service.addImage(file.getBytes(), file.getContentType(), u);
         } catch (UnsupportedFileFormatException | IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.status(HttpStatus.OK).build();
     }

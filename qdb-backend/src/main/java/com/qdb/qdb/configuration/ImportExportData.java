@@ -180,6 +180,8 @@ public class ImportExportData implements ApplicationRunner {
         for (User u : uRepo.findAll()) {
             uService.deleteUser(u.getUserName());
         }
+        User mockUser = new User();
+        mockUser.setRank(User.Rank.ADMIN);
         try (FileReader fr = new FileReader("importdata/users.json")) {
             JSONParser p = new JSONParser();
             JSONArray users = (JSONArray) p.parse(fr);
@@ -203,8 +205,8 @@ public class ImportExportData implements ApplicationRunner {
                         byte[] content = Files.readAllBytes(Path.of(pfp.getPath()));
                         String type = picturename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE;
                         try {
-                            uService.setProfilePicture(content, type, u.getUserName());
-                        } catch (UserNotFoundException | UnsupportedFileFormatException ignored) {
+                            uService.setProfilePicture(content, type, u.getUserName(), mockUser);
+                        } catch (UserNotFoundException | UnsupportedFileFormatException | NoRightException ignored) {
                         }
                     }
                 }
@@ -241,8 +243,8 @@ public class ImportExportData implements ApplicationRunner {
                 for (Object j : images) {
                     String imagename = (String) ((JSONObject) j).get("name");
                     byte[] content = Files.readAllBytes(Path.of("importdata/questions/" + imagename));
-                    Image image = iService.addImage(content, imagename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE);
-                    iService.bindImageToQuestion(image, q);
+                    Image image = iService.addImage(content, imagename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE, mockUser);
+                    iService.bindImageToQuestion(image, q, mockUser);
                     iRepo.saveAndFlush(image);
                 }
                 qService.updateTags(q, tags.stream().map(t -> (String) ((JSONObject) t).get("name")).toList(), mockUser);

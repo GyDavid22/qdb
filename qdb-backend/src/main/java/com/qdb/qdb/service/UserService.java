@@ -7,6 +7,7 @@ import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.repository.ProfilePictureRepository;
 import com.qdb.qdb.repository.UserRepository;
+import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -240,7 +241,10 @@ public class UserService {
         return u.get().getProfilePicture();
     }
 
-    public void setProfilePicture(byte[] image, String contentType, String username) throws UserNotFoundException, UnsupportedFileFormatException {
+    public void setProfilePicture(byte[] image, String contentType, String username, @Nullable User admin) throws UserNotFoundException, UnsupportedFileFormatException, NoRightException {
+        if (admin != null && !admin.getRank().equals(User.Rank.ADMIN)) {
+            throw new NoRightException();
+        }
         Optional<User> res = repo.findByUserName(username);
         if (res.isEmpty()) {
             throw new UserNotFoundException();
@@ -266,7 +270,10 @@ public class UserService {
         repo.flush();
     }
 
-    public void deleteProfilePicture(String username) throws UserNotFoundException {
+    public void deleteProfilePicture(String username, @Nullable User admin) throws UserNotFoundException, NoRightException {
+        if (admin != null && !admin.getRank().equals(User.Rank.ADMIN)) {
+            throw new NoRightException();
+        }
         Optional<User> res = repo.findByUserName(username);
         if (res.isEmpty()) {
             throw new UserNotFoundException();

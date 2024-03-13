@@ -2,6 +2,8 @@ package com.qdb.qdb.service;
 
 import com.qdb.qdb.entity.Image;
 import com.qdb.qdb.entity.Question;
+import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.repository.ImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +19,12 @@ import java.util.Optional;
 public class ImageService {
     @Autowired
     private final ImageRepository repo;
+    @Autowired
+    private final UserService uService;
 
-    public ImageService(ImageRepository repo) {
+    public ImageService(ImageRepository repo, UserService uService) {
         this.repo = repo;
+        this.uService = uService;
     }
 
     public byte[] getImageContent(String name) {
@@ -40,7 +45,10 @@ public class ImageService {
         }
     }
 
-    public Image addImage(byte[] content, String mediaType) throws UnsupportedFileFormatException {
+    public Image addImage(byte[] content, String mediaType, User u) throws UnsupportedFileFormatException, NoRightException {
+        if (!uService.checkRights(u, User.Rank.BASIC)) {
+            throw new NoRightException();
+        }
         if ((mediaType == null) || (!mediaType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) && !mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE))) {
             throw new UnsupportedFileFormatException();
         }
@@ -48,13 +56,15 @@ public class ImageService {
         i.setContent(content);
         i.setTimeout(LocalDateTime.now().plusHours(2));
         repo.saveAndFlush(i);
-        // TODO name check
         i.setName(i.getId() + (mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg"));
         repo.flush();
         return i;
     }
 
-    public void bindImageToQuestion(Image i, Question q) {
+    public void bindImageToQuestion(Image i, Question q, User u) throws NoRightException {
+        if (q.getOwner() != u && !u.getRank().equals(User.Rank.ADMIN)) {
+            throw new NoRightException();
+        }
         i.setTimeout(null);
         i.setQuestion(q);
         repo.flush();
