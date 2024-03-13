@@ -27,6 +27,7 @@ export class HeaderBarComponent {
   public logoutButtonHandler(e: Event) {
     e.preventDefault();
     this.qService.logout();
+    this.router.navigate([""]);
   }
 
   public searchButtonHandler(e: Event) {

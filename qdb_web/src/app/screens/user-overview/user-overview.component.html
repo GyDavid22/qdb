@@ -1,0 +1,45 @@
+<div class="w-100 d-flex flex-column align-items-center justify-content-center py-3">
+    <img class="profile-picture" [src]="this.qService.getCurrentProfilePictureUrl()">
+    <h1>{{this.userMetadata?.userName}}</h1>
+    <h5>{{this.userMetadata?.rank?.toLowerCase()}}</h5>
+    <div *ngIf="this.userMetadata?.rank == 'ADMIN'">
+        It looks like you're an admin. <a href="#">Go to the admin page?</a>
+    </div>
+    <div class="col-12 col-md-6">
+        <h5>Change your password:</h5>
+        <form>
+            <input type="password" class="form-control my-1" placeholder="Old password" id="overview-old-password"
+                name="overview-old-password" [(ngModel)]="this.oldPassword">
+            <input type="password" class="form-control my-1" placeholder="New password" id="overview-new-password"
+                name="overview-new-password" [(ngModel)]="this.newPassword">
+            <input type="password" class="form-control my-1" placeholder="Repeat new password"
+                id="overview-new-repassword" name="overview-new-repassword" [(ngModel)]="this.newRePassword">
+            <div class="d-flex align-items-center justify-content-center w-100">
+                <button type="submit" class="btn btn-outline-primary my-1"
+                    (click)="this.changePasswordHandler($event)">Submit</button>
+            </div>
+        </form>
+    </div>
+    <div class="d-flex align-items-center justify-content-center w-100 my-5">
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+            data-bs-target="#delete-account-modal">Delete my account</button>
+    </div>
+</div>
+<div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" id="delete-account-modal"
+    tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure? This cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-outline-danger">Delete my account</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -4,6 +4,7 @@ import { PageNotFoundComponent } from './screens/page-not-found/page-not-found.c
 import { QuestionFullComponent } from './screens/question-full/question-full.component';
 import { SearchScreenComponent } from './screens/search-screen/search-screen.component';
 import { LoginScreenComponent } from './screens/login-screen/login-screen.component';
+import { UserOverviewComponent } from './screens/user-overview/user-overview.component';
 
 export const routes: Routes = [
     { path: "", component: MainPageComponent },
@@ -11,5 +12,6 @@ export const routes: Routes = [
     { path: "404", component: PageNotFoundComponent },
     { path: "search", component: SearchScreenComponent },
     { path: "login", component: LoginScreenComponent },
+    { path: "user", component: UserOverviewComponent },
     { path: "**", component: PageNotFoundComponent }
 ];

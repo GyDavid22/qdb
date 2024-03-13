@@ -12,7 +12,8 @@
             </form>
             <div class="login-state">
                 <div *ngIf="this.isLoggedIn; else elseBlock" class="d-flex justify-content-center align-items-center">
-                    Hello, {{this.username}}!
+                    Hello,
+                    <a routerLink="user" class="username-link">{{this.username}}</a>!
                     <img class="mini-pfp" [src]="this.qService.getCurrentProfilePictureUrl()">
                     <button class="btn btn-outline-secondary logout-button"
                         (click)="this.logoutButtonHandler($event)">Logout</button>

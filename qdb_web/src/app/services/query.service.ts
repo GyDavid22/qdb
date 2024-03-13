@@ -117,6 +117,10 @@ export class QueryService {
     return await (response).text();
   }
 
+  public async getCurrentUserMetadata(): Promise<Response> {
+    return this.queryBase("user", "GET");
+  }
+
   public getCurrentProfilePictureUrl(): string {
     return `${QueryService.BASE_URL}user/picture/${this.username}`;
   }
