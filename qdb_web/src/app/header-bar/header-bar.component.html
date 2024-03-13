@@ -17,23 +17,9 @@
                         (click)="this.logoutButtonHandler($event)">Logout</button>
                 </div>
                 <ng-template #elseBlock>
-                    <form>
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Username" id="username_login_field"
-                                required>
-                            <input type="password" class="form-control" placeholder="Password" id="password_login_field"
-                                required>
-                            <button type="submit" class="btn btn-outline-primary"
-                                (click)="this.loginButtonHandler($event)">Login</button>
-                        </div>
-                    </form>
+                    <button class="btn btn-outline-primary" routerLink="/login">Login</button>
                 </ng-template>
             </div>
         </div>
     </div>
 </nav>
-<div class="login-error-box">
-    <div *ngFor="let i of this.errorList">
-        <ng-container *ngComponentOutlet="i.component; inputs: i.inputs;"></ng-container>
-    </div>
-</div>

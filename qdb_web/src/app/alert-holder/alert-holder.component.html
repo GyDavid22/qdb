@@ -1,0 +1,5 @@
+<div class="alert-box">
+    <div *ngFor="let i of this.aService.alertList">
+        <ng-container *ngComponentOutlet="i.component; inputs: i.inputs;"></ng-container>
+    </div>
+</div>
