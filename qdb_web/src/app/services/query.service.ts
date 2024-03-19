@@ -142,6 +142,6 @@ export class QueryService {
   }
 
   public getCurrentProfilePictureUrl(): string {
-    return `${QueryService.BASE_URL}user/picture/${this.username}`;
+    return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture/${this.username}`;
   }
 }
