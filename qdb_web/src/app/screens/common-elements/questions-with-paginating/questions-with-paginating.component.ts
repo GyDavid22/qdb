@@ -40,9 +40,23 @@ export class QuestionsWithPaginatingComponent {
   }
   private searchType: "ALL" | "TITLE" | "BODY" | undefined;
   public tags: string[] | undefined;
-  public titleOnly: boolean = true;
+  private _titleOnly: boolean;
+  public set titleOnly(val: boolean) {
+    sessionStorage.setItem("showTitleOnly", JSON.stringify(val));
+    this._titleOnly = val;
+  }
+  public get titleOnly(): boolean {
+    return this._titleOnly;
+  }
 
-  public constructor(private qService: QueryService, private route: ActivatedRoute) { }
+  public constructor(private qService: QueryService, private route: ActivatedRoute) {
+    let titleOnlyStorage = sessionStorage.getItem("showTitleOnly");
+    if (titleOnlyStorage === null) {
+      this._titleOnly = true;
+    } else {
+      this._titleOnly = JSON.parse(titleOnlyStorage);
+    }
+  }
 
   private performQuery() {
     if (this._searchmode !== undefined) {
