@@ -1,9 +1,9 @@
 import { Component, Input } from '@angular/core';
-import { QuestionMetadata } from '../../../entities/QuestionMetadata';
+import { QuestionMetadata } from '../../../../entities/QuestionMetadata';
 import { NgFor, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { QueryService } from '../../../services/query.service';
-import { TagBadgesComponent } from '../tags-box/tag-badges/tag-badges.component';
+import { QueryService } from '../../../../services/query.service';
+import { TagBadgesComponent } from '../../tags-box/tag-badges/tag-badges.component';
 
 @Component({
   selector: 'app-question-card',
