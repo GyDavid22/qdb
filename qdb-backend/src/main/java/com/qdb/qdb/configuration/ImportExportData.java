@@ -245,7 +245,7 @@ public class ImportExportData implements ApplicationRunner {
                 String bodyContent = String.join("\n", Files.readAllLines(Path.of("importdata/questions/" + body)));
                 JSONArray images = (JSONArray) question.get("images");
                 JSONArray tags = (JSONArray) question.get("tags");
-                Question q = new Question(null, title, body, null, new ArrayList<>(), images);
+                Question q = new Question(null, title, bodyContent, uService.getByUserName(owner, mockUser), new ArrayList<>(), new ArrayList<>());
                 qRepo.saveAndFlush(q);
                 for (Object j : images) {
                     String imagename = (String) ((JSONObject) j).get("name");
