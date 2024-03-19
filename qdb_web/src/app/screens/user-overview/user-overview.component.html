@@ -2,9 +2,7 @@
     <img class="profile-picture" [src]="this.qService.getCurrentProfilePictureUrl()">
     <h1>{{this.userMetadata?.userName}}</h1>
     <h5>{{this.userMetadata?.rank?.toLowerCase()}}</h5>
-    <div *ngIf="this.userMetadata?.rank == 'ADMIN'">
-        It looks like you're an admin. <a href="#">Go to the admin page?</a>
-    </div>
+    <a routerLink="">Go to the admin page</a>
     <div class="col-12 col-md-6">
         <h5>Change your password:</h5>
         <form>

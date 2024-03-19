@@ -4,12 +4,12 @@ import { UserMetadata } from '../../entities/UserMetadata';
 import { NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlertService } from '../../services/alert.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-user-overview',
   standalone: true,
-  imports: [NgIf, FormsModule],
+  imports: [NgIf, FormsModule, RouterLink],
   templateUrl: './user-overview.component.html',
   styleUrl: './user-overview.component.css'
 })
