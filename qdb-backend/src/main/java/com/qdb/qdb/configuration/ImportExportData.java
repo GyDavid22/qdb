@@ -25,9 +25,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class to import and export data from the database if the application is launched with the corresponding command line argument.
@@ -233,6 +231,7 @@ public class ImportExportData implements ApplicationRunner {
         iRepo.deleteAll();
         tRepo.deleteAll();
         qRepo.deleteAll();
+        Set<String> loadedImageNames = new HashSet<>();
         User mockUser = new User((long) -1, null, User.Rank.SUPERUSER, null, null, null, null, new ArrayList<>());
         try (FileReader fr = new FileReader("importdata/questionsmetadata.json")) {
             JSONParser p = new JSONParser();
@@ -250,12 +249,24 @@ public class ImportExportData implements ApplicationRunner {
                 for (Object j : images) {
                     String imagename = (String) ((JSONObject) j).get("name");
                     byte[] content = Files.readAllBytes(Path.of("importdata/questions/" + imagename));
-                    Image image = iService.addImage(content, imagename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE, mockUser);
+                    Image image = iService.addImage(content, imagename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE, mockUser, null);
+                    loadedImageNames.add(imagename.toLowerCase());
                     iService.bindImageToQuestion(image, q, mockUser);
                     iRepo.saveAndFlush(image);
                 }
                 qService.updateTags(q, tags.stream().map(t -> ((String) ((JSONObject) t).get("name"))).toList(), mockUser);
                 qRepo.flush();
+            }
+
+            File folder = new File("importdata/questions");
+            for (File i : folder.listFiles()) {
+                String name = i.getName().toLowerCase();
+                if (loadedImageNames.contains(name) || name.endsWith(".md")) {
+                    continue;
+                }
+                byte[] content = Files.readAllBytes(Path.of("importdata/questions/" + name));
+                Image image = iService.addImage(content, name.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE, mockUser, name);
+                iRepo.saveAndFlush(image);
             }
         }
     }
@@ -274,14 +285,15 @@ public class ImportExportData implements ApplicationRunner {
         }
     }
 
-    private void bindImagesToQuestions() {
+    private void bindImagesToQuestions() throws Exception {
         Collection<Image> images = iRepo.findByQuestionIsNull();
         List<Image> found = new ArrayList<>();
+        User mockUser = new User((long) -1, null, User.Rank.SUPERUSER, null, null, null, null, new ArrayList<>());
         for (Question i : qRepo.findAll()) {
             String bodyInLowerCase = i.getMdbody().toLowerCase();
             for (Image j : images) {
                 if (bodyInLowerCase.contains("](" + j.getName().toLowerCase() + "){")) {
-                    j.setQuestion(i);
+                    iService.bindImageToQuestion(j, i, mockUser);
                     found.add(j);
                     iRepo.saveAndFlush(j);
                 }

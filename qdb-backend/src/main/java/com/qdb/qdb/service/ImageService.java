@@ -7,6 +7,7 @@ import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.repository.ImageRepository;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -56,14 +57,18 @@ public class ImageService {
      * @throws UnsupportedFileFormatException
      * @throws NoRightException
      */
-    public Image addImage(byte[] content, String mediaType, User u) throws UnsupportedFileFormatException, NoRightException {
+    public Image addImage(byte[] content, String mediaType, User u, @Nullable String originalName) throws UnsupportedFileFormatException, NoRightException {
         pService.checkPermission(u, Permission.Action.UPLOAD_IMAGE_ANY_QUESTION, false);
         if ((mediaType == null) || (!mediaType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) && !mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE))) {
             throw new UnsupportedFileFormatException();
         }
         Image i = new Image(null, content, null, null, LocalDateTime.now().plusHours(2));
         repo.saveAndFlush(i);
-        i.setName(i.getId() + (mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg"));
+        if (originalName != null) {
+            i.setName(originalName);
+        } else {
+            i.setName(i.getId() + (mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg"));
+        }
         repo.flush();
         return i;
     }

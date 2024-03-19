@@ -61,7 +61,7 @@ public class ImageController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         try {
-            service.addImage(file.getBytes(), file.getContentType(), u);
+            service.addImage(file.getBytes(), file.getContentType(), u, null);
         } catch (UnsupportedFileFormatException | IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (NoRightException e) {
