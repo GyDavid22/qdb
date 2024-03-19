@@ -26,9 +26,10 @@ export class QuestionsWithPaginatingComponent {
   private _searchmode: boolean | undefined;
   public questions: QuestionMetadataList | undefined;
   public pageIndex: number = 0;
-  private _pageSize: number | undefined = PaginatingComponent.DEFAULT_PAGESIZE;
+  private _pageSize: number | undefined;
   public set pageSize(val: number | undefined) {
     this._pageSize = val;
+    sessionStorage.setItem("selectedPageSize", JSON.stringify(val));
     this.performQuery();
   }
   public get pageSize(): number | undefined {
@@ -55,6 +56,12 @@ export class QuestionsWithPaginatingComponent {
       this._titleOnly = true;
     } else {
       this._titleOnly = JSON.parse(titleOnlyStorage);
+    }
+    let pageSizeStorage = sessionStorage.getItem("selectedPageSize");
+    if (pageSizeStorage === null) {
+      this.pageSize = PaginatingComponent.DEFAULT_PAGESIZE;
+    } else {
+      this.pageSize = JSON.parse(pageSizeStorage);
     }
   }
 
