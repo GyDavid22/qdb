@@ -10,8 +10,7 @@
                 </ng-template>
             </h5>
             <div *ngIf="!this.titleOnly">
-                <div *ngFor="let i of this.body.split('\n')">
-                    {{i}}
+                <div [innerHTML]="this.body">
                 </div>
             </div>
         </div>

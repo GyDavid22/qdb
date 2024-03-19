@@ -8,9 +8,10 @@
         </div>
         <div class="my-3">
             <h2>{{this.question?.title}}</h2>
-            <div *ngFor="let i of this.questionBody?.split('\n')">
+            <div [innerHTML]="this.questionBodyFormatted"></div>
+            <!-- <div *ngFor="let i of this.questionBody?.split('\n')"> majd szerkesztéshez megmarad
                 {{i}}
-            </div>
+            </div> -->
         </div>
         <div *ngIf="this.question?.tags?.length">
             <h5>

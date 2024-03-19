@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, SecurityContext } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { QuestionMetadata } from '../../entities/QuestionMetadata';
 import { QueryService } from '../../services/query.service';
 import { NgFor, NgIf } from '@angular/common';
 import { TagBadgesComponent } from '../common-elements/tags-box/tag-badges/tag-badges.component';
+import { DomSanitizer } from '@angular/platform-browser';
+import * as marked from 'marked';
 
 @Component({
   selector: 'app-question-full',
@@ -16,8 +18,9 @@ export class QuestionFullComponent {
   private id!: number;
   public question: QuestionMetadata | undefined;
   public questionBody: string | undefined;
+  public questionBodyFormatted: string | null | undefined;
 
-  constructor(public qService: QueryService, private route: ActivatedRoute, private router: Router) {
+  constructor(public qService: QueryService, private route: ActivatedRoute, private router: Router, private sanitizer: DomSanitizer) {
     this.route.params.subscribe((value) => {
       this.id = value["id"];
       if (this.id) {
@@ -26,6 +29,7 @@ export class QuestionFullComponent {
         });
         this.qService.getQuestionBody(this.id).then((value2) => {
           this.questionBody = value2;
+          this.questionBodyFormatted = this.sanitizer.sanitize(SecurityContext.HTML, marked.parse(this.questionBody));
         });
       } else {
         this.router.navigate(["404"]);
