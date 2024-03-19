@@ -34,6 +34,7 @@ export class SearchScreenComponent {
       this._pageSize = params["pageSize"] ?? PaginatingComponent.DEFAULT_PAGESIZE;
       this._search = params["search"] ?? "";
       this.searchType = params["searchType"] ?? "ALL";
+      this.tags = params["tags"] ?? undefined;
       this.performQuery();
     });
   }

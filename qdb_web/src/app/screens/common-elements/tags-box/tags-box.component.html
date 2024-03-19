@@ -1,6 +1,6 @@
 <h5>Tags:</h5>
 <span *ngFor="let i of this.tagsWithCount" class="mx-1">
-    <a [routerLink]="'/tag/' + i.name">
+    <a [routerLink]="'/search'" [queryParams]="{ 'tags': i.name }">
         {{i.name}} ({{i.count}})
     </a>
 </span>
