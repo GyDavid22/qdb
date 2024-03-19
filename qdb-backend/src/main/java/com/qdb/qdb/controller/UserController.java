@@ -70,9 +70,14 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         if (username != null) {
-            boolean result = service.deleteUserByAdmin(username, u);
+            boolean result = false;
+            try {
+                result = service.deleteUserByAdmin(username, u);
+            } catch (NoRightException e) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have the rights to perform this action.");
+            }
             if (!result) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You're either not an admin or the given user doesn't exist");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("The given user doesn't exist");
             }
             return ResponseEntity.status(HttpStatus.OK).build();
         }

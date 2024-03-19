@@ -1,5 +1,6 @@
 package com.qdb.qdb.service;
 
+import com.qdb.qdb.entity.Permission;
 import com.qdb.qdb.entity.ProfilePicture;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
@@ -37,11 +38,14 @@ public class UserService {
     private final SessionService sService;
     @Autowired
     private final ProfilePictureRepository pRepo;
+    @Autowired
+    private final PermissionService pService;
 
-    public UserService(UserRepository repo, SessionService sService, ProfilePictureRepository pRepo) {
+    public UserService(UserRepository repo, SessionService sService, ProfilePictureRepository pRepo, PermissionService pService) {
         this.repo = repo;
         this.sService = sService;
         this.pRepo = pRepo;
+        this.pService = pService;
     }
 
     /**
@@ -57,9 +61,7 @@ public class UserService {
             return null;
         }
         User u = result.get();
-        if (u.getRank().equals(User.Rank.PENDING)) {
-            throw new NoRightException();
-        }
+        pService.checkPermission(u, Permission.Action.LOGIN, false);
         if (Arrays.equals(u.getHashedPassword(), hashPassword(password, u.getSalt()))) {
             return u;
         }
@@ -93,12 +95,8 @@ public class UserService {
         if (UserService.RESERVED_KEYWORDS.contains(username.toLowerCase()) || repo.findByUserName(username).isPresent()) {
             return null;
         }
-        User u = new User();
-        u.setUserName(username);
-        u.setSalt(generateSalt());
-        u.setHashedPassword(hashPassword(password, u.getSalt()));
-        u.setRank(User.Rank.PENDING);
-        u.setProfilePicture(null);
+        char[] salt = generateSalt();
+        User u = new User(null, username, User.Rank.RESTRICTED, null, hashPassword(password, salt), salt, null, null);
         repo.saveAndFlush(u);
         return u;
     }
@@ -109,18 +107,14 @@ public class UserService {
      * @param username
      * @return User object with the given username, null if doesn't exist
      */
-    public User getByUserName(String username, User admin) throws NoRightException {
-        if (!checkRights(admin, User.Rank.ADMIN)) {
-            throw new NoRightException();
-        }
+    public User getByUserName(String username, User u) throws NoRightException {
+        pService.checkPermission(u, Permission.Action.GET_ANY_USER_METADATA, false);
         Optional<User> res = repo.findByUserName(username);
         return res.orElse(null);
     }
 
-    public List<User> getAllUsers(User admin) throws NoRightException {
-        if (!checkRights(admin, User.Rank.ADMIN)) {
-            throw new NoRightException();
-        }
+    public List<User> getAllUsers(User u) throws NoRightException {
+        pService.checkPermission(u, Permission.Action.GET_ALL_USER_METADATA, false);
         return repo.findAll();
     }
 
@@ -149,32 +143,28 @@ public class UserService {
     /**
      * Method to set the password of a different user, needs admin rights, invalidates all sessions for security reasons
      *
-     * @param admin
      * @param u
+     * @param toSet
      * @param newPassword
      * @throws NoRightException
      */
-    public void setPasswordByAdmin(User admin, User u, char[] newPassword) throws NoRightException {
-        if (!checkRights(admin, User.Rank.ADMIN)) {
-            throw new NoRightException();
-        }
-        u.setSalt(generateSalt());
-        u.setHashedPassword(hashPassword(newPassword, u.getSalt()));
-        sService.deleteAllSessionOfUser(u);
+    public void setPasswordByAdmin(User u, User toSet, char[] newPassword) throws NoRightException {
+        pService.checkPermission(u, Permission.Action.SET_ANY_USER_PASSWORD, false);
+        toSet.setSalt(generateSalt());
+        toSet.setHashedPassword(hashPassword(newPassword, toSet.getSalt()));
+        sService.deleteAllSessionOfUser(toSet);
         repo.flush();
     }
 
     /**
      * Method to change a user's rank
      *
-     * @param admin   An admin user who sets the rank
+     * @param u       An admin user who sets the rank
      * @param toSet   The User whose rank is set
      * @param newRank New rank of user
      */
-    public void setRank(User admin, User toSet, User.Rank newRank) throws NoRightException {
-        if (!checkRights(admin, User.Rank.ADMIN)) {
-            throw new NoRightException();
-        }
+    public void setRank(User u, User toSet, User.Rank newRank) throws NoRightException {
+        pService.checkPermission(u, Permission.Action.SET_ANY_USER_RANK, false);
         toSet.setRank(newRank);
         repo.flush();
     }
@@ -205,14 +195,12 @@ public class UserService {
      * Deletes user by admin
      *
      * @param username Username of user to delete
-     * @param admin    An admin account
+     * @param u        An admin account
      * @return true, if deletion was successful, false otherwise (not an admin account or username doesn't exist)
      */
     @Transactional
-    public boolean deleteUserByAdmin(String username, User admin) {
-        if (!checkRights(admin, User.Rank.ADMIN)) {
-            return false;
-        }
+    public boolean deleteUserByAdmin(String username, User u) throws NoRightException {
+        pService.checkPermission(u, Permission.Action.DELETE_ANY_USER_ACCOUNT, false);
         return deleteUser(username);
     }
 
@@ -230,10 +218,7 @@ public class UserService {
         }
         if (u.get().getProfilePicture() == null) {
             try {
-                ProfilePicture pfp = new ProfilePicture();
-                pfp.setContent(Files.readAllBytes(Path.of("assets/default.png")));
-                pfp.setFormat(ProfilePicture.Format.PNG);
-                return pfp;
+                return new ProfilePicture(null, Files.readAllBytes(Path.of("assets/default.png")), null, ProfilePicture.Format.PNG);
             } catch (IOException e) {
                 return null;
             }
@@ -253,15 +238,15 @@ public class UserService {
      * @throws NoRightException
      */
     public void setProfilePicture(byte[] image, String contentType, String username, @Nullable User admin) throws UserNotFoundException, UnsupportedFileFormatException, NoRightException {
-        if (admin != null && !admin.getRank().equals(User.Rank.ADMIN)) {
-            throw new NoRightException();
+        if (admin != null) {
+            pService.checkPermission(admin, Permission.Action.SET_PROFILE_PICTURE_ANY, false);
         }
         Optional<User> res = repo.findByUserName(username);
         if (res.isEmpty()) {
             throw new UserNotFoundException();
         }
         User u = res.get();
-        ProfilePicture pfp = new ProfilePicture();
+        pService.checkPermission(u, Permission.Action.SET_PROFILE_PICTURE_OWN, false);
         if ((contentType == null) || (!contentType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) && !contentType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE))) {
             throw new UnsupportedFileFormatException();
         }
@@ -273,9 +258,7 @@ public class UserService {
             pRepo.flush();
             repo.flush();
         }
-        pfp.setFormat(contentType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) ? ProfilePicture.Format.JPG : ProfilePicture.Format.PNG);
-        pfp.setContent(image);
-        pfp.setOwner(u);
+        ProfilePicture pfp = new ProfilePicture(null, image, null, contentType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) ? ProfilePicture.Format.JPG : ProfilePicture.Format.PNG);
         u.setProfilePicture(pfp);
         pRepo.saveAndFlush(pfp);
         repo.flush();
@@ -290,14 +273,15 @@ public class UserService {
      * @throws NoRightException
      */
     public void deleteProfilePicture(String username, @Nullable User admin) throws UserNotFoundException, NoRightException {
-        if (admin != null && !admin.getRank().equals(User.Rank.ADMIN)) {
-            throw new NoRightException();
+        if (admin != null) {
+            pService.checkPermission(admin, Permission.Action.RESET_PROFILE_PICTURE_ANY, false);
         }
         Optional<User> res = repo.findByUserName(username);
         if (res.isEmpty()) {
             throw new UserNotFoundException();
         }
         User u = res.get();
+        pService.checkPermission(u, Permission.Action.RESET_PROFILE_PICTURE_OWN, false);
         if (u.getProfilePicture() != null) {
             ProfilePicture pic = u.getProfilePicture();
             pic.setOwner(null);
@@ -306,16 +290,5 @@ public class UserService {
             pRepo.flush();
             repo.flush();
         }
-    }
-
-    /**
-     * Checks whether an user has at least the given rank
-     *
-     * @param u
-     * @param minRequired
-     * @return true if the user has at least the given rank, false if it has a lower one
-     */
-    public boolean checkRights(User u, User.Rank minRequired) {
-        return u.getRank().compareTo(minRequired) <= 0;
     }
 }

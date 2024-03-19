@@ -12,7 +12,7 @@ import java.util.Collection;
 public class Question {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     @Lob
     private String title;
     @Lob
@@ -28,11 +28,20 @@ public class Question {
     public Question() {
     }
 
-    public long getId() {
+    public Question(Long id, String title, String mdbody, @Nullable User owner, Collection<Tag> tags, Collection<Image> images) {
+        this.id = id;
+        this.title = title;
+        this.mdbody = mdbody;
+        this.owner = owner;
+        this.tags = tags;
+        this.images = images;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -52,6 +61,15 @@ public class Question {
         this.mdbody = mdbody;
     }
 
+    @Nullable
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(@Nullable User owner) {
+        this.owner = owner;
+    }
+
     public Collection<Tag> getTags() {
         return tags;
     }
@@ -66,13 +84,5 @@ public class Question {
 
     public void setImages(Collection<Image> images) {
         this.images = images;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
     }
 }

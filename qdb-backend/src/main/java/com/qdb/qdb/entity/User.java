@@ -13,7 +13,7 @@ import java.util.Collection;
 public class User {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     private String userName;
     @Enumerated(EnumType.STRING)
     private Rank rank;
@@ -30,11 +30,22 @@ public class User {
     public User() {
     }
 
-    public long getId() {
+    public User(Long id, String userName, Rank rank, @Nullable ProfilePicture profilePicture, char[] hashedPassword, char[] salt, Collection<Session> sessions, Collection<Question> questions) {
+        this.id = id;
+        this.userName = userName;
+        this.rank = rank;
+        this.profilePicture = profilePicture;
+        this.hashedPassword = hashedPassword;
+        this.salt = salt;
+        this.sessions = sessions;
+        this.questions = questions;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -44,6 +55,23 @@ public class User {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public Rank getRank() {
+        return rank;
+    }
+
+    public void setRank(Rank rank) {
+        this.rank = rank;
+    }
+
+    @Nullable
+    public ProfilePicture getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(@Nullable ProfilePicture profilePicture) {
+        this.profilePicture = profilePicture;
     }
 
     public char[] getHashedPassword() {
@@ -70,14 +98,6 @@ public class User {
         this.sessions = sessions;
     }
 
-    public Rank getRank() {
-        return rank;
-    }
-
-    public void setRank(Rank rank) {
-        this.rank = rank;
-    }
-
     public Collection<Question> getQuestions() {
         return questions;
     }
@@ -86,16 +106,7 @@ public class User {
         this.questions = questions;
     }
 
-    @Nullable
-    public ProfilePicture getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(@Nullable ProfilePicture profilePicture) {
-        this.profilePicture = profilePicture;
-    }
-
     public enum Rank {
-        ADMIN, BASIC, RESTRICTED, PENDING
+        SUPERUSER, ADMIN, NORMAL, RESTRICTED
     }
 }

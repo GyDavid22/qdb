@@ -1,6 +1,7 @@
 package com.qdb.qdb.service;
 
 import com.qdb.qdb.entity.Image;
+import com.qdb.qdb.entity.Permission;
 import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
@@ -20,11 +21,11 @@ public class ImageService {
     @Autowired
     private final ImageRepository repo;
     @Autowired
-    private final UserService uService;
+    private final PermissionService pService;
 
-    public ImageService(ImageRepository repo, UserService uService) {
+    public ImageService(ImageRepository repo, PermissionService pService) {
         this.repo = repo;
-        this.uService = uService;
+        this.pService = pService;
     }
 
     public byte[] getImageContent(String name) {
@@ -56,15 +57,11 @@ public class ImageService {
      * @throws NoRightException
      */
     public Image addImage(byte[] content, String mediaType, User u) throws UnsupportedFileFormatException, NoRightException {
-        if (!uService.checkRights(u, User.Rank.BASIC)) {
-            throw new NoRightException();
-        }
+        pService.checkPermission(u, Permission.Action.UPLOAD_IMAGE_ANY_QUESTION, false);
         if ((mediaType == null) || (!mediaType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) && !mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE))) {
             throw new UnsupportedFileFormatException();
         }
-        Image i = new Image();
-        i.setContent(content);
-        i.setTimeout(LocalDateTime.now().plusHours(2));
+        Image i = new Image(null, content, null, null, LocalDateTime.now().plusHours(2));
         repo.saveAndFlush(i);
         i.setName(i.getId() + (mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg"));
         repo.flush();
@@ -80,8 +77,10 @@ public class ImageService {
      * @throws NoRightException
      */
     public void bindImageToQuestion(Image i, Question q, User u) throws NoRightException {
-        if (q.getOwner() != u && !u.getRank().equals(User.Rank.ADMIN)) {
-            throw new NoRightException();
+        if (u.getQuestions().contains(q)) {
+            pService.checkPermission(u, Permission.Action.UPDATE_IMAGES_OWN_QUESTION, false);
+        } else {
+            pService.checkPermission(u, Permission.Action.UPDATE_IMAGES_ANY_QUESTION, false);
         }
         i.setTimeout(null);
         i.setQuestion(q);

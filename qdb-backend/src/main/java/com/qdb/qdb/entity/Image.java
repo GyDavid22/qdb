@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class Image {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     @Lob
     private byte[] content;
     private String name;
@@ -23,20 +23,20 @@ public class Image {
     public Image() {
     }
 
-    public long getId() {
+    public Image(Long id, byte[] content, String name, Question question, LocalDateTime timeout) {
+        this.id = id;
+        this.content = content;
+        this.name = name;
+        this.question = question;
+        this.timeout = timeout;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
-    }
-
-    public Question getQuestion() {
-        return question;
-    }
-
-    public void setQuestion(Question question) {
-        this.question = question;
     }
 
     public byte[] getContent() {
@@ -53,6 +53,14 @@ public class Image {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Question getQuestion() {
+        return question;
+    }
+
+    public void setQuestion(Question question) {
+        this.question = question;
     }
 
     public LocalDateTime getTimeout() {

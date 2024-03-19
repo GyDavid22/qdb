@@ -1,23 +1,16 @@
 package com.qdb.qdb.configuration;
 
-import com.qdb.qdb.entity.Image;
-import com.qdb.qdb.entity.Question;
-import com.qdb.qdb.entity.Tag;
-import com.qdb.qdb.entity.User;
+import com.qdb.qdb.entity.*;
 import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.exception.UserNotFoundException;
-import com.qdb.qdb.repository.ImageRepository;
-import com.qdb.qdb.repository.QuestionRepository;
-import com.qdb.qdb.repository.TagRepository;
-import com.qdb.qdb.repository.UserRepository;
+import com.qdb.qdb.repository.*;
 import com.qdb.qdb.service.ImageService;
 import com.qdb.qdb.service.QuestionService;
 import com.qdb.qdb.service.UserService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -26,7 +19,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -54,8 +50,10 @@ public class ImportExportData implements ApplicationRunner {
     private final ImageService iService;
     @Autowired
     private final QuestionService qService;
+    @Autowired
+    private final PermissionRepository pRepo;
 
-    public ImportExportData(ApplicationContext context, UserService uService, QuestionRepository qRepo, ImageRepository iRepo, UserRepository uRepo, TagRepository tRepo, ImageService iService, QuestionService qService) {
+    public ImportExportData(ApplicationContext context, UserService uService, QuestionRepository qRepo, ImageRepository iRepo, UserRepository uRepo, TagRepository tRepo, ImageService iService, QuestionService qService, PermissionRepository pRepo) {
         this.context = context;
         this.uService = uService;
         this.qRepo = qRepo;
@@ -64,6 +62,7 @@ public class ImportExportData implements ApplicationRunner {
         this.tRepo = tRepo;
         this.iService = iService;
         this.qService = qService;
+        this.pRepo = pRepo;
     }
 
     @Override
@@ -90,11 +89,27 @@ public class ImportExportData implements ApplicationRunner {
 
             exportUsers();
             exportQuestions();
+            exportPermissions();
         } catch (Exception e) {
             System.err.println("An error happened during exporting:");
             e.printStackTrace();
         }
         SpringApplication.exit(context);
+    }
+
+    private void exportPermissions() throws Exception {
+        JSONArray permissions = new JSONArray();
+        for (Permission.Action i : pRepo.listOfActions()) {
+            JSONObject permission = new JSONObject();
+            JSONArray a = new JSONArray();
+            a.addAll(pRepo.findByAction(i).stream().map(p -> p.getRank().toString()).toList());
+            permission.put("ranks", a);
+            permission.put("action", i.toString());
+            permissions.add(permission);
+        }
+        try (FileWriter fw = new FileWriter("exportdata/permissions.json")) {
+            fw.write(permissions.toJSONString());
+        }
     }
 
     private void deleteExportFolderContent(File[] files) {
@@ -108,7 +123,7 @@ public class ImportExportData implements ApplicationRunner {
         }
     }
 
-    private void exportUsers() throws IOException {
+    private void exportUsers() throws Exception {
         JSONArray ja = new JSONArray();
         File imagesFolder = new File("exportdata/profilepictures");
         imagesFolder.mkdir();
@@ -133,7 +148,7 @@ public class ImportExportData implements ApplicationRunner {
         }
     }
 
-    private void exportQuestions() throws IOException {
+    private void exportQuestions() throws Exception {
         JSONArray ja = new JSONArray();
         File questionsfolder = new File("exportdata/questions");
         questionsfolder.mkdir();
@@ -170,18 +185,23 @@ public class ImportExportData implements ApplicationRunner {
     }
 
     private void importData() {
-        importUsers();
-        importQuestions();
-        bindImagesToQuestions();
+        try {
+            importPermissions();
+            importUsers();
+            importQuestions();
+            bindImagesToQuestions();
+        } catch (Exception e) {
+            System.err.println("An error happened during importing: ");
+            e.printStackTrace();
+        }
         SpringApplication.exit(context);
     }
 
-    private void importUsers() {
+    private void importUsers() throws Exception {
         for (User u : uRepo.findAll()) {
             uService.deleteUser(u.getUserName());
         }
-        User mockUser = new User();
-        mockUser.setRank(User.Rank.ADMIN);
+        User mockUser = new User((long) -1, null, User.Rank.SUPERUSER, null, null, null, null, new ArrayList<>());
         try (FileReader fr = new FileReader("importdata/users.json")) {
             JSONParser p = new JSONParser();
             JSONArray users = (JSONArray) p.parse(fr);
@@ -192,12 +212,7 @@ public class ImportExportData implements ApplicationRunner {
                 String salt = (String) user.get("salt");
                 String hashedpassword = (String) user.get("hashedpassword");
                 String picturename = (String) user.get("profilepicture");
-                User u = new User();
-                u.setUserName(username);
-                u.setRank(User.Rank.valueOf(rank));
-                u.setSalt(salt.toCharArray());
-                u.setHashedPassword(hashedpassword.toCharArray());
-                u.setProfilePicture(null);
+                User u = new User(null, username, User.Rank.valueOf(rank), null, hashedpassword.toCharArray(), salt.toCharArray(), null, null);
                 uRepo.saveAndFlush(u);
                 if (picturename != null) {
                     File pfp = new File("profilepictures/" + picturename);
@@ -211,34 +226,26 @@ public class ImportExportData implements ApplicationRunner {
                     }
                 }
             }
-        } catch (IOException | ParseException | IllegalArgumentException e) {
-            throw new RuntimeException(e);
         }
     }
 
-    private void importQuestions() {
+    private void importQuestions() throws Exception {
         iRepo.deleteAll();
         tRepo.deleteAll();
         qRepo.deleteAll();
-        User mockUser = new User();
-        mockUser.setRank(User.Rank.ADMIN);
+        User mockUser = new User((long) -1, null, User.Rank.SUPERUSER, null, null, null, null, new ArrayList<>());
         try (FileReader fr = new FileReader("importdata/questionsmetadata.json")) {
             JSONParser p = new JSONParser();
             JSONArray questions = (JSONArray) p.parse(fr);
             for (Object i : questions) {
                 JSONObject question = (JSONObject) i;
-                Question q = new Question();
                 String owner = (String) question.get("owner");
                 String title = (String) question.get("title");
                 String body = (String) question.get("body");
                 String bodyContent = String.join("\n", Files.readAllLines(Path.of("importdata/questions/" + body)));
                 JSONArray images = (JSONArray) question.get("images");
-                q.setImages(new ArrayList<>());
                 JSONArray tags = (JSONArray) question.get("tags");
-                q.setOwner(uService.getByUserName(owner, mockUser));
-                q.setTitle(title);
-                q.setMdbody(bodyContent);
-                q.setTags(new ArrayList<>());
+                Question q = new Question(null, title, body, null, new ArrayList<>(), images);
                 qRepo.saveAndFlush(q);
                 for (Object j : images) {
                     String imagename = (String) ((JSONObject) j).get("name");
@@ -247,11 +254,23 @@ public class ImportExportData implements ApplicationRunner {
                     iService.bindImageToQuestion(image, q, mockUser);
                     iRepo.saveAndFlush(image);
                 }
-                qService.updateTags(q, tags.stream().map(t -> (String) ((JSONObject) t).get("name")).toList(), mockUser);
+                qService.updateTags(q, tags.stream().map(t -> ((String) ((JSONObject) t).get("name"))).toList(), mockUser);
                 qRepo.flush();
             }
-        } catch (IOException | ParseException | NoRightException | UnsupportedFileFormatException e) {
-            e.printStackTrace();
+        }
+    }
+
+    private void importPermissions() throws Exception {
+        pRepo.deleteAll();
+        JSONParser p = new JSONParser();
+        String content = String.join("\n", Files.readAllLines(Path.of("exportdata/permissions.json")));
+        JSONArray permissions = (JSONArray) p.parse(content);
+        for (Object i : permissions) {
+            JSONObject o = (JSONObject) i;
+            JSONArray ranks = (JSONArray) o.get("ranks");
+            for (Object j : ranks) {
+                pRepo.saveAndFlush(new Permission(null, User.Rank.valueOf((String) j), Permission.Action.valueOf((String) o.get("action"))));
+            }
         }
     }
 

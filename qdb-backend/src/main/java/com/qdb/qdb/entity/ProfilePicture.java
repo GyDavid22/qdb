@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 public class ProfilePicture {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     @Lob
     private byte[] content;
     @OneToOne
@@ -14,6 +14,21 @@ public class ProfilePicture {
     private Format format;
 
     public ProfilePicture() {
+    }
+
+    public ProfilePicture(Long id, byte[] content, User owner, Format format) {
+        this.id = id;
+        this.content = content;
+        this.owner = owner;
+        this.format = format;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public byte[] getContent() {
@@ -38,14 +53,6 @@ public class ProfilePicture {
 
     public void setFormat(Format format) {
         this.format = format;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public enum Format {

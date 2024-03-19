@@ -1,5 +1,6 @@
 package com.qdb.qdb.service;
 
+import com.qdb.qdb.entity.Permission;
 import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.Tag;
 import com.qdb.qdb.entity.User;
@@ -17,12 +18,12 @@ public class QuestionService {
     @Autowired
     private final TagService tService;
     @Autowired
-    private final UserService uService;
+    private final PermissionService pService;
 
-    public QuestionService(QuestionRepository repo, TagService tService, UserService uService) {
+    public QuestionService(QuestionRepository repo, TagService tService, PermissionService pService) {
         this.repo = repo;
         this.tService = tService;
-        this.uService = uService;
+        this.pService = pService;
     }
 
     public Question getById(long id) {
@@ -162,8 +163,10 @@ public class QuestionService {
     }
 
     private void checkEditingRights(Question q, User u) throws NoRightException {
-        if ((!uService.checkRights(u, User.Rank.BASIC) && (u.getRank().equals(User.Rank.RESTRICTED) && q.getOwner() != u))) {
-            throw new NoRightException();
+        if (u.getQuestions().contains(q)) {
+            pService.checkPermission(u, Permission.Action.UPDATE_TAGS_OWN_QUESTION, false);
+        } else {
+            pService.checkPermission(u, Permission.Action.UPDATE_TAGS_ANY_QUESTION, false);
         }
     }
 

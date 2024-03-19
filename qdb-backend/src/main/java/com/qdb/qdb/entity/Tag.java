@@ -12,7 +12,7 @@ import java.util.Collection;
 public class Tag {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     private String name;
     @ManyToMany
     private Collection<Question> questions;
@@ -20,20 +20,18 @@ public class Tag {
     public Tag() {
     }
 
-    public long getId() {
+    public Tag(Long id, String name, Collection<Question> questions) {
+        this.id = id;
+        this.name = name;
+        this.questions = questions;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
-    }
-
-    public Collection<Question> getQuestions() {
-        return questions;
-    }
-
-    public void setQuestions(Collection<Question> questions) {
-        this.questions = questions;
     }
 
     public String getName() {
@@ -42,5 +40,13 @@ public class Tag {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Collection<Question> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(Collection<Question> questions) {
+        this.questions = questions;
     }
 }

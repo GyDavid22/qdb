@@ -37,9 +37,7 @@ public class TagService {
                 result.get().getQuestions().add(q);
             }
         } else {
-            Tag newTag = new Tag();
-            newTag.setName(name.toLowerCase());
-            newTag.setQuestions(new ArrayList<>());
+            Tag newTag = new Tag(null, name.toLowerCase(), new ArrayList<>());
             newTag.getQuestions().add(q);
             repo.save(newTag);
         }
