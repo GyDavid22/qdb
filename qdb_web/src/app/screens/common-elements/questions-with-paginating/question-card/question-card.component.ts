@@ -6,6 +6,7 @@ import { QueryService } from '../../../../services/query.service';
 import { TagBadgesComponent } from '../../tags-box/tag-badges/tag-badges.component';
 import { marked } from 'marked';
 import { DomSanitizer } from '@angular/platform-browser';
+import { Constants } from '../../../../../constants';
 
 @Component({
   selector: 'app-question-card',
@@ -41,6 +42,10 @@ export class QuestionCardComponent {
       this._body = value.substring(0, 500) + "...";
     } else {
       this._body = value;
+    }
+    for (let i of this.question!.imagesUrls) {
+      let imagename = i.substring(i.lastIndexOf("/") + 1);
+      this._body = this._body.replace(imagename, `${Constants.WEBPAGE_URL}java/api/image/${imagename}`);
     }
     this._body = this.sanitizer.sanitize(SecurityContext.HTML, marked.parse(this._body));
   }
