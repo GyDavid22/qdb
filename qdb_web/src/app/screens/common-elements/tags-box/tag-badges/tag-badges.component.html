@@ -1,6 +1,6 @@
 <div class="d-flex">
     <div *ngFor="let i of this.tags">
-        <a [routerLink]="'/tag/' + i">
+        <a [routerLink]="'/search'" [queryParams]="{ 'tags': i }">
             <span class="badge text-bg-primary tag-margin">{{i}}</span>
         </a>
     </div>
