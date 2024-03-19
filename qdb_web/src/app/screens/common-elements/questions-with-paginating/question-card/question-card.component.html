@@ -2,10 +2,17 @@
     <a [routerLink]="'/question/' + question.id" class="card-regular-text">
         <div class="card-body">
             <h5 class="card-title">
-                {{question.title}}
+                <div *ngIf="this.selfNumber !== undefined; else elseBlock">
+                    {{this.selfNumber}}. {{question.title}}
+                </div>
+                <ng-template #elseBlock>
+                    {{question.title}}
+                </ng-template>
             </h5>
-            <div *ngFor="let i of this.body.split('\n')">
-                {{i}}
+            <div *ngIf="!this.titleOnly">
+                <div *ngFor="let i of this.body.split('\n')">
+                    {{i}}
+                </div>
             </div>
         </div>
     </a>

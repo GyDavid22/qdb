@@ -19,10 +19,20 @@ export class QuestionCardComponent {
   }
   @Input() public set question(value: QuestionMetadata) {
     this._question = value;
-    this.qService.getQuestionBody(this.question.id).then((val) => {
-      this.body = val;
-    });
   }
+  @Input() public selfNumber: number | undefined;
+  @Input() public set titleOnly(val: boolean | undefined) {
+    this._titleOnly = val;
+    if (val === false) {
+      this.qService.getQuestionBody(this.question.id).then((val) => {
+        this.body = val;
+      });
+    }
+  }
+  public get titleOnly(): boolean | undefined {
+    return this._titleOnly;
+  }
+  private _titleOnly: boolean | undefined;
   private _body: string = "";
   public set body(value: string) {
     if (value.length > 500) {

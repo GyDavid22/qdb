@@ -5,11 +5,12 @@ import { QueryService } from '../../../services/query.service';
 import { QuestionCardComponent } from './question-card/question-card.component';
 import { NgFor } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-questions-with-paginating',
   standalone: true,
-  imports: [PaginatingComponent, QuestionCardComponent, NgFor],
+  imports: [PaginatingComponent, QuestionCardComponent, NgFor, FormsModule],
   templateUrl: './questions-with-paginating.component.html',
   styleUrl: './questions-with-paginating.component.css'
 })
@@ -39,6 +40,7 @@ export class QuestionsWithPaginatingComponent {
   }
   private searchType: "ALL" | "TITLE" | "BODY" | undefined;
   public tags: string[] | undefined;
+  public titleOnly: boolean = true;
 
   public constructor(private qService: QueryService, private route: ActivatedRoute) { }
 
