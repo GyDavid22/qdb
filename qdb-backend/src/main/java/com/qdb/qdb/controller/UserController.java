@@ -72,6 +72,9 @@ public class UserController {
         if (username != null) {
             boolean result = false;
             try {
+                if (u.getUserName().equals(username)) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please delete your account on the user overview page");
+                }
                 result = service.deleteUserByAdmin(username, u);
             } catch (NoRightException e) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have the rights to perform this action.");
@@ -169,6 +172,9 @@ public class UserController {
             if (res == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
+            if (u == res) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You can't set your own rank");
+            }
             service.setRank(u, res, rank.getRank());
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have permission to set one's rank");
@@ -203,6 +209,9 @@ public class UserController {
             User res = service.getByUserName(username, u);
             if (res == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            if (u == res) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please change your password on the user overview page");
             }
             service.setPasswordByAdmin(u, res, password.getNewPassword());
         } catch (NoRightException e) {
