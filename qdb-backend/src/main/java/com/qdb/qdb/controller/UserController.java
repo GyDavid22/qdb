@@ -277,7 +277,7 @@ public class UserController {
      * @param username
      * @return
      */
-    @DeleteMapping(path = "/picture/{username}")
+    @DeleteMapping(path = {"/picture", "/picture/{username}"})
     public ResponseEntity<?> deleteProfilePicture(HttpServletRequest request, HttpServletResponse response, @PathVariable(required = false) String username) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
         if (u == null) {
