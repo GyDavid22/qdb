@@ -29,7 +29,11 @@ export class QuestionsWithPaginatingComponent {
   private _pageSize: number | undefined;
   public set pageSize(val: number | undefined) {
     this._pageSize = val;
-    sessionStorage.setItem("selectedPageSize", JSON.stringify(val));
+    if (val === undefined) {
+      sessionStorage.setItem("selectedPageSize", JSON.stringify("ALL"));
+    } else {
+      sessionStorage.setItem("selectedPageSize", JSON.stringify(val));
+    }
     this.performQuery();
   }
   public get pageSize(): number | undefined {
@@ -61,7 +65,12 @@ export class QuestionsWithPaginatingComponent {
     if (pageSizeStorage === null) {
       this.pageSize = PaginatingComponent.DEFAULT_PAGESIZE;
     } else {
-      this.pageSize = JSON.parse(pageSizeStorage);
+      let storedValue = JSON.parse(pageSizeStorage);
+      if (storedValue == "ALL") {
+        this.pageSize = undefined;
+      } else {
+        this.pageSize = storedValue;
+      }
     }
   }
 
