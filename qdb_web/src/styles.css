@@ -5,3 +5,24 @@ body {
 .questionbody > img, .questionbody > p > img {
     max-width: 100%;
 }
+
+.card-regular-text {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+.card:hover {
+    box-shadow: 0 0 0.2rem;
+    transition: box-shadow linear 0.1s;
+}
+
+.card {
+    transition: box-shadow linear 0.3s;
+}
+
+.mini-pfp {
+    width: 2rem;
+    height: 2rem;
+    object-fit: cover;
+    border-radius: 100%;
+}

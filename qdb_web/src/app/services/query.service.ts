@@ -125,9 +125,19 @@ export class QueryService {
     return this.queryBase("user", "GET");
   }
 
+  public async getAllUserMetadata(): Promise<Response> {
+    return this.queryBase("user/all", "GET");
+  }
+
   public async setCurrentUserPassword(currentPassword: string, newPassword: string): Promise<Response> {
     return this.queryBase("user/password", "POST", JSON.stringify({
       "oldPassword": currentPassword,
+      "newPassword": newPassword
+    }));
+  }
+
+  public async setUserPassword(username: string, newPassword: string): Promise<Response> {
+    return this.queryBase(`user/password/${username}`, "POST", JSON.stringify({
       "newPassword": newPassword
     }));
   }
@@ -141,7 +151,25 @@ export class QueryService {
     return response;
   }
 
+  public async deleteUser(username: string): Promise<Response> {
+    return this.queryBase(`user/${username}`, "DELETE");
+  }
+
+  public setRank(username: string, rank: "SUPERUSER" | "ADMIN" | "NORMAL" | "RESTRICTED"): Promise<Response> {
+    return this.queryBase(`user/rank/${username}`, "POST", JSON.stringify({
+      rank: rank
+    }));
+  }
+
+  public resetProfilePicture(): Promise<Response> {
+    return this.queryBase("user/picture", "DELETE");
+  }
+
   public getCurrentProfilePictureUrl(): string {
     return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture/${this.username}`;
+  }
+
+  public getProfilePictureUrl(username: string): string {
+    return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture/${username}`;
   }
 }

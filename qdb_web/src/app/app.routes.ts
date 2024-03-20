@@ -5,6 +5,7 @@ import { QuestionFullComponent } from './screens/question-full/question-full.com
 import { SearchScreenComponent } from './screens/search-screen/search-screen.component';
 import { LoginScreenComponent } from './screens/login-screen/login-screen.component';
 import { UserOverviewComponent } from './screens/user-overview/user-overview.component';
+import { AdminPageComponent } from './screens/admin-page/admin-page.component';
 
 export const routes: Routes = [
     { path: "", component: MainPageComponent },
@@ -13,5 +14,6 @@ export const routes: Routes = [
     { path: "search", component: SearchScreenComponent },
     { path: "login", component: LoginScreenComponent },
     { path: "user", component: UserOverviewComponent },
+    { path: "admin", component: AdminPageComponent },
     { path: "**", component: PageNotFoundComponent }
 ];
