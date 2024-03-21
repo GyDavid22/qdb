@@ -273,7 +273,7 @@ public class ImportExportData implements ApplicationRunner {
     private void importPermissions() throws Exception {
         pRepo.deleteAll();
         JSONParser p = new JSONParser();
-        String content = String.join("\n", Files.readAllLines(Path.of("exportdata/permissions.json")));
+        String content = String.join("\n", Files.readAllLines(Path.of("importdata/permissions.json")));
         JSONArray permissions = (JSONArray) p.parse(content);
         for (Object i : permissions) {
             JSONObject o = (JSONObject) i;
