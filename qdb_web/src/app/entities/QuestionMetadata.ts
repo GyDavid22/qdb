@@ -3,5 +3,7 @@ export interface QuestionMetadata {
     title: string,
     bodyUrl: string,
     tags: string[],
-    imagesUrls: string[]
+    imagesUrls: string[],
+    createdBy: string,
+    currentUserHasEditingRights: boolean
 }

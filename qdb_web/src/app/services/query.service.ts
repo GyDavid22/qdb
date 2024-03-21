@@ -166,7 +166,7 @@ export class QueryService {
   }
 
   public getCurrentProfilePictureUrl(): string {
-    return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture/${this.username}`;
+    return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture`;
   }
 
   public getProfilePictureUrl(username: string): string {
