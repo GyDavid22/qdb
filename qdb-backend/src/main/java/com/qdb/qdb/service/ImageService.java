@@ -23,10 +23,13 @@ public class ImageService {
     private final ImageRepository repo;
     @Autowired
     private final PermissionService pService;
+    @Autowired
+    private final QuestionService qService;
 
-    public ImageService(ImageRepository repo, PermissionService pService) {
+    public ImageService(ImageRepository repo, PermissionService pService, QuestionService qService) {
         this.repo = repo;
         this.pService = pService;
+        this.qService = qService;
     }
 
     public byte[] getImageContent(String name) {
@@ -58,7 +61,7 @@ public class ImageService {
      * @throws NoRightException
      */
     public Image addImage(byte[] content, String mediaType, User u, @Nullable String originalName) throws UnsupportedFileFormatException, NoRightException {
-        pService.checkPermission(u, Permission.Action.UPLOAD_IMAGE_ANY_QUESTION, false);
+        pService.checkPermission(u, Permission.Action.UPLOAD_IMAGE, false);
         if ((mediaType == null) || (!mediaType.equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE) && !mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE))) {
             throw new UnsupportedFileFormatException();
         }
@@ -82,11 +85,7 @@ public class ImageService {
      * @throws NoRightException
      */
     public void bindImageToQuestion(Image i, Question q, User u) throws NoRightException {
-        if (u.getQuestions().contains(q)) {
-            pService.checkPermission(u, Permission.Action.UPDATE_IMAGES_OWN_QUESTION, false);
-        } else {
-            pService.checkPermission(u, Permission.Action.UPDATE_IMAGES_ANY_QUESTION, false);
-        }
+        qService.checkEditingRights(q, u, false);
         i.setTimeout(null);
         i.setQuestion(q);
         repo.flush();

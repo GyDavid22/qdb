@@ -107,14 +107,16 @@ public class UserService {
      * @param username
      * @return User object with the given username, null if doesn't exist
      */
-    public User getByUserName(String username, User u) throws NoRightException {
-        pService.checkPermission(u, Permission.Action.GET_ANY_USER_METADATA, false);
+    public User getByUserName(String username, @Nullable User u) throws NoRightException {
+        if (u != null) {
+            pService.checkPermission(u, Permission.Action.GET_USER_METADATA, false);
+        }
         Optional<User> res = repo.findByUserName(username);
         return res.orElse(null);
     }
 
     public List<User> getAllUsers(User u) throws NoRightException {
-        pService.checkPermission(u, Permission.Action.GET_ALL_USER_METADATA, false);
+        pService.checkPermission(u, Permission.Action.GET_USER_METADATA, false);
         return repo.findAll();
     }
 
@@ -164,44 +166,36 @@ public class UserService {
      * @param newRank New rank of user
      */
     public void setRank(User u, User toSet, User.Rank newRank) throws NoRightException {
-        pService.checkPermission(u, Permission.Action.SET_ANY_USER_RANK, false);
+        if (newRank == User.Rank.SUPERUSER || newRank == User.Rank.ADMIN) {
+            pService.checkPermission(u, Permission.Action.SET_ANY_USER_RANK, false);
+        } else {
+            pService.checkPermission(u, Permission.Action.SET_RANK_NORMAL_RESTRICTED, false);
+        }
         toSet.setRank(newRank);
         repo.flush();
     }
 
     @Transactional
-    public boolean deleteUser(String username) {
-        Optional<User> result = repo.findByUserName(username);
-        if (result.isPresent()) {
-            User u = result.get();
-            sService.deleteAllSessionOfUser(u);
-            u.getQuestions().forEach(q -> q.setOwner(null));
-            if (u.getProfilePicture() != null) {
-                ProfilePicture pic = u.getProfilePicture();
-                pic.setOwner(null);
-                u.setProfilePicture(null);
-                pRepo.delete(pic);
-                pRepo.flush();
-                repo.flush();
+    public void deleteUser(User u, @Nullable User withPerm) throws NoRightException {
+        if (withPerm != null) {
+            if (u.getRank() == User.Rank.NORMAL || u.getRank() == User.Rank.RESTRICTED) {
+                pService.checkPermission(withPerm, Permission.Action.DELETE_USER_ACCOUNT_NORMAL_RESTRICTED, false);
+            } else {
+                pService.checkPermission(withPerm, Permission.Action.DELETE_ANY_USER_ACCOUNT, false);
             }
-            repo.delete(u);
-            repo.flush();
-            return true;
         }
-        return false;
-    }
-
-    /**
-     * Deletes user by admin
-     *
-     * @param username Username of user to delete
-     * @param u        An admin account
-     * @return true, if deletion was successful, false otherwise (not an admin account or username doesn't exist)
-     */
-    @Transactional
-    public boolean deleteUserByAdmin(String username, User u) throws NoRightException {
-        pService.checkPermission(u, Permission.Action.DELETE_ANY_USER_ACCOUNT, false);
-        return deleteUser(username);
+        sService.deleteAllSessionOfUser(u);
+        u.getQuestions().forEach(q -> q.setOwner(null));
+        if (u.getProfilePicture() != null) {
+            ProfilePicture pic = u.getProfilePicture();
+            pic.setOwner(null);
+            u.setProfilePicture(null);
+            pRepo.delete(pic);
+            pRepo.flush();
+            repo.flush();
+        }
+        repo.delete(u);
+        repo.flush();
     }
 
     private char[] generateSalt() {
@@ -232,15 +226,11 @@ public class UserService {
      * @param image
      * @param contentType
      * @param username
-     * @param admin
      * @throws UserNotFoundException
      * @throws UnsupportedFileFormatException
      * @throws NoRightException
      */
-    public void setProfilePicture(byte[] image, String contentType, String username, @Nullable User admin) throws UserNotFoundException, UnsupportedFileFormatException, NoRightException {
-        if (admin != null) {
-            pService.checkPermission(admin, Permission.Action.SET_PROFILE_PICTURE_ANY, false);
-        }
+    public void setProfilePicture(byte[] image, String contentType, String username) throws UserNotFoundException, UnsupportedFileFormatException, NoRightException {
         Optional<User> res = repo.findByUserName(username);
         if (res.isEmpty()) {
             throw new UserNotFoundException();
@@ -268,14 +258,10 @@ public class UserService {
      * If admin is null, the profile picture will be deleted either way, if not, admin needs to be an admin.
      *
      * @param username
-     * @param admin
      * @throws UserNotFoundException
      * @throws NoRightException
      */
-    public void deleteProfilePicture(String username, @Nullable User admin) throws UserNotFoundException, NoRightException {
-        if (admin != null) {
-            pService.checkPermission(admin, Permission.Action.RESET_PROFILE_PICTURE_ANY, false);
-        }
+    public void deleteProfilePicture(String username) throws UserNotFoundException, NoRightException {
         Optional<User> res = repo.findByUserName(username);
         if (res.isEmpty()) {
             throw new UserNotFoundException();

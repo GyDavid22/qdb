@@ -38,7 +38,7 @@ public class QuestionService {
      * @param tags
      */
     public void updateTags(Question q, List<String> tags, User u) throws NoRightException {
-        checkEditingRights(q, u);
+        checkEditingRights(q, u, false);
         Set<String> toAdd = new HashSet<>();
         Set<Tag> tagObj = new HashSet<>();
         for (String i : tags) {
@@ -162,12 +162,17 @@ public class QuestionService {
         return potentialResults;
     }
 
-    private void checkEditingRights(Question q, User u) throws NoRightException {
-        if (u.getQuestions().contains(q)) {
-            pService.checkPermission(u, Permission.Action.UPDATE_TAGS_OWN_QUESTION, false);
-        } else {
-            pService.checkPermission(u, Permission.Action.UPDATE_TAGS_ANY_QUESTION, false);
+    public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {
+        if (q.getOwner() == u && u.getRank() != User.Rank.RESTRICTED) {
+            return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWN, onlycheck);
+        } else if (q.getOwner() != null) {
+            if (q.getOwner().getRank() == User.Rank.ADMIN) {
+                return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_ADMIN, onlycheck);
+            } else if (q.getOwner().getRank() == User.Rank.SUPERUSER) {
+                return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_SUPERUSER, onlycheck);
+            }
         }
+        return false;
     }
 
     private enum SearchType {

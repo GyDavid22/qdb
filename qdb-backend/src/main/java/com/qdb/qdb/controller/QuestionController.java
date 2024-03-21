@@ -40,12 +40,18 @@ public class QuestionController {
      * @return
      */
     @GetMapping(path = "{id}")
-    public ResponseEntity<?> getQuestion(@PathVariable long id) {
+    public ResponseEntity<?> getQuestion(@PathVariable long id, HttpServletRequest request, HttpServletResponse response) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
         Question result = service.getById(id);
         if (result == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).body(QuestionDTO.toDto(result));
+        boolean editingrights = false;
+        try {
+            editingrights = service.checkEditingRights(result, u, true);
+        } catch (NoRightException ignored) {
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(QuestionDTO.toDto(result, editingrights));
     }
 
     /**
@@ -104,7 +110,8 @@ public class QuestionController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<?> getQuestions(@RequestParam(required = false) Integer pageNumber, @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, @RequestParam(required = false) List<String> tags) {
+    public ResponseEntity<?> getQuestions(HttpServletRequest request, HttpServletResponse response, @RequestParam(required = false) Integer pageNumber, @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, @RequestParam(required = false) List<String> tags) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
         List<Question> results = new ArrayList<>();
         // filtering
         if (search == null) {
@@ -122,12 +129,30 @@ public class QuestionController {
         int count = results.size();
         // formatting
         if (pageNumber == null || pageSize == null) {
-            return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(count, results.stream().map(QuestionDTO::toDto).toList()));
+            return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(count, results.stream().map(q -> {
+                boolean editingrights = false;
+                if (u != null) {
+                    try {
+                        editingrights = service.checkEditingRights(q, u, true);
+                    } catch (NoRightException ignored) {
+                    }
+                }
+                return QuestionDTO.toDto(q, editingrights);
+            }).toList()));
         }
         List<Question> resultsPaged = service.getQuestionPagedFromList(pageNumber, pageSize, results);
         if (resultsPaged == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(count, resultsPaged.stream().map(QuestionDTO::toDto).toList()));
+        return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(count, resultsPaged.stream().map(q -> {
+            boolean editingrights = false;
+            if (u != null) {
+                try {
+                    editingrights = service.checkEditingRights(q, u, true);
+                } catch (NoRightException ignored) {
+                }
+            }
+            return QuestionDTO.toDto(q, editingrights);
+        }).toList()));
     }
 }

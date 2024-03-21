@@ -197,9 +197,8 @@ public class ImportExportData implements ApplicationRunner {
 
     private void importUsers() throws Exception {
         for (User u : uRepo.findAll()) {
-            uService.deleteUser(u.getUserName());
+            uService.deleteUser(u, null);
         }
-        User mockUser = new User((long) -1, null, User.Rank.SUPERUSER, null, null, null, null, new ArrayList<>());
         try (FileReader fr = new FileReader("importdata/users.json")) {
             JSONParser p = new JSONParser();
             JSONArray users = (JSONArray) p.parse(fr);
@@ -218,7 +217,7 @@ public class ImportExportData implements ApplicationRunner {
                         byte[] content = Files.readAllBytes(Path.of(pfp.getPath()));
                         String type = picturename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE;
                         try {
-                            uService.setProfilePicture(content, type, u.getUserName(), mockUser);
+                            uService.setProfilePicture(content, type, u.getUserName());
                         } catch (UserNotFoundException | UnsupportedFileFormatException | NoRightException ignored) {
                         }
                     }

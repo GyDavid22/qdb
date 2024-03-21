@@ -69,22 +69,22 @@ public class UserController {
         if (u == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (username != null) {
-            boolean result = false;
-            try {
+        try {
+            if (username != null) {
                 if (u.getUserName().equals(username)) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please delete your account on the user overview page");
                 }
-                result = service.deleteUserByAdmin(username, u);
-            } catch (NoRightException e) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have the rights to perform this action.");
+                User u2 = service.getByUserName(username, null);
+                if (u2 == null) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("The given user doesn't exist");
+                }
+                service.deleteUser(u2, u);
+            } else {
+                service.deleteUser(u, null);
             }
-            if (!result) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("The given user doesn't exist");
-            }
-            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have the rights to perform this action.");
         }
-        service.deleteUser(u.getUserName());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -244,8 +244,8 @@ public class UserController {
      * @param file
      * @return
      */
-    @PostMapping(path = "/picture/{username}")
-    public ResponseEntity<?> uploadProfilePicture(HttpServletRequest request, HttpServletResponse response, @PathVariable(required = false) String username, @RequestParam("file") MultipartFile file) {
+    @PostMapping(path = "/picture")
+    public ResponseEntity<?> uploadProfilePicture(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
         if (u == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -254,13 +254,9 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         try {
-            if (username == null) {
-                service.setProfilePicture(file.getBytes(), file.getContentType(), u.getUserName(), null);
-            } else {
-                service.setProfilePicture(file.getBytes(), file.getContentType(), username, u);
-            }
+            service.setProfilePicture(file.getBytes(), file.getContentType(), u.getUserName());
         } catch (IOException | UnsupportedFileFormatException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Unsupported file format, please upload .jpg, .jpeg or .png");
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (NoRightException e) {
@@ -277,18 +273,14 @@ public class UserController {
      * @param username
      * @return
      */
-    @DeleteMapping(path = {"/picture", "/picture/{username}"})
-    public ResponseEntity<?> deleteProfilePicture(HttpServletRequest request, HttpServletResponse response, @PathVariable(required = false) String username) {
+    @DeleteMapping(path = "/picture")
+    public ResponseEntity<?> deleteProfilePicture(HttpServletRequest request, HttpServletResponse response) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
         if (u == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         try {
-            if (username == null) {
-                service.deleteProfilePicture(u.getUserName(), null);
-            } else {
-                service.deleteProfilePicture(username, u);
-            }
+            service.deleteProfilePicture(u.getUserName());
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (NoRightException e) {
