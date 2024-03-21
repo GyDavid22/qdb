@@ -9,7 +9,6 @@ import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.repository.ProfilePictureRepository;
 import com.qdb.qdb.repository.UserRepository;
 import jakarta.annotation.Nullable;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -166,8 +165,15 @@ public class UserService {
      * @param newRank New rank of user
      */
     public void setRank(User u, User toSet, User.Rank newRank) throws NoRightException {
-        if (newRank == User.Rank.SUPERUSER || newRank == User.Rank.ADMIN) {
-            pService.checkPermission(u, Permission.Action.SET_ANY_USER_RANK, false);
+        // admin le tud fokozni, javítani
+        if (toSet.getRank() == User.Rank.SUPERUSER) {
+            pService.checkPermission(u, Permission.Action.SET_RANK_OF_SUPERUSER, false);
+        }
+        if (newRank == User.Rank.SUPERUSER) {
+            pService.checkPermission(u, Permission.Action.SET_RANK_SUPERUSER, false);
+        }
+        if (newRank == User.Rank.ADMIN) {
+            pService.checkPermission(u, Permission.Action.SET_RANK_ADMIN, false);
         } else {
             pService.checkPermission(u, Permission.Action.SET_RANK_NORMAL_RESTRICTED, false);
         }
@@ -175,7 +181,6 @@ public class UserService {
         repo.flush();
     }
 
-    @Transactional
     public void deleteUser(User u, @Nullable User withPerm) throws NoRightException {
         if (withPerm != null) {
             if (u.getRank() == User.Rank.NORMAL || u.getRank() == User.Rank.RESTRICTED) {

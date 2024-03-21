@@ -52,7 +52,7 @@ public class UserController {
         if (service.createUser(userCredentials.getUsername(), userCredentials.getPassword()) == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username taken");
         }
-        return ResponseEntity.status(HttpStatus.OK).body("Your registration request was sent to the admins");
+        return ResponseEntity.status(HttpStatus.OK).body("Account created");
     }
 
     /**
@@ -177,7 +177,7 @@ public class UserController {
             }
             service.setRank(u, res, rank.getRank());
         } catch (NoRightException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have permission to set one's rank");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have permission to set this rank");
         }
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -221,9 +221,15 @@ public class UserController {
     }
 
 
-    @GetMapping(path = "/picture/{username}", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public ResponseEntity<?> getProfilePicture(@PathVariable String username) {
-        ProfilePicture pfp = service.getProfilePicture(username);
+    @GetMapping(path = {"/picture", "/picture/{username}"}, produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public ResponseEntity<?> getProfilePicture(HttpServletRequest request, HttpServletResponse response, @PathVariable(required = false) String username) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        ProfilePicture pfp = null;
+        if (username != null) {
+            pfp = service.getProfilePicture(username);
+        } else if (u != null) {
+            pfp = service.getProfilePicture(u.getUserName());
+        }
         if (pfp == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -240,7 +246,6 @@ public class UserController {
      *
      * @param request
      * @param response
-     * @param username
      * @param file
      * @return
      */
@@ -260,7 +265,7 @@ public class UserController {
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (NoRightException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to upload a profile picture");
         }
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -270,7 +275,6 @@ public class UserController {
      *
      * @param request
      * @param response
-     * @param username
      * @return
      */
     @DeleteMapping(path = "/picture")

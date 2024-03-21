@@ -170,7 +170,11 @@ public class QuestionService {
                 return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_ADMIN, onlycheck);
             } else if (q.getOwner().getRank() == User.Rank.SUPERUSER) {
                 return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_SUPERUSER, onlycheck);
+            } else if (q.getOwner().getRank() == User.Rank.NORMAL || q.getOwner().getRank() == User.Rank.RESTRICTED) {
+                return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_NORMAL_RESTRICTED, onlycheck);
             }
+        } else if (q.getOwner() == null && u.getRank() == User.Rank.SUPERUSER) {
+            return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_SUPERUSER, onlycheck);
         }
         return false;
     }

@@ -47,9 +47,11 @@ public class QuestionController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         boolean editingrights = false;
-        try {
-            editingrights = service.checkEditingRights(result, u, true);
-        } catch (NoRightException ignored) {
+        if (u != null) {
+            try {
+                editingrights = service.checkEditingRights(result, u, true);
+            } catch (NoRightException ignored) {
+            }
         }
         return ResponseEntity.status(HttpStatus.OK).body(QuestionDTO.toDto(result, editingrights));
     }

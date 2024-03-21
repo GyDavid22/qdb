@@ -22,9 +22,9 @@ public class User {
     private ProfilePicture profilePicture;
     private char[] hashedPassword;
     private char[] salt;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private Collection<Session> sessions;
-    @OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner", fetch = FetchType.EAGER)
     private Collection<Question> questions;
 
     public User() {

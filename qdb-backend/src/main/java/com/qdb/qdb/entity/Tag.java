@@ -14,7 +14,7 @@ public class Tag {
     @GeneratedValue
     private Long id;
     private String name;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Collection<Question> questions;
 
     public Tag() {
