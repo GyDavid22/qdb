@@ -14,6 +14,7 @@ export class PaginatingComponent {
   @Input() totalCount: number | undefined;
   @Output() selectedPagesize = new EventEmitter<number | undefined>();
   private _pageSize: number | undefined = PaginatingComponent.DEFAULT_PAGESIZE;
+  private pageIndex: number = 0;
 
   public static readonly DEFAULT_PAGESIZE = 25;
   public pageSizes: PageSize[] = [
@@ -46,6 +47,30 @@ export class PaginatingComponent {
       }
     }
     this.selectedPagesize.emit(this._pageSize);
+  }
+
+  private calcNumPages(): number {
+    return Math.ceil(this.totalCount! / this._pageSize!);
+  }
+
+  public pageOptions(numpages: number): number[] {
+    let result = [];
+    let numOfPages = this.calcNumPages();
+    for (let i = 1; i <= Math.min(numOfPages, 3); i++) {
+      result.push(i);
+    }
+    for (let i = Math.max(this.pageIndex, 4); i <= Math.min(numOfPages, this.pageIndex + 2); i++) {
+      if (!result.includes(i)) {
+        result.push(i);
+      }
+    }
+    for (let i = Math.max(1, numOfPages - 2); i <= numOfPages; i++) {
+      if (!result.includes(i)) {
+        result.push(i);
+      }
+    }
+    result.sort((n1,n2) => n1 - n2);
+    return result;
   }
 }
 
