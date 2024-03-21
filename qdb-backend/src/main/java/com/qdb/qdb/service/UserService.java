@@ -181,13 +181,16 @@ public class UserService {
         repo.flush();
     }
 
-    public void deleteUser(User u, @Nullable User withPerm) throws NoRightException {
+    public boolean deleteUser(User u, @Nullable User withPerm) throws NoRightException {
         if (withPerm != null) {
             if (u.getRank() == User.Rank.NORMAL || u.getRank() == User.Rank.RESTRICTED) {
                 pService.checkPermission(withPerm, Permission.Action.DELETE_USER_ACCOUNT_NORMAL_RESTRICTED, false);
             } else {
                 pService.checkPermission(withPerm, Permission.Action.DELETE_ANY_USER_ACCOUNT, false);
             }
+        }
+        if (u.getRank() == User.Rank.SUPERUSER && repo.countByRank(User.Rank.SUPERUSER) == 1) {
+            return false;
         }
         sService.deleteAllSessionOfUser(u);
         u.getQuestions().forEach(q -> q.setOwner(null));
@@ -201,6 +204,7 @@ public class UserService {
         }
         repo.delete(u);
         repo.flush();
+        return true;
     }
 
     private char[] generateSalt() {

@@ -31,6 +31,9 @@ public class TagService {
      * @param name
      */
     public void bindTagToQuestion(Question q, String name) {
+        if (name.isEmpty()) {
+            return;
+        }
         Optional<Tag> result = repo.findByNameIgnoreCase(name);
         if (result.isPresent()) {
             if (!result.get().getQuestions().contains(q)) {

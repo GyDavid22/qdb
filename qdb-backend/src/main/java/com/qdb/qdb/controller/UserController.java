@@ -80,7 +80,10 @@ public class UserController {
                 }
                 service.deleteUser(u2, u);
             } else {
-                service.deleteUser(u, null);
+                boolean result = service.deleteUser(u, null);
+                if (!result) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You're the last superuser, you can't delete your account");
+                }
             }
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have the rights to perform this action.");
