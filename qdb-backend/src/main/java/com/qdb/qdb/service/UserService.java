@@ -150,7 +150,13 @@ public class UserService {
      * @throws NoRightException
      */
     public void setPasswordByAdmin(User u, User toSet, char[] newPassword) throws NoRightException {
-        pService.checkPermission(u, Permission.Action.SET_ANY_USER_PASSWORD, false);
+        if (toSet.getRank() == User.Rank.SUPERUSER) {
+            pService.checkPermission(u, Permission.Action.EDIT_SUPERUSER, false);
+        } else if (toSet.getRank() == User.Rank.ADMIN) {
+            pService.checkPermission(u, Permission.Action.EDIT_ADMIN, false);
+        } else {
+            pService.checkPermission(u, Permission.Action.EDIT_NORMAL_RESTRICTED, false);
+        }
         toSet.setSalt(generateSalt());
         toSet.setHashedPassword(hashPassword(newPassword, toSet.getSalt()));
         sService.deleteAllSessionOfUser(toSet);
@@ -165,17 +171,13 @@ public class UserService {
      * @param newRank New rank of user
      */
     public void setRank(User u, User toSet, User.Rank newRank) throws NoRightException {
-        // admin le tud fokozni, javítani
-        if (toSet.getRank() == User.Rank.SUPERUSER) {
-            pService.checkPermission(u, Permission.Action.SET_RANK_OF_SUPERUSER, false);
-        }
-        if (newRank == User.Rank.SUPERUSER) {
-            pService.checkPermission(u, Permission.Action.SET_RANK_SUPERUSER, false);
+        if (toSet.getRank() == User.Rank.SUPERUSER || newRank == User.Rank.SUPERUSER) {
+            pService.checkPermission(u, Permission.Action.EDIT_SUPERUSER, false);
         }
         if (newRank == User.Rank.ADMIN) {
-            pService.checkPermission(u, Permission.Action.SET_RANK_ADMIN, false);
+            pService.checkPermission(u, Permission.Action.EDIT_ADMIN, false);
         } else {
-            pService.checkPermission(u, Permission.Action.SET_RANK_NORMAL_RESTRICTED, false);
+            pService.checkPermission(u, Permission.Action.EDIT_NORMAL_RESTRICTED, false);
         }
         toSet.setRank(newRank);
         repo.flush();
@@ -183,10 +185,12 @@ public class UserService {
 
     public boolean deleteUser(User u, @Nullable User withPerm) throws NoRightException {
         if (withPerm != null) {
-            if (u.getRank() == User.Rank.NORMAL || u.getRank() == User.Rank.RESTRICTED) {
-                pService.checkPermission(withPerm, Permission.Action.DELETE_USER_ACCOUNT_NORMAL_RESTRICTED, false);
+            if (u.getRank() == User.Rank.SUPERUSER) {
+                pService.checkPermission(withPerm, Permission.Action.EDIT_SUPERUSER, false);
+            } else if (u.getRank() == User.Rank.ADMIN) {
+                pService.checkPermission(withPerm, Permission.Action.EDIT_ADMIN, false);
             } else {
-                pService.checkPermission(withPerm, Permission.Action.DELETE_ANY_USER_ACCOUNT, false);
+                pService.checkPermission(withPerm, Permission.Action.EDIT_NORMAL_RESTRICTED, false);
             }
         }
         if (u.getRank() == User.Rank.SUPERUSER && repo.countByRank(User.Rank.SUPERUSER) == 1) {
