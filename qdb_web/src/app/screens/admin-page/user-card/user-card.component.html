@@ -1,0 +1,17 @@
+<div class="card m-2">
+    <div class="card-body">
+        <div class="d-flex justify-content-between">
+            <div class="d-flex align-items-center">
+                <img [src]="this.qService.getProfilePictureUrl(this.user!.userName)" class="mini-pfp">
+                <span class="username">{{this.user?.userName}}</span>
+                <span class="rank">{{this.user?.rank?.toLowerCase()}}</span>
+            </div>
+            <div class="d-flex flex-column flex-md-row align-items-center">
+                <button class="btn btn-outline-primary" (click)="this.changePasswordButtonHandler()">Change
+                    password</button>
+                <button class="btn btn-outline-primary" (click)="this.changeRankButtonHandler()">Change rank</button>
+                <button class="btn btn-outline-danger" (click)="this.deleteUserButtonHandler()">Delete user</button>
+            </div>
+        </div>
+    </div>
+</div>

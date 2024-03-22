@@ -1,0 +1,21 @@
+<div class="card m-2">
+    <a [routerLink]="'/question/' + question.id" class="card-regular-text">
+        <div class="card-body">
+            <h5 class="card-title">
+                <div *ngIf="this.selfNumber !== undefined; else elseBlock">
+                    {{this.selfNumber}}. {{question.title}}
+                </div>
+                <ng-template #elseBlock>
+                    {{question.title}}
+                </ng-template>
+            </h5>
+            <div *ngIf="!this.titleOnly">
+                <div [innerHTML]="this.body" class="questionbody">
+                </div>
+            </div>
+        </div>
+    </a>
+    <div class="card-footer" *ngIf="this.question.tags.length > 0">
+        <app-tag-badges [tags]="this.question.tags"></app-tag-badges>
+    </div>
+</div>

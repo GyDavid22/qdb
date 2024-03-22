@@ -1,0 +1,22 @@
+<div class="w-100 d-flex align-items-center justify-content-center py-3">
+    <form class="col-12 col-md-6 d-flex flex-column align-items-center justify-content-center">
+        <input type="text" class="form-control my-1" placeholder="Username" id="username_login_field"
+            name="username_login_field" required autofocus [(ngModel)]="this.username">
+        <input type="password" class="form-control my-1" placeholder="Password" id="password_login_field"
+            name="password_login_field" required [(ngModel)]="this.password">
+        <div *ngIf="this.isInRegistrationMode" class="w-100">
+            <input type="password" class="form-control my-1" placeholder="Repeat password" id="repassword_login_field"
+                name="repassword_login_field" required [(ngModel)]="this.passwordRepeat">
+        </div>
+        <div *ngIf="this.isInRegistrationMode; else elseBlock">
+            <button type="submit" class="btn btn-outline-primary my-1"
+                (click)="this.registrationButtonHandler($event)">Submit</button>
+        </div>
+        <ng-template #elseBlock>
+            <button type="submit" class="btn btn-outline-primary my-1"
+                (click)="this.loginButtonHandler($event)">Login</button>
+            <button type="button" class="btn btn-outline-primary my-1" (click)="this.setToRegistrationMode($event)">No
+                account yet?</button>
+        </ng-template>
+    </form>
+</div>

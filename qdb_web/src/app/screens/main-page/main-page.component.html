@@ -1,0 +1,9 @@
+<div class="d-flex">
+    <div class="col-9">
+        <app-questions-with-paginating [message]="'Total number of questions:'"
+            [searchMode]="false"></app-questions-with-paginating>
+    </div>
+    <div class="col-3 p-2">
+        <app-tags-box [tagsWithCount]="this.tagsWithCount"></app-tags-box>
+    </div>
+</div>

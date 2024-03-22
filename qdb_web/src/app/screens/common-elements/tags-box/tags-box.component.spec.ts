@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ErrorAlertComponent } from './error-alert.component';
+import { TagsBoxComponent } from './tags-box.component';
 
-describe('ErrorAlertComponent', () => {
-  let component: ErrorAlertComponent;
-  let fixture: ComponentFixture<ErrorAlertComponent>;
+describe('TagsBoxComponent', () => {
+  let component: TagsBoxComponent;
+  let fixture: ComponentFixture<TagsBoxComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ErrorAlertComponent]
+      imports: [TagsBoxComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(ErrorAlertComponent);
+    fixture = TestBed.createComponent(TagsBoxComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

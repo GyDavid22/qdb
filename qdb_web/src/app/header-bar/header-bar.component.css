@@ -1,14 +1,14 @@
-.logout-button {
+.logout-button,
+.mini-pfp {
     margin-left: 0.5rem;
 }
 
-.login-error-box {
-    position: fixed;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
+@media (min-width: 768px) {
+    .login-state {
+        margin-left: 0.5rem;
+    }
 }
 
-.login-state {
-    margin-left: 0.5rem;
+.username-link {
+    margin-left: 0.2rem;
 }
