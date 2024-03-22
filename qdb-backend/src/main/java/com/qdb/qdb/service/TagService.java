@@ -31,15 +31,16 @@ public class TagService {
      * @param name
      */
     public void bindTagToQuestion(Question q, String name) {
+        if (name.isEmpty()) {
+            return;
+        }
         Optional<Tag> result = repo.findByNameIgnoreCase(name);
         if (result.isPresent()) {
             if (!result.get().getQuestions().contains(q)) {
                 result.get().getQuestions().add(q);
             }
         } else {
-            Tag newTag = new Tag();
-            newTag.setName(name.toLowerCase());
-            newTag.setQuestions(new ArrayList<>());
+            Tag newTag = new Tag(null, name.toLowerCase(), new ArrayList<>());
             newTag.getQuestions().add(q);
             repo.save(newTag);
         }

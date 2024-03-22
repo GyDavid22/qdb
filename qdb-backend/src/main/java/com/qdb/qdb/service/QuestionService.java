@@ -1,7 +1,10 @@
 package com.qdb.qdb.service;
 
+import com.qdb.qdb.entity.Permission;
 import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.Tag;
+import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,10 +17,13 @@ public class QuestionService {
     private final QuestionRepository repo;
     @Autowired
     private final TagService tService;
+    @Autowired
+    private final PermissionService pService;
 
-    public QuestionService(QuestionRepository repo, TagService tService) {
+    public QuestionService(QuestionRepository repo, TagService tService, PermissionService pService) {
         this.repo = repo;
         this.tService = tService;
+        this.pService = pService;
     }
 
     public Question getById(long id) {
@@ -31,7 +37,8 @@ public class QuestionService {
      * @param q
      * @param tags
      */
-    public void updateTags(Question q, List<String> tags) {
+    public void updateTags(Question q, List<String> tags, User u) throws NoRightException {
+        checkEditingRights(q, u, false);
         Set<String> toAdd = new HashSet<>();
         Set<Tag> tagObj = new HashSet<>();
         for (String i : tags) {
@@ -71,6 +78,9 @@ public class QuestionService {
      * @return Returns with the list of results on the page determined by the parameters, returns null if indexOfPage or pageSize is invalid
      */
     public List<Question> getQuestionPagedFromList(int indexOfPage, int pageSize, List<Question> questions) {
+        if (questions.isEmpty()) {
+            return questions;
+        }
         if (indexOfPage < 0 || pageSize < 1 || numberOfPages(pageSize, questions) - 1 < indexOfPage) {
             return null;
         }
@@ -150,6 +160,23 @@ public class QuestionService {
             }
         }
         return potentialResults;
+    }
+
+    public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {
+        if (q.getOwner() == u && u.getRank() != User.Rank.RESTRICTED) {
+            return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWN, onlycheck);
+        } else if (q.getOwner() != null) {
+            if (q.getOwner().getRank() == User.Rank.ADMIN) {
+                return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_ADMIN, onlycheck);
+            } else if (q.getOwner().getRank() == User.Rank.SUPERUSER) {
+                return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_SUPERUSER, onlycheck);
+            } else if (q.getOwner().getRank() == User.Rank.NORMAL || q.getOwner().getRank() == User.Rank.RESTRICTED) {
+                return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_NORMAL_RESTRICTED, onlycheck);
+            }
+        } else if (q.getOwner() == null && u.getRank() == User.Rank.SUPERUSER) {
+            return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_SUPERUSER, onlycheck);
+        }
+        return false;
     }
 
     private enum SearchType {

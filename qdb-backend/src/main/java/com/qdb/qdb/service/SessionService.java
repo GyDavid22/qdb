@@ -52,14 +52,11 @@ public class SessionService {
      * @return sessionId of the new session
      */
     public char[] createSession(User u) {
-        Session newSession = new Session();
-        newSession.setUser(u);
         char[] newSessionId = generateSessionId();
         while (repo.findBySessionId(newSessionId).isPresent()) {
             newSessionId = generateSessionId();
         }
-        newSession.setSessionId(newSessionId);
-        newSession.setLastInteraction(LocalDateTime.now());
+        Session newSession = new Session(null, u, newSessionId, LocalDateTime.now());
         repo.saveAndFlush(newSession);
         return newSession.getSessionId();
     }
@@ -99,6 +96,24 @@ public class SessionService {
                 User u = getUserOfSession(c.getValue().toCharArray());
                 if (u != null) {
                     return u;
+                } else {
+                    invalidateCookie(c, response);
+                    break;
+                }
+            }
+        }
+        return null;
+    }
+
+    public char[] getCurrentSessionId(Cookie[] cookies, HttpServletResponse response) {
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie c : cookies) {
+            if (c.getName().equals(COOKIE_NAME)) {
+                User u = getUserOfSession(c.getValue().toCharArray());
+                if (u != null) {
+                    return c.getValue().toCharArray();
                 } else {
                     invalidateCookie(c, response);
                     break;

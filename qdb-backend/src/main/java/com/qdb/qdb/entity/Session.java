@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class Session {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     @ManyToOne
     private User user;
     private char[] sessionId;
@@ -21,11 +21,18 @@ public class Session {
     public Session() {
     }
 
-    public long getId() {
+    public Session(Long id, User user, char[] sessionId, LocalDateTime lastInteraction) {
+        this.id = id;
+        this.user = user;
+        this.sessionId = sessionId;
+        this.lastInteraction = lastInteraction;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -1,5 +1,6 @@
 package com.qdb.qdb.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 
 import java.util.Collection;
@@ -11,24 +12,36 @@ import java.util.Collection;
 public class Question {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     @Lob
     private String title;
     @Lob
     private String mdbody;
-    @ManyToMany(mappedBy = "questions")
+    @ManyToOne
+    @Nullable
+    private User owner;
+    @ManyToMany(mappedBy = "questions", fetch = FetchType.EAGER)
     private Collection<Tag> tags;
-    @OneToMany(mappedBy = "question")
+    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
     private Collection<Image> images;
 
     public Question() {
     }
 
-    public long getId() {
+    public Question(Long id, String title, String mdbody, @Nullable User owner, Collection<Tag> tags, Collection<Image> images) {
+        this.id = id;
+        this.title = title;
+        this.mdbody = mdbody;
+        this.owner = owner;
+        this.tags = tags;
+        this.images = images;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -46,6 +59,15 @@ public class Question {
 
     public void setMdbody(String mdbody) {
         this.mdbody = mdbody;
+    }
+
+    @Nullable
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(@Nullable User owner) {
+        this.owner = owner;
     }
 
     public Collection<Tag> getTags() {

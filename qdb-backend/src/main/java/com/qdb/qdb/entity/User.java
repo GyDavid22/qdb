@@ -1,5 +1,6 @@
 package com.qdb.qdb.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 
 import java.util.Collection;
@@ -12,21 +13,39 @@ import java.util.Collection;
 public class User {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     private String userName;
+    @Enumerated(EnumType.STRING)
+    private Rank rank;
+    @Nullable
+    @OneToOne
+    private ProfilePicture profilePicture;
     private char[] hashedPassword;
     private char[] salt;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private Collection<Session> sessions;
+    @OneToMany(mappedBy = "owner", fetch = FetchType.EAGER)
+    private Collection<Question> questions;
 
     public User() {
     }
 
-    public long getId() {
+    public User(Long id, String userName, Rank rank, @Nullable ProfilePicture profilePicture, char[] hashedPassword, char[] salt, Collection<Session> sessions, Collection<Question> questions) {
+        this.id = id;
+        this.userName = userName;
+        this.rank = rank;
+        this.profilePicture = profilePicture;
+        this.hashedPassword = hashedPassword;
+        this.salt = salt;
+        this.sessions = sessions;
+        this.questions = questions;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -36,6 +55,23 @@ public class User {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public Rank getRank() {
+        return rank;
+    }
+
+    public void setRank(Rank rank) {
+        this.rank = rank;
+    }
+
+    @Nullable
+    public ProfilePicture getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(@Nullable ProfilePicture profilePicture) {
+        this.profilePicture = profilePicture;
     }
 
     public char[] getHashedPassword() {
@@ -60,5 +96,17 @@ public class User {
 
     public void setSessions(Collection<Session> sessions) {
         this.sessions = sessions;
+    }
+
+    public Collection<Question> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(Collection<Question> questions) {
+        this.questions = questions;
+    }
+
+    public enum Rank {
+        SUPERUSER, ADMIN, NORMAL, RESTRICTED
     }
 }

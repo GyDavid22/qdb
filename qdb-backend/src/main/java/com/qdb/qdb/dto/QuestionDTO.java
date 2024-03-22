@@ -8,22 +8,36 @@ import java.util.Collection;
 
 @JsonSerialize
 public class QuestionDTO {
+    //TODO: fetch from application.properties
+    private static final String root = "/java/api";
     private long id;
     private String title;
     private String bodyUrl;
     private Collection<String> tags;
     private Collection<String> imagesUrls;
+    private String createdby;
+    private boolean currentUserHasEditingRights;
 
-    public QuestionDTO(long id, String title, String bodyUrl, Collection<String> tags, Collection<String> imagesUrls) {
+    public QuestionDTO(long id, String title, String bodyUrl, Collection<String> tags, Collection<String> imagesUrls, String createdby, boolean currentUserHasEditingRights) {
         this.id = id;
         this.title = title;
         this.bodyUrl = bodyUrl;
         this.tags = tags;
         this.imagesUrls = imagesUrls;
+        this.createdby = createdby;
+        this.currentUserHasEditingRights = currentUserHasEditingRights;
     }
 
-    public static QuestionDTO toDto(Question q) {
-        return new QuestionDTO(q.getId(), q.getTitle(), "/api/question/body/" + q.getId(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(i -> "/api/image/" + i.getName()).toList());
+    public static QuestionDTO toDto(Question q, boolean currentUserHasEditingRights) {
+        return new QuestionDTO(q.getId(), q.getTitle(), root + "/question/body/" + q.getId(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(i -> root + "/image/" + i.getName()).toList(), q.getOwner() == null ? "null" : q.getOwner().getUserName(), currentUserHasEditingRights);
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -58,11 +72,19 @@ public class QuestionDTO {
         this.imagesUrls = imagesUrls;
     }
 
-    public long getId() {
-        return id;
+    public String getCreatedby() {
+        return createdby;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setCreatedby(String createdby) {
+        this.createdby = createdby;
+    }
+
+    public boolean isCurrentUserHasEditingRights() {
+        return currentUserHasEditingRights;
+    }
+
+    public void setCurrentUserHasEditingRights(boolean currentUserHasEditingRights) {
+        this.currentUserHasEditingRights = currentUserHasEditingRights;
     }
 }

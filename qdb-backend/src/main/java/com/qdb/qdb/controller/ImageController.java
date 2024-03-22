@@ -1,24 +1,33 @@
 package com.qdb.qdb.controller;
 
+import com.qdb.qdb.entity.User;
+import com.qdb.qdb.exception.NoRightException;
+import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.service.ImageService;
+import com.qdb.qdb.service.SessionService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
-@RequestMapping(path = "/api/image")
+@RequestMapping(path = "image")
 public class ImageController {
     @Autowired
     private final ImageService service;
+    @Autowired
+    private final SessionService sService;
 
-    public ImageController(ImageService service) {
+    public ImageController(ImageService service, SessionService sService) {
         this.service = service;
+        this.sService = sService;
     }
 
     /**
@@ -35,5 +44,29 @@ public class ImageController {
         }
         String type = name.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE;
         return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_TYPE, type).body(result);
+    }
+
+    /**
+     * Endpoint to upload an image. Needs active session and basic rights. The image doesn't get bound to a question just by this endpoint.
+     *
+     * @param request
+     * @param response
+     * @param file
+     * @return
+     */
+    @PostMapping
+    ResponseEntity<?> uploadImage(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            service.addImage(file.getBytes(), file.getContentType(), u, null);
+        } catch (UnsupportedFileFormatException | IOException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
