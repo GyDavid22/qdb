@@ -13,7 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class ImageService {
@@ -78,10 +81,8 @@ public class ImageService {
             String extension = mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg";
             String testname = "";
             while (!ok) {
-                byte[] randomBytes = new byte[16];
-                r.nextBytes(randomBytes);
                 LocalDateTime now = LocalDateTime.now();
-                testname = Base64.getEncoder().encodeToString(randomBytes) + now + extension;
+                testname = Long.toString(r.nextLong()) + now + extension;
                 if (repo.findByNameIgnoreCase(testname).isEmpty()) {
                     ok = true;
                 }
