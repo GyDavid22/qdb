@@ -13,9 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ImageService {
@@ -25,6 +23,7 @@ public class ImageService {
     private final PermissionService pService;
     @Autowired
     private final QuestionService qService;
+    private Random r = new Random();
 
     public ImageService(ImageRepository repo, PermissionService pService, QuestionService qService) {
         this.repo = repo;
@@ -75,7 +74,19 @@ public class ImageService {
         if (originalName != null) {
             i.setName(originalName);
         } else {
-            i.setName(i.getId() + (mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg"));
+            boolean ok = false;
+            String extension = mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg";
+            String testname = "";
+            while (!ok) {
+                byte[] randomBytes = new byte[16];
+                r.nextBytes(randomBytes);
+                LocalDateTime now = LocalDateTime.now();
+                testname = Base64.getEncoder().encodeToString(randomBytes) + now + extension;
+                if (repo.findByNameIgnoreCase(testname).isEmpty()) {
+                    ok = true;
+                }
+            }
+            i.setName(testname);
         }
         repo.flush();
         return i;
