@@ -39,9 +39,12 @@ export class UserOverviewComponent implements AfterViewInit {
       xhr.addEventListener("loadend", () => {
         if (xhr.status == 200) {
           location.reload();
+        } else if (xhr.responseText == "" || xhr.status == 413) {
+          this.aService.pushAlert("ERROR", "Please upload an image smaller than 5MB");
         } else {
-          this.aService.pushAlert("ERROR", xhr.responseText == "" ? "Please upload an image smaller than 5MB" : xhr.responseText);
+          this.aService.pushAlert("ERROR", xhr.responseText);
         }
+        button.value = "";
       });
       xhr.send(formdata);
     });

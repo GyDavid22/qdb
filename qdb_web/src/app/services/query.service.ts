@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { TagResponse } from '../entities/TagResponse';
 import { QuestionMetadata } from '../entities/QuestionMetadata';
 import { QuestionMetadataList } from '../entities/QuestionMetadataList';
+import { QuestionUpdate } from '../entities/QuestionModify';
 
 @Injectable({
   providedIn: 'root'
@@ -121,6 +122,14 @@ export class QueryService {
     return await (response).text();
   }
 
+  public async updateExistingQuestion(id: number, updated: QuestionUpdate) {
+    return this.queryBase(`question/${id}`, "PUT", JSON.stringify(updated));
+  }
+
+  public async deleteQuestion(id: number) {
+    return this.queryBase(`question/${id}`, "DELETE");
+  }
+
   public async getCurrentUserMetadata(): Promise<Response> {
     return this.queryBase("user", "GET");
   }
@@ -165,11 +174,25 @@ export class QueryService {
     return this.queryBase("user/picture", "DELETE");
   }
 
+  public async bindImage(imagename: string, questionid: number): Promise<Response> {
+    return this.queryBase(`image/${imagename}`, "POST", JSON.stringify({
+      "id": questionid
+    }));
+  }
+
+  public async deleteImage(imagename: string): Promise<Response> {
+    return this.queryBase(`image/${imagename}`, "DELETE");
+  }
+
   public getCurrentProfilePictureUrl(): string {
     return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture`;
   }
 
   public getProfilePictureUrl(username: string): string {
     return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture/${username}`;
+  }
+
+  public getImagePostUrl(): string {
+    return `${QueryService.BASE_URL}image`;
   }
 }

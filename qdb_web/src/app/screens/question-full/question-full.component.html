@@ -45,6 +45,14 @@
             <span class="creatortext p-1">Created by: {{this.question?.createdBy ?? "[deleted user]"}}</span>
         </div>
         <div *ngIf="this.isInEditMode" class="d-flex flex-column">
+            <div *ngFor="let i of this.question?.imagesUrls" class="py-1">
+                <app-image-list-card [selfName]="i" (deleteEvent)="this.deleteImageHandler($event)"
+                    (selectEvent)="this.imageCardClickHandler($event)"></app-image-list-card>
+            </div>
+            <div *ngFor="let i of this.newImages" class="py-1">
+                <app-image-list-card [selfName]="i" (deleteEvent)="this.deleteImageHandler($event)"
+                    (selectEvent)="this.imageCardClickHandler($event)"></app-image-list-card>
+            </div>
             <div>
                 <button class="btn btn-outline-primary my-3" (click)="this.uploadImageHandler()">Upload image</button>
             </div>
@@ -52,7 +60,7 @@
                 <button class="btn btn-outline-primary my-3" (click)="this.saveButtonHandler()">Save</button>
             </div>
             <div>
-                <button class="btn btn-outline-danger my-3">Delete</button>
+                <button class="btn btn-outline-danger my-3" (click)="this.deleteButtonHandler()">Delete</button>
             </div>
         </div>
     </div>
@@ -60,3 +68,24 @@
 <form class="d-none">
     <input type="file" id="browsefilebutton">
 </form>
+<button class="d-none" id="delete-question-modal-opener" data-bs-toggle="modal"
+    data-bs-target="#delete-question-modal"></button>
+<div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" id="delete-question-modal"
+    tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete question</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>You're about to delete this question. Are you sure you wish to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"
+                    (click)="this.sendDeleteRequest()">Delete this question</button>
+            </div>
+        </div>
+    </div>
+</div>
