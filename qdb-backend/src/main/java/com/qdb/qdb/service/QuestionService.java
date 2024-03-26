@@ -4,6 +4,7 @@ import com.qdb.qdb.dto.QuestionModifyDTO;
 import com.qdb.qdb.entity.*;
 import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.QuestionNotFoundException;
+import com.qdb.qdb.repository.ImageRepository;
 import com.qdb.qdb.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,13 +20,13 @@ public class QuestionService {
     @Autowired
     private final PermissionService pService;
     @Autowired
-    private final ImageService iService;
+    private final ImageRepository iRepo;
 
-    public QuestionService(QuestionRepository repo, TagService tService, PermissionService pService, ImageService iService) {
+    public QuestionService(QuestionRepository repo, TagService tService, PermissionService pService, ImageRepository iRepo) {
         this.repo = repo;
         this.tService = tService;
         this.pService = pService;
-        this.iService = iService;
+        this.iRepo = iRepo;
     }
 
     public Question getById(long id) {
@@ -193,7 +194,8 @@ public class QuestionService {
         List<Image> shallowCopy = new ArrayList<>(q.getImages());
         q.getImages().clear();
         repo.saveAndFlush(q);
-        iService.deleteImages(shallowCopy);
+        iRepo.deleteAll(shallowCopy);
+        iRepo.flush();
         repo.delete(q);
         repo.flush();
     }
