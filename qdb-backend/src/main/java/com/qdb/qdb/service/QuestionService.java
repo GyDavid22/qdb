@@ -195,7 +195,7 @@ public class QuestionService {
         q.getImages().clear();
         repo.saveAndFlush(q);
         iRepo.deleteAll(shallowCopy);
-        iRepo.flush();
+        updateTags(q, new ArrayList<>(), u);
         repo.delete(q);
         repo.flush();
     }
