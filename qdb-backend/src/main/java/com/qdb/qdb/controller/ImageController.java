@@ -71,7 +71,7 @@ public class ImageController {
             Image i = service.addImage(file.getBytes(), file.getContentType(), u, null);
             return ResponseEntity.status(HttpStatus.CREATED).body(i.getName());
         } catch (UnsupportedFileFormatException | IOException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Only .jpg, .jpeg and .png are supported");
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -107,12 +107,15 @@ public class ImageController {
         }
         Image i = service.getByName(name);
         if (i == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
         }
         if (i.getQuestion() != null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Image already bound to question");
         }
-        Question q = i.getQuestion();
+        Question q = qService.getById(dto.getId());
+        if (q == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+        }
         try {
             service.bindImageToQuestion(i, q, u);
             return ResponseEntity.status(HttpStatus.OK).build();

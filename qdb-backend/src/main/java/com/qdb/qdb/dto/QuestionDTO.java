@@ -1,6 +1,7 @@
 package com.qdb.qdb.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.qdb.qdb.entity.Image;
 import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.Tag;
 
@@ -8,20 +9,16 @@ import java.util.Collection;
 
 @JsonSerialize
 public class QuestionDTO {
-    //TODO: fetch from application.properties
-    private static final String root = "/java/api";
     private long id;
     private String title;
-    private String bodyUrl;
     private Collection<String> tags;
     private Collection<String> imagesUrls;
     private String createdby;
     private boolean currentUserHasEditingRights;
 
-    public QuestionDTO(long id, String title, String bodyUrl, Collection<String> tags, Collection<String> imagesUrls, String createdby, boolean currentUserHasEditingRights) {
+    public QuestionDTO(long id, String title, Collection<String> tags, Collection<String> imagesUrls, String createdby, boolean currentUserHasEditingRights) {
         this.id = id;
         this.title = title;
-        this.bodyUrl = bodyUrl;
         this.tags = tags;
         this.imagesUrls = imagesUrls;
         this.createdby = createdby;
@@ -29,7 +26,7 @@ public class QuestionDTO {
     }
 
     public static QuestionDTO toDto(Question q, boolean currentUserHasEditingRights) {
-        return new QuestionDTO(q.getId(), q.getTitle(), root + "/question/body/" + q.getId(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(i -> root + "/image/" + i.getName()).toList(), q.getOwner() == null ? "null" : q.getOwner().getUserName(), currentUserHasEditingRights);
+        return new QuestionDTO(q.getId(), q.getTitle(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(Image::getName).toList(), q.getOwner() == null ? "null" : q.getOwner().getUserName(), currentUserHasEditingRights);
     }
 
     public long getId() {
@@ -46,14 +43,6 @@ public class QuestionDTO {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getBodyUrl() {
-        return bodyUrl;
-    }
-
-    public void setBodyUrl(String bodyUrl) {
-        this.bodyUrl = bodyUrl;
     }
 
     public Collection<String> getTags() {
