@@ -1,10 +1,9 @@
 package com.qdb.qdb.service;
 
-import com.qdb.qdb.entity.Permission;
-import com.qdb.qdb.entity.Question;
-import com.qdb.qdb.entity.Tag;
-import com.qdb.qdb.entity.User;
+import com.qdb.qdb.dto.QuestionModifyDTO;
+import com.qdb.qdb.entity.*;
 import com.qdb.qdb.exception.NoRightException;
+import com.qdb.qdb.exception.QuestionNotFoundException;
 import com.qdb.qdb.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,11 +18,14 @@ public class QuestionService {
     private final TagService tService;
     @Autowired
     private final PermissionService pService;
+    @Autowired
+    private final ImageService iService;
 
-    public QuestionService(QuestionRepository repo, TagService tService, PermissionService pService) {
+    public QuestionService(QuestionRepository repo, TagService tService, PermissionService pService, ImageService iService) {
         this.repo = repo;
         this.tService = tService;
         this.pService = pService;
+        this.iService = iService;
     }
 
     public Question getById(long id) {
@@ -160,6 +162,40 @@ public class QuestionService {
             }
         }
         return potentialResults;
+    }
+
+    public void updateQuestion(long id, QuestionModifyDTO updated, User u) throws QuestionNotFoundException, NoRightException {
+        Question q = getById(id);
+        if (q == null) {
+            throw new QuestionNotFoundException();
+        }
+        checkEditingRights(q, u, false);
+        q.setTitle(updated.getTitle());
+        q.setMdbody(updated.getMdbody());
+        updateTags(q, updated.getTags(), u);
+        repo.saveAndFlush(q);
+    }
+
+    public Question createQuestion(QuestionModifyDTO q, User u) throws NoRightException {
+        pService.checkPermission(u, Permission.Action.CREATE_QUESTION, false);
+        Question newQuestion = new Question(null, q.getTitle(), q.getMdbody(), u, new ArrayList<>(), new ArrayList<>());
+        repo.saveAndFlush(newQuestion);
+        updateTags(newQuestion, q.getTags(), u);
+        return newQuestion;
+    }
+
+    public void deleteQuestion(long id, User u) throws QuestionNotFoundException, NoRightException {
+        Question q = getById(id);
+        if (q == null) {
+            throw new QuestionNotFoundException();
+        }
+        checkEditingRights(q, u, false);
+        List<Image> shallowCopy = new ArrayList<>(q.getImages());
+        q.getImages().clear();
+        repo.saveAndFlush(q);
+        iService.deleteImages(shallowCopy);
+        repo.delete(q);
+        repo.flush();
     }
 
     public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {

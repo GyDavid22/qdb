@@ -37,6 +37,11 @@ public class ImageService {
         return result.map(Image::getContent).orElse(null);
     }
 
+    public Image getByName(String name) {
+        Optional<Image> result = repo.findByNameIgnoreCase(name);
+        return result.orElse(null);
+    }
+
     public void deleteOrphanImagesWithExpiredTimeout() {
         Collection<Image> results = repo.findByQuestionIsNull();
         LocalDateTime now = LocalDateTime.now();
@@ -88,6 +93,16 @@ public class ImageService {
         qService.checkEditingRights(q, u, false);
         i.setTimeout(null);
         i.setQuestion(q);
+        repo.flush();
+    }
+
+    public void deleteImage(Image i) {
+        repo.delete(i);
+        repo.flush();
+    }
+
+    public void deleteImages(Collection<Image> i) {
+        repo.deleteAll(i);
         repo.flush();
     }
 }

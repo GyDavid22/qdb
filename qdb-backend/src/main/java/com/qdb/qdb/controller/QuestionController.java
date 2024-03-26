@@ -2,10 +2,11 @@ package com.qdb.qdb.controller;
 
 import com.qdb.qdb.dto.QuestionDTO;
 import com.qdb.qdb.dto.QuestionDTOWithCount;
-import com.qdb.qdb.dto.TagDTO;
+import com.qdb.qdb.dto.QuestionModifyDTO;
 import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
+import com.qdb.qdb.exception.QuestionNotFoundException;
 import com.qdb.qdb.service.QuestionService;
 import com.qdb.qdb.service.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -71,34 +72,86 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_MARKDOWN_VALUE + ";charset=UTF8").body(result.getMdbody());
     }
 
-    /**
-     * Updates tags of Question of the given ID. Requires a valid session
-     *
-     * @param id
-     * @param tags
-     * @param request
-     * @param response
-     * @return
-     */
-    @PutMapping(path = "{id}/tags")
-    public ResponseEntity<?> updateTags(@PathVariable long id, @RequestBody TagDTO tags, HttpServletRequest request, HttpServletResponse response) {
+//    /**
+//     * Updates tags of Question of the given ID. Requires a valid session
+//     *
+//     * @param id
+//     * @param tags
+//     * @param request
+//     * @param response
+//     * @return
+//     */
+//    @PutMapping(path = "{id}/tags")
+//    public ResponseEntity<?> updateTags(@PathVariable long id, @RequestBody TagDTO tags, HttpServletRequest request, HttpServletResponse response) {
+//        User u = sService.checkCookieValidity(request.getCookies(), response);
+//        if (u == null) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//        Question result = service.getById(id);
+//        if (result == null) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//        if (tags == null) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+//        }
+//        try {
+//            service.updateTags(result, tags.getTags(), u);
+//        } catch (NoRightException e) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//        return ResponseEntity.status(HttpStatus.OK).build();
+//    }
+
+    @PostMapping
+    public ResponseEntity<?> addQuestion(HttpServletRequest request, HttpServletResponse response, @RequestBody QuestionModifyDTO q) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
         if (u == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Question result = service.getById(id);
-        if (result == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        if (tags == null) {
+        try {
+            Question newQuestion = service.createQuestion(q, u);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newQuestion.getId());
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to create a new question");
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        try {
-            service.updateTags(result, tags.getTags(), u);
-        } catch (NoRightException e) {
+    }
+
+    @PutMapping(path = "{id}")
+    public ResponseEntity<?> updateQuestion(HttpServletRequest request, HttpServletResponse response, @PathVariable long id, @RequestBody QuestionModifyDTO q) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).build();
+        try {
+            service.updateQuestion(id, q, u);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to update this question");
+        } catch (QuestionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @DeleteMapping(path = "{id}")
+    public ResponseEntity<?> deleteQuestion(HttpServletRequest request, HttpServletResponse response, @PathVariable long id) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            service.deleteQuestion(id, u);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to delete this question");
+        } catch (QuestionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     /**
