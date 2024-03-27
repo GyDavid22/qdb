@@ -5,7 +5,7 @@
             <div *ngIf="this.question?.currentUserHasEditingRights && !this.isInEditMode">
                 <button class="btn btn-outline-primary" (click)="this.editButtonHandler()">Edit</button>
             </div>
-            <div *ngIf="this.isInEditMode">
+            <div *ngIf="this.isInEditMode && !this.isInCreateMode">
                 <button class="btn btn-outline-primary" (click)="this.abortButtonHandler()">Abort changes</button>
             </div>
         </div>
@@ -27,9 +27,6 @@
                     <div [innerHTML]="this.questionBodyFormatted" class="questionbody"></div>
                 </div>
             </div>
-            <!-- <div *ngFor="let i of this.questionBody?.split('\n')"> majd szerkesztéshez megmarad
-                {{i}}
-            </div> -->
         </div>
         <div *ngIf="this.question?.tags?.length && !this.isInEditMode">
             <h5>
@@ -41,8 +38,8 @@
             <p>Separate tags with comma:</p>
             <input type="text" class="form-control" placeholder="Tags" [(ngModel)]="this.tagsRaw">
         </div>
-        <div>
-            <span class="creatortext p-1">Created by: {{this.question?.createdBy ?? "[deleted user]"}}</span>
+        <div *ngIf="!this.isInCreateMode">
+            <span class="creatortext p-1">Created by: {{this.question?.createdby ?? "[deleted user]"}}</span>
         </div>
         <div *ngIf="this.isInEditMode" class="d-flex flex-column">
             <div *ngFor="let i of this.question?.imagesUrls" class="py-1">
@@ -59,7 +56,7 @@
             <div>
                 <button class="btn btn-outline-primary my-3" (click)="this.saveButtonHandler()">Save</button>
             </div>
-            <div>
+            <div *ngIf="!this.isInCreateMode">
                 <button class="btn btn-outline-danger my-3" (click)="this.deleteButtonHandler()">Delete</button>
             </div>
         </div>

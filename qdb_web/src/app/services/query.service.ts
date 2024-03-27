@@ -122,12 +122,16 @@ export class QueryService {
     return await (response).text();
   }
 
-  public async updateExistingQuestion(id: number, updated: QuestionUpdate) {
+  public async updateExistingQuestion(id: number, updated: QuestionUpdate): Promise<Response> {
     return this.queryBase(`question/${id}`, "PUT", JSON.stringify(updated));
   }
 
-  public async deleteQuestion(id: number) {
+  public async deleteQuestion(id: number): Promise<Response> {
     return this.queryBase(`question/${id}`, "DELETE");
+  }
+
+  public async addQuestion(newQuestion: QuestionUpdate): Promise<Response> {
+    return this.queryBase(`question`, "POST", JSON.stringify(newQuestion));
   }
 
   public async getCurrentUserMetadata(): Promise<Response> {

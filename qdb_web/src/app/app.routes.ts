@@ -10,6 +10,7 @@ import { AdminPageComponent } from './screens/admin-page/admin-page.component';
 export const routes: Routes = [
     { path: "", component: MainPageComponent },
     { path: "question/:id", component: QuestionFullComponent },
+    { path: "question/new", component: QuestionFullComponent },
     { path: "404", component: PageNotFoundComponent },
     { path: "search", component: SearchScreenComponent },
     { path: "login", component: LoginScreenComponent },

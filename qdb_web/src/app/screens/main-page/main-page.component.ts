@@ -4,11 +4,12 @@ import { QueryService } from '../../services/query.service';
 import { TagResponse } from '../../entities/TagResponse';
 import { TagsBoxComponent } from '../common-elements/tags-box/tags-box.component';
 import { QuestionsWithPaginatingComponent } from '../common-elements/questions-with-paginating/questions-with-paginating.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-main-page',
   standalone: true,
-  imports: [NgFor, TagsBoxComponent, QuestionsWithPaginatingComponent],
+  imports: [NgFor, TagsBoxComponent, QuestionsWithPaginatingComponent, RouterLink],
   templateUrl: './main-page.component.html',
   styleUrl: './main-page.component.css'
 })

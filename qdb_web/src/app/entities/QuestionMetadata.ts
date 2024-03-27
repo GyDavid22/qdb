@@ -3,6 +3,6 @@ export interface QuestionMetadata {
     title: string,
     tags: string[],
     imagesUrls: string[],
-    createdBy: string,
+    createdby: string,
     currentUserHasEditingRights: boolean
 }

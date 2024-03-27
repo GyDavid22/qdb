@@ -41,12 +41,27 @@ export class QuestionFullComponent implements AfterViewInit {
   public tagsRaw: string = "";
   public newImages: string[] = [];
   private imagesToDelete: string[] = [];
+  public isInCreateMode: boolean = false;
 
   constructor(public qService: QueryService, private aService: AlertService, private route: ActivatedRoute, private router: Router, private sanitizer: DomSanitizer) {
     this.route.params.subscribe((value) => {
-      this.id = value["id"];
-      if (this.id) {
-        this.getQuestionData();
+      let page = value["id"];
+      if (page) {
+        if (page !== "new") {
+          this.id = page as number;
+          this.getQuestionData();
+        } else {
+          this.isInCreateMode = true;
+          this.isInEditMode = true;
+          this.question = {
+            id: -1,
+            title: "",
+            tags: [],
+            imagesUrls: [],
+            createdby: "",
+            currentUserHasEditingRights: false
+          };
+        }
       } else {
         this.router.navigate(["404"]);
       }
@@ -104,14 +119,29 @@ export class QuestionFullComponent implements AfterViewInit {
   public async saveButtonHandler() {
     let tags = this.tagsRaw.split(",");
     let allOk = true;
-    let response = await this.qService.updateExistingQuestion(this.question?.id!, {
-      title: this.question?.title,
-      mdbody: this.questionBody,
-      tags: tags
-    } as QuestionUpdate);
-    if (response.status != 200) {
-      this.aService.pushAlert("ERROR", await response.text());
-      allOk = false;
+    if (this.isInCreateMode) {
+      let response = await this.qService.addQuestion({
+        title: this.question?.title,
+        mdbody: this.questionBody,
+        tags: tags
+      } as QuestionUpdate);
+      let responseText = await response.text();
+      if (response.status != 201) {
+        this.aService.pushAlert("ERROR", responseText);
+        return;
+      }
+      this.id = responseText as unknown as number;
+    } else {
+      let response = await this.qService.updateExistingQuestion(this.question?.id!, {
+        title: this.question?.title,
+        mdbody: this.questionBody,
+        tags: tags
+      } as QuestionUpdate);
+      let responseText = await response.text();
+      if (response.status != 200) {
+        this.aService.pushAlert("ERROR", responseText);
+        allOk = false;
+      }
     }
     for (let i = 0; i < this.newImages.length; i++) {
       let res = await this.qService.bindImage(this.newImages[i], this.question?.id!);
@@ -135,10 +165,16 @@ export class QuestionFullComponent implements AfterViewInit {
     }
     if (allOk) {
       this.isInEditMode = false;
-      this.getQuestionData();
-      this.aService.pushAlert("SUCCESS", "Question successfully updated");
       this.imagesToDelete = [];
       this.newImages = [];
+      if (this.isInCreateMode) {
+        this.isInCreateMode = false;
+        this.aService.pushAlert("SUCCESS", "Question successfully created");
+        this.router.navigate([`/question/${this.id}`]);
+      } else {
+        this.aService.pushAlert("SUCCESS", "Question successfully updated");
+        this.getQuestionData();
+      }
     }
   }
 
