@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+import { NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { QueryService } from '../../services/query.service';
 import { TagResponse } from '../../entities/TagResponse';
@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-main-page',
   standalone: true,
-  imports: [NgFor, TagsBoxComponent, QuestionsWithPaginatingComponent, RouterLink],
+  imports: [TagsBoxComponent, QuestionsWithPaginatingComponent, RouterLink, NgIf],
   templateUrl: './main-page.component.html',
   styleUrl: './main-page.component.css'
 })
@@ -22,7 +22,7 @@ export class MainPageComponent {
     return this._tagsWithCount;
   }
 
-  constructor(private qService: QueryService) {
+  constructor(public qService: QueryService) {
     this.qService.tagsWithCounts().then((value) => {
       this.tagsWithCount = value;
     });

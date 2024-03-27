@@ -4,7 +4,9 @@
             [searchMode]="false"></app-questions-with-paginating>
     </div>
     <div class="col-3 p-2">
-        <button class="btn btn-outline-primary my-2" routerLink="question/new">Create new question</button>
+        <div *ngIf="this.qService.isLoggedIn">
+            <button class="btn btn-outline-primary my-2" routerLink="question/new">Create new question</button>
+        </div>
         <app-tags-box [tagsWithCount]="this.tagsWithCount"></app-tags-box>
     </div>
 </div>
