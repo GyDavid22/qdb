@@ -7,3 +7,11 @@
         </select>
     </div>
 </div>
+<div class="d-flex justify-content-center align-items-center">
+    <nav>
+        <ul class="pagination">
+            <li [class]="this.getClass(i)" *ngFor="let i of this.pageNumbers"><a class="page-link"
+                    (click)="this.pageIndexSetFromGui(i - 1)">{{i}}</a></li>
+        </ul>
+    </nav>
+</div>

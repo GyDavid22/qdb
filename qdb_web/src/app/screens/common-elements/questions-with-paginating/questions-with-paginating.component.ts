@@ -3,14 +3,14 @@ import { QuestionMetadataList } from '../../../entities/QuestionMetadataList';
 import { PaginatingComponent } from './paginating/paginating.component';
 import { QueryService } from '../../../services/query.service';
 import { QuestionCardComponent } from './question-card/question-card.component';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-questions-with-paginating',
   standalone: true,
-  imports: [PaginatingComponent, QuestionCardComponent, NgFor, FormsModule],
+  imports: [PaginatingComponent, QuestionCardComponent, NgFor, FormsModule, NgIf],
   templateUrl: './questions-with-paginating.component.html',
   styleUrl: './questions-with-paginating.component.css'
 })
@@ -20,12 +20,22 @@ export class QuestionsWithPaginatingComponent {
     this._searchmode = mode;
     if (mode) {
       this.setSearchParams();
+    } else {
+      this.performQuery();
     }
-    this.performQuery();
+  }
+  public get searchMode(): boolean | undefined {
+    return this._searchmode;
   }
   private _searchmode: boolean | undefined;
   public questions: QuestionMetadataList | undefined;
-  public pageIndex: number = 0;
+  public _pageIndex: number = 0;
+  public get pageIndex(): number {
+    return this._pageIndex;
+  }
+  public set pageIndex(val: number) {
+    this._pageIndex = val;
+  }
   private _pageSize: number | undefined;
   public set pageSize(val: number | undefined) {
     this._pageSize = val;
@@ -34,16 +44,13 @@ export class QuestionsWithPaginatingComponent {
     } else {
       sessionStorage.setItem("selectedPageSize", JSON.stringify(val));
     }
-    this.performQuery();
+    this._pageIndex = 0;
   }
   public get pageSize(): number | undefined {
     return this._pageSize;
   }
-  private _search: string | undefined;
-  public get search(): string | undefined {
-    return this._search;
-  }
-  private searchType: "ALL" | "TITLE" | "BODY" | undefined;
+  public search: string | undefined;
+  public searchType: "ALL" | "TITLE" | "BODY" | undefined;
   public tags: string[] | undefined;
   private _titleOnly: boolean;
   public set titleOnly(val: boolean) {
@@ -53,6 +60,7 @@ export class QuestionsWithPaginatingComponent {
   public get titleOnly(): boolean {
     return this._titleOnly;
   }
+  public tagsValueRaw: string = "";
 
   public constructor(private qService: QueryService, private route: ActivatedRoute) {
     let titleOnlyStorage = sessionStorage.getItem("showTitleOnly");
@@ -91,7 +99,7 @@ export class QuestionsWithPaginatingComponent {
   }
 
   private performQuerySearch() {
-    this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize, this._search, this.searchType, this.tags)
+    this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize, this.search, this.searchType, this.tags)
       .then((value) => {
         this.questions = value;
       });
@@ -100,11 +108,41 @@ export class QuestionsWithPaginatingComponent {
   private setSearchParams() {
     this.route.queryParams.subscribe((params) => {
       this.pageIndex = params["pageNumber"] ?? 0;
-      this._pageSize = params["pageSize"] ?? PaginatingComponent.DEFAULT_PAGESIZE;
-      this._search = params["search"] ?? "";
+      if (params["pageSize"]) {
+        this._pageSize = params["pageSize"];
+      }
+      this.search = params["search"] ?? "";
       this.searchType = params["searchType"] ?? "ALL";
       this.tags = params["tags"] ?? undefined;
+      this.setTagsRaw();
       this.performQuerySearch();
     });
+  }
+
+  public async searchButtonHandler(e: Event) {
+    e.preventDefault();
+    this._pageIndex = 0;
+    this.tags = this.tagsValueRaw.split(",");
+    this.performQuery();
+  }
+
+  public setPageSize(val: number | undefined) {
+    this.pageSize = val;
+    this.performQuery();
+  }
+
+  public setPageIndex(val: number) {
+    this.pageIndex = val;
+    this.performQuery();
+  }
+
+  public setTagsRaw() {
+    if (this.tags !== undefined) {
+      if (typeof this.tags == "string") {
+        this.tagsValueRaw = this.tags;
+      } else {
+        this.tagsValueRaw = this.tags.join(",");
+      }
+    }
   }
 }

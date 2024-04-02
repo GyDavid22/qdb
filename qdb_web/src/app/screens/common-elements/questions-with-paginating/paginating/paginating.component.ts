@@ -11,10 +11,32 @@ import { FormsModule } from '@angular/forms';
 })
 export class PaginatingComponent {
   @Input() message!: string;
-  @Input() totalCount: number | undefined;
+  private _totalCount: number | undefined
+  @Input() public set totalCount(val: number | undefined) {
+    this._totalCount = val;
+    if (val !== undefined) {
+      this.pageNumbers = this.pageOptions(val);
+    }
+  }
+  public get totalCount(): number | undefined {
+    return this._totalCount;
+  }
+  @Input() public set pageSize(val: number | undefined) {
+    this._pageSize = val;
+    this.pageNumbers = this.pageOptions(this.totalCount!);
+  }
   @Output() selectedPagesize = new EventEmitter<number | undefined>();
   private _pageSize: number | undefined = PaginatingComponent.DEFAULT_PAGESIZE;
-  private pageIndex: number = 0;
+  @Output() selectedPageIndex = new EventEmitter<number>();
+  private _pageIndex: number = 0;
+  @Input() public set pageIndex(val: number) {
+    this._pageIndex = val;
+    this.pageNumbers = this.pageOptions(this.totalCount!);
+  }
+  public get pageIndex(): number {
+    return this._pageIndex;
+  }
+  public pageNumbers: number[] = [];
 
   public static readonly DEFAULT_PAGESIZE = 25;
   public pageSizes: PageSize[] = [
@@ -47,6 +69,7 @@ export class PaginatingComponent {
       }
     }
     this.selectedPagesize.emit(this._pageSize);
+    this.pageIndex = 0;
   }
 
   private calcNumPages(): number {
@@ -69,8 +92,20 @@ export class PaginatingComponent {
         result.push(i);
       }
     }
-    result.sort((n1,n2) => n1 - n2);
+    result.sort((n1, n2) => n1 - n2);
     return result;
+  }
+
+  public getClass(pageNumber: number): string {
+    if (pageNumber == this.pageIndex + 1) {
+      return "page-item active";
+    }
+    return "page-item";
+  }
+
+  public pageIndexSetFromGui(val: number) {
+    this.pageIndex = val;
+    this.selectedPageIndex.emit(val);
   }
 }
 

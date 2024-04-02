@@ -1,5 +1,24 @@
-<app-paginating [message]="this.message" [totalCount]="this.questions?.resultsCount ?? 0"
-    (selectedPagesize)="this.pageSize = $event"></app-paginating>
+<div *ngIf="this.searchMode">
+    <form>
+        <label for="search-form-term" class="form-label">Search term</label>
+        <input class="form-control" type="text" placeholder="Enter search term here..." id="search-form-term"
+            [(ngModel)]="this.search" name="search-form-term">
+        <label for="search-form-type" class="form-label">Search type</label>
+        <select class="form-select" id="search-form-type" [(ngModel)]="this.searchType" name="search-form-type">
+            <option [value]="undefined" disabled selected>Search in...</option>
+            <option value="TITLE">Title</option>
+            <option value="BODY">Text</option>
+            <option value="ALL">Both</option>
+        </select>
+        <label for="search-form-tags" class="form-label">Search by tags (separate tags with ",")</label>
+        <input class="form-control" type="text" placeholder="Enter tags..." id="search-form-tags"
+            [(ngModel)]="this.tagsValueRaw" name="search-form-tags">
+        <button type="submit" class="btn btn-primary my-1" (click)="this.searchButtonHandler($event)">Search</button>
+    </form>
+</div>
+<app-paginating [message]="this.message" [totalCount]="this.questions?.resultsCount ?? 0" [pageSize]="this.pageSize"
+    (selectedPagesize)="this.pageSize = $event" [pageIndex]="this.pageIndex"
+    (selectedPageIndex)="this.pageIndex = $event"></app-paginating>
 <div class="form-check">
     <input class="form-check-input" type="checkbox" [(ngModel)]="this.titleOnly" id="titleOnlyCheckbox">
     <label class="form-check-label" for="titleOnlyCheckbox">
