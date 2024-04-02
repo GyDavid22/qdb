@@ -17,8 +17,8 @@
     </form>
 </div>
 <app-paginating [message]="this.message" [totalCount]="this.questions?.resultsCount ?? 0" [pageSize]="this.pageSize"
-    (selectedPagesize)="this.pageSize = $event" [pageIndex]="this.pageIndex"
-    (selectedPageIndex)="this.pageIndex = $event"></app-paginating>
+    (selectedPagesize)="this.setPageSize($event)" [pageIndex]="this.pageIndex"
+    (selectedPageIndex)="this.setPageIndex($event)"></app-paginating>
 <div class="form-check">
     <input class="form-check-input" type="checkbox" [(ngModel)]="this.titleOnly" id="titleOnlyCheckbox">
     <label class="form-check-label" for="titleOnlyCheckbox">

@@ -4,7 +4,7 @@ import { PaginatingComponent } from './paginating/paginating.component';
 import { QueryService } from '../../../services/query.service';
 import { QuestionCardComponent } from './question-card/question-card.component';
 import { NgFor, NgIf } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -62,7 +62,7 @@ export class QuestionsWithPaginatingComponent {
   }
   public tagsValueRaw: string = "";
 
-  public constructor(private qService: QueryService, private route: ActivatedRoute) {
+  public constructor(private qService: QueryService, private route: ActivatedRoute, private router: Router) {
     let titleOnlyStorage = sessionStorage.getItem("showTitleOnly");
     if (titleOnlyStorage === null) {
       this._titleOnly = true;
@@ -123,17 +123,17 @@ export class QuestionsWithPaginatingComponent {
     e.preventDefault();
     this._pageIndex = 0;
     this.tags = this.tagsValueRaw.split(",");
-    this.performQuery();
+    this.updateSearch();
   }
 
   public setPageSize(val: number | undefined) {
     this.pageSize = val;
-    this.performQuery();
+    this.updateSearch();
   }
 
   public setPageIndex(val: number) {
     this.pageIndex = val;
-    this.performQuery();
+    this.updateSearch();
   }
 
   public setTagsRaw() {
@@ -144,5 +144,18 @@ export class QuestionsWithPaginatingComponent {
         this.tagsValueRaw = this.tags.join(",");
       }
     }
+  }
+
+  private updateSearch() {
+    this.router.navigate([], {
+      queryParams: {
+        "search": this.search,
+        "searchType": this.searchType,
+        "tags": this.tags,
+        "pageNumber": this.pageIndex,
+        "pageSize": this.pageSize
+      },
+      queryParamsHandling: "merge"
+    });
   }
 }
