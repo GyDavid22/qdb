@@ -41,5 +41,6 @@
 </div>
 <div *ngFor="let i of this.questions?.questions; let idx = index">
     <app-question-card [question]="i" [titleOnly]="this.titleOnly"
-        [selfNumber]="this.pageSize === undefined ? idx + 1 : this.pageIndex * this.pageSize + idx + 1" />
+        [selfNumber]="this.pageSize === undefined ? idx + 1 : this.pageIndex * this.pageSize + idx + 1"
+        [highlight]="this.search == '' ? undefined : this.search" />
 </div>

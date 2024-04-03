@@ -3,10 +3,10 @@
         <div class="card-body">
             <h5 class="card-title">
                 <div *ngIf="this.selfNumber !== undefined; else elseBlock">
-                    {{this.selfNumber}}. {{question.title}}
+                    {{this.selfNumber}}. <span [innerHTML]="this.title"></span>
                 </div>
                 <ng-template #elseBlock>
-                    {{question.title}}
+                    <div [innerHTML]="this.title"></div>
                 </ng-template>
             </h5>
             <div *ngIf="!this.titleOnly">
