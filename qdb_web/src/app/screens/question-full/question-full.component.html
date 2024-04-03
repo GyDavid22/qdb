@@ -21,6 +21,9 @@
                 <div class="col-6 px-1" *ngIf="this.isInEditMode">
                     <textarea class="w-100 h-100 form-control" [(ngModel)]="this.questionBody"
                         placeholder="Enter question text here"></textarea>
+                    <div class="small text-secondary">
+                        Hint: You can also use HTML code!
+                    </div>
                 </div>
                 <div class="px-1">
                     <h5 *ngIf="this.isInEditMode">Live preview</h5>
@@ -34,7 +37,7 @@
             </h5>
             <app-tag-badges [tags]="this.question?.tags!"></app-tag-badges>
         </div>
-        <div *ngIf="this.isInEditMode">
+        <div *ngIf="this.isInEditMode" class="my-1">
             <p>Separate tags with comma:</p>
             <input type="text" class="form-control" placeholder="Tags" [(ngModel)]="this.tagsRaw">
         </div>
