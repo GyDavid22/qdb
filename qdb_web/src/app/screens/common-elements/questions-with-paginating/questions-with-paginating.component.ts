@@ -180,13 +180,11 @@ export class QuestionsWithPaginatingComponent {
       }
     }
     result.sort((n1, n2) => n1 - n2);
-    console.log(`${result} ${numOfPages} ${this.pageIndex}`);
     return result;
   }
 
   public getClass(pageNumber: number): string {
     if (pageNumber == this.pageIndex + 1) {
-      console.log(`${pageNumber} ${this.pageIndex + 1}`)
       return "page-item active";
     }
     return "page-item";
