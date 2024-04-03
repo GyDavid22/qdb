@@ -130,7 +130,8 @@ export class QuestionFullComponent implements AfterViewInit {
         this.aService.pushAlert("ERROR", responseText);
         return;
       }
-      this.id = responseText as unknown as number;
+      this.id = parseInt(responseText);
+      this.question!.id = this.id;
     } else {
       let response = await this.qService.updateExistingQuestion(this.question?.id!, {
         title: this.question?.title,
