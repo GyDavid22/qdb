@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { QuestionMetadataList } from '../../../entities/QuestionMetadataList';
-import { PaginatingComponent } from './paginating/paginating.component';
 import { QueryService } from '../../../services/query.service';
 import { QuestionCardComponent } from './question-card/question-card.component';
 import { NgFor, NgIf } from '@angular/common';
@@ -10,32 +9,15 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-questions-with-paginating',
   standalone: true,
-  imports: [PaginatingComponent, QuestionCardComponent, NgFor, FormsModule, NgIf],
+  imports: [QuestionCardComponent, NgFor, FormsModule, NgIf],
   templateUrl: './questions-with-paginating.component.html',
   styleUrl: './questions-with-paginating.component.css'
 })
 export class QuestionsWithPaginatingComponent {
   @Input() public message: string = "";
-  @Input() public set searchMode(mode: boolean | undefined) {
-    this._searchmode = mode;
-    if (mode) {
-      this.setSearchParams();
-    } else {
-      this.performQuery();
-    }
-  }
-  public get searchMode(): boolean | undefined {
-    return this._searchmode;
-  }
-  private _searchmode: boolean | undefined;
+  @Input() public searchMode: boolean | undefined;
   public questions: QuestionMetadataList | undefined;
-  public _pageIndex: number = 0;
-  public get pageIndex(): number {
-    return this._pageIndex;
-  }
-  public set pageIndex(val: number) {
-    this._pageIndex = val;
-  }
+  public pageIndex: number = 0;
   private _pageSize: number | undefined;
   public set pageSize(val: number | undefined) {
     this._pageSize = val;
@@ -44,7 +26,7 @@ export class QuestionsWithPaginatingComponent {
     } else {
       sessionStorage.setItem("selectedPageSize", JSON.stringify(val));
     }
-    this._pageIndex = 0;
+    this.pageIndex = 0;
   }
   public get pageSize(): number | undefined {
     return this._pageSize;
@@ -61,6 +43,38 @@ export class QuestionsWithPaginatingComponent {
     return this._titleOnly;
   }
   public tagsValueRaw: string = "";
+  public pageNumbers: number[] = [];
+  private static readonly DEFAULT_PAGESIZE = 25;
+  public pageSizes: PageSize[] = [
+    {
+      value: 25,
+      display: "25"
+    },
+    {
+      value: 50,
+      display: "50"
+    },
+    {
+      value: 100,
+      display: "100"
+    },
+    {
+      value: undefined,
+      display: "All"
+    }
+  ]
+  private _pageSizeFormValue: string = "default";
+  public get pageSizeFormValue(): string {
+    return this._pageSizeFormValue;
+  }
+  public set pageSizeFormValue(value: string) {
+    for (let i of this.pageSizes) {
+      if (i.display == value) {
+        this.setPageSize(i.value);
+        break;
+      }
+    }
+  }
 
   public constructor(private qService: QueryService, private route: ActivatedRoute, private router: Router) {
     let titleOnlyStorage = sessionStorage.getItem("showTitleOnly");
@@ -71,7 +85,7 @@ export class QuestionsWithPaginatingComponent {
     }
     let pageSizeStorage = sessionStorage.getItem("selectedPageSize");
     if (pageSizeStorage === null) {
-      this.pageSize = PaginatingComponent.DEFAULT_PAGESIZE;
+      this.pageSize = QuestionsWithPaginatingComponent.DEFAULT_PAGESIZE;
     } else {
       let storedValue = JSON.parse(pageSizeStorage);
       if (storedValue == "ALL") {
@@ -80,34 +94,20 @@ export class QuestionsWithPaginatingComponent {
         this.pageSize = storedValue;
       }
     }
-  }
-
-  private performQuery() {
-    if (this._searchmode !== undefined) {
-      if (this._searchmode) {
-        this.performQuerySearch();
-      } else {
-        this.performQueryRegular();
-      }
-    }
-  }
-
-  private performQueryRegular() {
-    this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize).then((value) => {
-      this.questions = value;
-    });
+    this.setSearchParams();
   }
 
   private performQuerySearch() {
     this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize, this.search, this.searchType, this.tags)
       .then((value) => {
         this.questions = value;
+        this.pageNumbers = this.pageOptions();
       });
   }
 
   private setSearchParams() {
     this.route.queryParams.subscribe((params) => {
-      this.pageIndex = params["pageNumber"] ?? 0;
+      this.pageIndex = parseInt(params["pageNumber"] ?? 0);
       if (params["pageSize"]) {
         this._pageSize = params["pageSize"];
       }
@@ -121,7 +121,7 @@ export class QuestionsWithPaginatingComponent {
 
   public async searchButtonHandler(e: Event) {
     e.preventDefault();
-    this._pageIndex = 0;
+    this.pageIndex = 0;
     this.tags = this.tagsValueRaw.split(",");
     this.updateSearch();
   }
@@ -136,7 +136,7 @@ export class QuestionsWithPaginatingComponent {
     this.updateSearch();
   }
 
-  public setTagsRaw() {
+  private setTagsRaw() {
     if (this.tags !== undefined) {
       if (typeof this.tags == "string") {
         this.tagsValueRaw = this.tags;
@@ -158,4 +158,42 @@ export class QuestionsWithPaginatingComponent {
       queryParamsHandling: "merge"
     });
   }
+
+  private calcNumPages(): number {
+    return Math.ceil(this.questions?.resultsCount! / this.pageSize!);
+  }
+
+  private pageOptions(): number[] {
+    let result = [];
+    let numOfPages = this.calcNumPages();
+    for (let i = 1; i <= Math.min(numOfPages, 3); i++) {
+      result.push(i);
+    }
+    for (let i = Math.max(this.pageIndex, 4); i <= Math.min(numOfPages, this.pageIndex + 2); i++) {
+      if (!result.includes(i)) {
+        result.push(i);
+      }
+    }
+    for (let i = Math.max(1, numOfPages - 2); i <= numOfPages; i++) {
+      if (!result.includes(i)) {
+        result.push(i);
+      }
+    }
+    result.sort((n1, n2) => n1 - n2);
+    console.log(`${result} ${numOfPages} ${this.pageIndex}`);
+    return result;
+  }
+
+  public getClass(pageNumber: number): string {
+    if (pageNumber == this.pageIndex + 1) {
+      console.log(`${pageNumber} ${this.pageIndex + 1}`)
+      return "page-item active";
+    }
+    return "page-item";
+  }
+}
+
+interface PageSize {
+  value: number | undefined,
+  display: string
 }
