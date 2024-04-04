@@ -7,6 +7,7 @@ import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.QuestionNotFoundException;
+import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.service.QuestionService;
 import com.qdb.qdb.service.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -165,7 +166,7 @@ public class QuestionController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<?> getQuestions(HttpServletRequest request, HttpServletResponse response, @RequestParam(required = false) Integer pageNumber, @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, @RequestParam(required = false) List<String> tags) {
+    public ResponseEntity<?> getQuestions(HttpServletRequest request, HttpServletResponse response, @RequestParam(required = false) Integer pageNumber, @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, @RequestParam(required = false) List<String> tags, @RequestParam(required = false) String username) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
         List<Question> results = new ArrayList<>();
         // filtering
@@ -180,6 +181,14 @@ public class QuestionController {
         }
         if (tags != null) {
             results = service.filterByTags(results, tags);
+        }
+        if (username != null) {
+            try {
+                results = service.findForUser(username, results);
+            } catch (NoRightException ignored) {
+            } catch (UserNotFoundException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
         }
         int count = results.size();
         // formatting
@@ -209,5 +218,37 @@ public class QuestionController {
             }
             return QuestionDTO.toDto(q, editingrights);
         }).toList()));
+    }
+
+    @PostMapping("report/{id}")
+    public ResponseEntity<?> reportQuestion(HttpServletRequest request, HttpServletResponse response, @PathVariable long id) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            service.reportQuestion(id, u);
+        } catch (QuestionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to report a question");
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("unreport/{id}")
+    public ResponseEntity<?> unReportQuestion(HttpServletRequest request, HttpServletResponse response, @PathVariable long id) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            service.unReportQuestion(id, u);
+        } catch (QuestionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to unreport a question");
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

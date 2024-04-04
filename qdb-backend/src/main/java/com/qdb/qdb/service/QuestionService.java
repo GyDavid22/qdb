@@ -4,8 +4,10 @@ import com.qdb.qdb.dto.QuestionModifyDTO;
 import com.qdb.qdb.entity.*;
 import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.QuestionNotFoundException;
+import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.repository.ImageRepository;
 import com.qdb.qdb.repository.QuestionRepository;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,12 +23,15 @@ public class QuestionService {
     private final PermissionService pService;
     @Autowired
     private final ImageRepository iRepo;
+    @Autowired
+    private final UserService uService;
 
-    public QuestionService(QuestionRepository repo, TagService tService, PermissionService pService, ImageRepository iRepo) {
+    public QuestionService(QuestionRepository repo, TagService tService, PermissionService pService, ImageRepository iRepo, UserService uService) {
         this.repo = repo;
         this.tService = tService;
         this.pService = pService;
         this.iRepo = iRepo;
+        this.uService = uService;
     }
 
     public Question getById(long id) {
@@ -198,6 +203,37 @@ public class QuestionService {
         updateTags(q, new ArrayList<>(), u);
         repo.delete(q);
         repo.flush();
+    }
+
+    public void reportQuestion(long id, User u) throws QuestionNotFoundException, NoRightException {
+        Question q = getById(id);
+        if (q == null) {
+            throw new QuestionNotFoundException();
+        }
+        pService.checkPermission(u, Permission.Action.REPORT_QUESTION, false);
+        q.setReported(true);
+        repo.saveAndFlush(q);
+    }
+
+    public void unReportQuestion(long id, User u) throws QuestionNotFoundException, NoRightException {
+        Question q = getById(id);
+        if (q == null) {
+            throw new QuestionNotFoundException();
+        }
+        pService.checkPermission(u, Permission.Action.UNREPORT_QUESTION, false);
+        q.setReported(false);
+        repo.saveAndFlush(q);
+    }
+
+    public List<Question> findForUser(String username, @Nullable List<Question> q) throws NoRightException, UserNotFoundException {
+        User u = uService.getByUserName(username, null);
+        if (u == null) {
+            throw new UserNotFoundException();
+        }
+        if (q != null) {
+            return q.stream().filter(t -> t.getOwner() == u).toList();
+        }
+        return u.getQuestions().stream().toList();
     }
 
     public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {

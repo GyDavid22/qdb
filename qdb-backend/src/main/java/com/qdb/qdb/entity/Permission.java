@@ -64,6 +64,8 @@ public class Permission {
         LOGIN,
         SET_PROFILE_PICTURE_OWN,
         RESET_PROFILE_PICTURE_OWN,
-        UPLOAD_IMAGE
+        UPLOAD_IMAGE,
+        REPORT_QUESTION,
+        UNREPORT_QUESTION
     }
 }
