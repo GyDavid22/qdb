@@ -23,6 +23,9 @@ export class QuestionsWithPaginatingComponent {
     }
     this.updateEntries();
   }
+  public get listingType(): "GENERAL" | "SEARCH" | "PERUSER" | undefined {
+    return this._listingType;
+  }
   public questions: QuestionMetadataList | undefined;
   public pageIndex: number = 0;
   private _pageSize: number | undefined;
