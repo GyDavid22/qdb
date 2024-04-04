@@ -179,7 +179,7 @@ public class QuestionService {
 
     public Question createQuestion(QuestionModifyDTO q, User u) throws NoRightException {
         pService.checkPermission(u, Permission.Action.CREATE_QUESTION, false);
-        Question newQuestion = new Question(null, q.getTitle(), q.getMdbody(), u, new ArrayList<>(), new ArrayList<>());
+        Question newQuestion = new Question(null, q.getTitle(), q.getMdbody(), u, false, new ArrayList<>(), new ArrayList<>());
         repo.saveAndFlush(newQuestion);
         updateTags(newQuestion, q.getTags(), u);
         return newQuestion;
