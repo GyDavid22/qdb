@@ -21,6 +21,7 @@ public class TagService {
     }
 
     public Tag getTagByName(String name) {
+        name = name.trim();
         return repo.findByNameIgnoreCase(name).orElse(null);
     }
 
@@ -34,6 +35,7 @@ public class TagService {
         if (name.isEmpty()) {
             return;
         }
+        name = name.trim();
         Optional<Tag> result = repo.findByNameIgnoreCase(name);
         if (result.isPresent()) {
             if (!result.get().getQuestions().contains(q)) {
