@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="col-9">
         <app-questions-with-paginating [message]="'Total number of questions:'"
-            [searchMode]="false"></app-questions-with-paginating>
+            [listingType]="'GENERAL'"></app-questions-with-paginating>
     </div>
     <div class="col-3 p-2">
         <div *ngIf="this.qService.isLoggedIn">

@@ -15,7 +15,14 @@ import { QuestionCardComponent } from './question-card/question-card.component';
 })
 export class QuestionsWithPaginatingComponent {
   @Input() public message: string = "";
-  @Input() public searchMode: boolean | undefined;
+  private _listingType: "GENERAL" | "SEARCH" | "PERUSER" | undefined;
+  @Input() public set listingType(val: "GENERAL" | "SEARCH" | "PERUSER" | undefined) {
+    this._listingType = val;
+    if (this._listingType === "GENERAL" || this._listingType === "SEARCH") {
+      this.setSearchParams();
+    }
+    this.updateEntries();
+  }
   public questions: QuestionMetadataList | undefined;
   public pageIndex: number = 0;
   private _pageSize: number | undefined;
@@ -102,15 +109,6 @@ export class QuestionsWithPaginatingComponent {
         this.pageSize = storedValue;
       }
     }
-    this.setSearchParams();
-  }
-
-  private performQuerySearch() {
-    this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize, this.search, this.searchType, this.tags)
-      .then((value) => {
-        this.questions = value;
-        this.pageNumbers = this.pageOptions();
-      });
   }
 
   private setSearchParams() {
@@ -123,7 +121,11 @@ export class QuestionsWithPaginatingComponent {
       this.searchType = params["searchType"] ?? "ALL";
       this.tags = params["tags"] ?? undefined;
       this.setTagsRaw();
-      this.performQuerySearch();
+      this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize, this.search, this.searchType, this.tags)
+        .then((value) => {
+          this.questions = value;
+          this.pageNumbers = this.pageOptions();
+        });
     });
   }
 
@@ -131,17 +133,17 @@ export class QuestionsWithPaginatingComponent {
     e.preventDefault();
     this.pageIndex = 0;
     this.tags = this.tagsValueRaw.split(",");
-    this.updateSearch();
+    this.updateEntries();
   }
 
   public setPageSize(val: number | undefined) {
     this.pageSize = val;
-    this.updateSearch();
+    this.updateEntries();
   }
 
   public setPageIndex(val: number) {
     this.pageIndex = val;
-    this.updateSearch();
+    this.updateEntries();
   }
 
   private setTagsRaw() {
@@ -165,6 +167,19 @@ export class QuestionsWithPaginatingComponent {
       },
       queryParamsHandling: "merge"
     });
+  }
+
+  private updateEntries() {
+    if (this._listingType === "GENERAL" || this._listingType === "SEARCH") {
+      this.updateSearch();
+    } else if (this._listingType === "PERUSER") {
+      this.fetchForUser();
+    }
+  }
+
+  public async fetchForUser() {
+    this.questions = await this.qService.getCurrentUserQuestions(this.pageSize, this.pageIndex) as QuestionMetadataList;
+    this.pageNumbers = this.pageOptions();
   }
 
   private calcNumPages(): number {

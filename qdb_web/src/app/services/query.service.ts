@@ -111,6 +111,20 @@ export class QueryService {
     return await (response).json() as QuestionMetadata;
   }
 
+  public async getCurrentUserQuestions(pageSize: number | undefined, pageNumber: number) {
+    let url: string;
+    if (pageSize !== undefined) {
+      url = `question?username=${this.username}&pageSize=${pageSize}&pageNumber=${pageNumber}`;
+    } else {
+      url = `question?username=${this.username}`;
+    }
+    let response = await this.queryBase(url, "GET");
+    if (!response.ok) {
+      this.router.navigate(["404"]);
+    }
+    return await (response).json() as QuestionMetadataList;
+  }
+
   public async getQuestionBody(id: number): Promise<string> {
     let response = await this.queryBase(`question/body/${id}`, "GET");
     if (!response.ok) {

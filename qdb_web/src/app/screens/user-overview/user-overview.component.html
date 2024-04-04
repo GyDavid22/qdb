@@ -32,6 +32,10 @@
         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
             data-bs-target="#delete-account-modal">Delete my account</button>
     </div>
+    <div *ngIf="this.qService.isLoggedIn" class="w-100">
+        <app-questions-with-paginating [message]="'Questions created by you:'"
+            [listingType]="'PERUSER'"></app-questions-with-paginating>
+    </div>
 </div>
 <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" id="delete-account-modal"
     tabindex="-1">

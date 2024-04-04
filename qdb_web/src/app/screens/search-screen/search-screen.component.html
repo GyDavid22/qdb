@@ -1,6 +1,7 @@
 <div class="d-flex py-3">
     <div class="col-9">
         <h5 *ngIf="this.search">You searched for: {{this.search}}</h5>
-        <app-questions-with-paginating [message]="'Total results:'" [searchMode]="true"></app-questions-with-paginating>
+        <app-questions-with-paginating [message]="'Total results:'"
+            [listingType]="'SEARCH'"></app-questions-with-paginating>
     </div>
 </div>
