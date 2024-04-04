@@ -4,5 +4,6 @@ export interface QuestionMetadata {
     tags: string[],
     imagesUrls: string[],
     createdby: string,
-    currentUserHasEditingRights: boolean
+    isReported: boolean,
+    currentUserHasEditingRights: boolean;
 }

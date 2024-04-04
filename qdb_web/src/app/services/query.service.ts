@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Constants } from '../../constants';
-import { LoginResponse } from '../entities/LoginResponse';
 import { Router } from '@angular/router';
-import { TagResponse } from '../entities/TagResponse';
+import { Constants } from '../../constants';
 import { QuestionMetadata } from '../entities/QuestionMetadata';
 import { QuestionMetadataList } from '../entities/QuestionMetadataList';
 import { QuestionUpdate } from '../entities/QuestionModify';
+import { TagResponse } from '../entities/TagResponse';
+import { UserMetadata } from '../entities/UserMetadata';
 
 @Injectable({
   providedIn: 'root'
@@ -13,16 +13,20 @@ import { QuestionUpdate } from '../entities/QuestionModify';
 export class QueryService {
   private static readonly BASE_URL = `${Constants.WEBPAGE_URL}java/api/`;
   private _isLoggedIn: boolean = false;
-  set isLoggedIn(value: boolean) {
-    this._isLoggedIn = value;
-  }
   public get isLoggedIn(): boolean {
     return this._isLoggedIn;
   }
-  private _username: string = "";
   public get username(): string {
-    return this._username;
+    return this._currentUser?.userName ?? "";
   }
+  public get rank(): "SUPERUSER" | "ADMIN" | "NORMAL" | "RESTRICTED" | undefined {
+    return this._currentUser?.rank ?? undefined;
+  }
+  private _currentUser: UserMetadata | undefined;
+  private set currentUser(val: UserMetadata | undefined) {
+    this._currentUser = val;
+    this._isLoggedIn = val !== undefined;
+  };
 
   constructor(private router: Router) { }
 
@@ -45,14 +49,11 @@ export class QueryService {
     })));;
     try {
       if (result.status == 200) {
-        this.isLoggedIn = true;
-        result.json().then((value) => {
-          this._username = (value as LoginResponse).username;
-        })
+        this.currentUser = await (await this.getCurrentUserMetadata()).json() as UserMetadata;
       } else if (result.status == 401) {
-        this.isLoggedIn = false;
+        this.currentUser = undefined;
       }
-    } catch (e) { }
+    } catch { }
     return result;
   }
 
@@ -64,12 +65,8 @@ export class QueryService {
   }
 
   public logout() {
-    this.queryBase("session/logout", "POST").then((value) => {
-      if (value.status == 200) {
-        this.isLoggedIn = false;
-        this._username = "";
-      }
-    });
+    this.queryBase("session/logout", "POST");
+    this.currentUser = undefined;
   }
 
   public async tagsWithCounts(): Promise<TagResponse[]> {
@@ -158,8 +155,7 @@ export class QueryService {
   public async deleteCurrentUser(): Promise<Response> {
     let response = await this.queryBase("user", "DELETE");
     if (response.status == 200) {
-      this.isLoggedIn = false;
-      this._username = "";
+      this.currentUser == undefined;
     }
     return response;
   }
@@ -186,6 +182,14 @@ export class QueryService {
 
   public async deleteImage(imagename: string): Promise<Response> {
     return this.queryBase(`image/${imagename}`, "DELETE");
+  }
+
+  public async reportQuestion(id: number): Promise<Response> {
+    return this.queryBase(`question/report/${id}`, "POST");
+  }
+
+  public async unReportQuestion(id: number): Promise<Response> {
+    return this.queryBase(`question/unreport/${id}`, "POST");
   }
 
   public getCurrentProfilePictureUrl(): string {

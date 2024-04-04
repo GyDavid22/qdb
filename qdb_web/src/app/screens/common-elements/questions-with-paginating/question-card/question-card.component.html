@@ -9,6 +9,8 @@
                     <div [innerHTML]="this.title"></div>
                 </ng-template>
             </h5>
+            <div *ngIf="this.question?.isReported"><span class="text-danger">This question has been
+                    reported.</span></div>
             <div *ngIf="!this.titleOnly">
                 <div [innerHTML]="this.body" class="questionbody">
                 </div>

@@ -16,7 +16,8 @@
                     </div>
                 </form>
                 <div class="login-state">
-                    <div *ngIf="this.isLoggedIn; else elseBlock" class="d-flex justify-content-center align-items-center">
+                    <div *ngIf="this.isLoggedIn; else elseBlock"
+                        class="d-flex justify-content-center align-items-center">
                         Hello,
                         <a routerLink="user" class="username-link">{{this.username}}</a>!
                         <img class="mini-pfp" [src]="this.qService.getCurrentProfilePictureUrl()">

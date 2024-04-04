@@ -2,14 +2,26 @@
     <div class="d-flex flex-column">
         <div class="d-flex w-100 justify-content-between">
             <button class="btn btn-outline-primary" (click)="this.backButtonHandler($event)">Back</button>
-            <div *ngIf="this.question?.currentUserHasEditingRights && !this.isInEditMode">
-                <button class="btn btn-outline-primary" (click)="this.editButtonHandler()">Edit</button>
-            </div>
-            <div *ngIf="this.isInEditMode && !this.isInCreateMode">
-                <button class="btn btn-outline-primary" (click)="this.abortButtonHandler()">Abort changes</button>
+            <div class="d-flex">
+                <div
+                    *ngIf="this.qService.isLoggedIn && this.qService.rank !== 'RESTRICTED' && !this.isInEditMode && !this.isInCreateMode && !this.question?.isReported">
+                    <button class="btn btn-outline-danger mx-2" (click)="this.reportButton()">Report</button>
+                </div>
+                <div
+                    *ngIf="this.qService.isLoggedIn && (this.qService.rank === 'ADMIN' || this.qService.rank === 'SUPERUSER') && !this.isInEditMode && !this.isInCreateMode && this.question?.isReported">
+                    <button class="btn btn-outline-danger mx-2" (click)="this.unReportButton()">Unreport</button>
+                </div>
+                <div *ngIf="this.question?.currentUserHasEditingRights && !this.isInEditMode">
+                    <button class="btn btn-outline-primary" (click)="this.editButtonHandler()">Edit</button>
+                </div>
+                <div *ngIf="this.isInEditMode && !this.isInCreateMode">
+                    <button class="btn btn-outline-primary" (click)="this.abortButtonHandler()">Abort changes</button>
+                </div>
             </div>
         </div>
         <div class="my-3">
+            <div *ngIf="this.question?.isReported"><span class="text-danger">This question has been
+                    reported.</span></div>
             <h2 *ngIf="!this.isInEditMode; else elseBlock">{{this.question?.title}}</h2>
             <ng-template #elseBlock>
                 <div class="w-100 p-1">
@@ -20,7 +32,7 @@
             <div class="d-flex flex-row flex-grow-1">
                 <div class="col-6 px-1" *ngIf="this.isInEditMode">
                     <textarea class="w-100 h-100 form-control" [(ngModel)]="this.questionBody"
-                        placeholder="Enter question text here"></textarea>
+                        placeholder="Enter question text here" (focus)="this.hideRecommendedTags()"></textarea>
                     <div class="small text-secondary">
                         Hint: You can also use HTML code!
                     </div>
@@ -39,7 +51,13 @@
         </div>
         <div *ngIf="this.isInEditMode" class="my-1">
             <p>Separate tags with comma:</p>
-            <input type="text" class="form-control" placeholder="Tags" [(ngModel)]="this.tagsRaw">
+            <input type="text" class="form-control" placeholder="Tags" [(ngModel)]="this.tagsRaw"
+                (focus)="this.showRecommendedTags()">
+            <ul *ngIf="this.recommendedTagsShown" class="list-group">
+                <li *ngFor="let i of this.recommendedTags" class="list-group-item" (click)="this.appendTag(i.name)">
+                    {{i.name}} ({{i.count}})
+                </li>
+            </ul>
         </div>
         <div *ngIf="!this.isInCreateMode">
             <span class="creatortext p-1">Created by: {{this.question?.createdby ?? "[deleted user]"}}</span>

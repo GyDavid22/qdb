@@ -1,15 +1,16 @@
-import { AfterViewInit, Component, SecurityContext } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { QuestionMetadata } from '../../entities/QuestionMetadata';
-import { QueryService } from '../../services/query.service';
 import { NgFor, NgIf } from '@angular/common';
-import { TagBadgesComponent } from '../common-elements/tags-box/tag-badges/tag-badges.component';
+import { AfterViewInit, Component, SecurityContext } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as marked from 'marked';
 import { Constants } from '../../../constants';
-import { FormsModule } from '@angular/forms';
-import { AlertService } from '../../services/alert.service';
+import { QuestionMetadata } from '../../entities/QuestionMetadata';
 import { QuestionUpdate } from '../../entities/QuestionModify';
+import { TagResponse } from '../../entities/TagResponse';
+import { AlertService } from '../../services/alert.service';
+import { QueryService } from '../../services/query.service';
+import { TagBadgesComponent } from '../common-elements/tags-box/tag-badges/tag-badges.component';
 import { ImageListCardComponent } from './image-list-card/image-list-card.component';
 
 @Component({
@@ -22,7 +23,7 @@ import { ImageListCardComponent } from './image-list-card/image-list-card.compon
 export class QuestionFullComponent implements AfterViewInit {
   private id!: number;
   public question: QuestionMetadata | undefined;
-  private _questionBody: string | undefined;
+  private _questionBody: string = "";
   public set questionBody(val: string) {
     this._questionBody = val;
     this.questionBodyFormatted = this.sanitizer.sanitize(SecurityContext.HTML, marked.parse(val));
@@ -33,7 +34,7 @@ export class QuestionFullComponent implements AfterViewInit {
       this.questionBodyFormatted = this.questionBodyFormatted?.replaceAll(i, `${Constants.WEBPAGE_URL}java/api/image/${i}`);
     }
   }
-  public get questionBody(): string | undefined {
+  public get questionBody(): string {
     return this._questionBody;
   }
   public questionBodyFormatted: string | null | undefined;
@@ -42,6 +43,8 @@ export class QuestionFullComponent implements AfterViewInit {
   public newImages: string[] = [];
   private imagesToDelete: string[] = [];
   public isInCreateMode: boolean = false;
+  public recommendedTagsShown = false;
+  public recommendedTags: TagResponse[] = [];
 
   constructor(public qService: QueryService, private aService: AlertService, private route: ActivatedRoute, private router: Router, private sanitizer: DomSanitizer) {
     this.route.params.subscribe((value) => {
@@ -59,6 +62,7 @@ export class QuestionFullComponent implements AfterViewInit {
             tags: [],
             imagesUrls: [],
             createdby: "",
+            isReported: false,
             currentUserHasEditingRights: false
           };
         }
@@ -69,7 +73,10 @@ export class QuestionFullComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    let button = document.getElementById("browsefilebutton")! as HTMLInputElement;
+    let button: HTMLInputElement;
+    try {
+      button = document.getElementById("browsefilebutton")! as HTMLInputElement;
+    } catch (ReferenceError) { return; } // there shouldn't be an error here, it just throws a message in ng serve
     button.addEventListener("change", () => {
       let formdata = new FormData();
       formdata.append("file", button.files?.item(0) as File);
@@ -207,5 +214,52 @@ export class QuestionFullComponent implements AfterViewInit {
       this.question?.imagesUrls.splice(this.question?.imagesUrls.indexOf(name), 1);
     }
     this.imagesToDelete.push(name);
+  }
+
+  public async showRecommendedTags() {
+    if (!this.recommendedTagsShown) {
+      this.recommendedTagsShown = true;
+      let tags = await this.qService.tagsWithCounts();
+      let splitted = this.tagsRaw.split(",");
+      for (let i of tags) {
+        if (this.questionBody?.toLowerCase().indexOf(i.name) != -1 && splitted.indexOf(i.name) == -1) {
+          this.recommendedTags.push(i);
+        }
+      }
+      this.recommendedTags.sort((a, b) => b.count - a.count);
+    }
+  }
+
+  public hideRecommendedTags() {
+    this.recommendedTagsShown = false;
+    this.recommendedTags = [];
+  }
+
+  public appendTag(tag: string) {
+    if (this.tagsRaw == "") {
+      this.tagsRaw += tag;
+    } else {
+      this.tagsRaw += `,${tag}`;
+    }
+  }
+
+  public async reportButton() {
+    let res = await this.qService.reportQuestion(this.id);
+    if (res.status == 200) {
+      this.aService.pushAlert("SUCCESS", "Successfully reported this question");
+      this.getQuestionData();
+    } else {
+      this.aService.pushAlert("ERROR", await res.text());
+    }
+  }
+
+  public async unReportButton() {
+    let res = await this.qService.unReportQuestion(this.id);
+    if (res.status == 200) {
+      this.aService.pushAlert("SUCCESS", "Successfully unreported this question");
+      this.getQuestionData();
+    } else {
+      this.aService.pushAlert("ERROR", await res.text());
+    }
   }
 }

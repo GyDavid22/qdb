@@ -1,10 +1,10 @@
+import { NgFor, NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { QuestionMetadataList } from '../../../entities/QuestionMetadataList';
 import { QueryService } from '../../../services/query.service';
 import { QuestionCardComponent } from './question-card/question-card.component';
-import { NgFor, NgIf } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-questions-with-paginating',
@@ -21,11 +21,13 @@ export class QuestionsWithPaginatingComponent {
   private _pageSize: number | undefined;
   public set pageSize(val: number | undefined) {
     this._pageSize = val;
-    if (val === undefined) {
-      sessionStorage.setItem("selectedPageSize", JSON.stringify("ALL"));
-    } else {
-      sessionStorage.setItem("selectedPageSize", JSON.stringify(val));
-    }
+    try {
+      if (val === undefined) {
+        sessionStorage.setItem("selectedPageSize", JSON.stringify("ALL"));
+      } else {
+        sessionStorage.setItem("selectedPageSize", JSON.stringify(val));
+      }
+    } catch (ReferenceError) { }
     this.pageIndex = 0;
   }
   public get pageSize(): number | undefined {
@@ -62,7 +64,7 @@ export class QuestionsWithPaginatingComponent {
       value: undefined,
       display: "All"
     }
-  ]
+  ];
   private _pageSizeFormValue: string = "default";
   public get pageSizeFormValue(): string {
     return this._pageSizeFormValue;
@@ -77,13 +79,19 @@ export class QuestionsWithPaginatingComponent {
   }
 
   public constructor(private qService: QueryService, private route: ActivatedRoute, private router: Router) {
-    let titleOnlyStorage = sessionStorage.getItem("showTitleOnly");
+    let titleOnlyStorage: string | null = null;
+    try {
+      titleOnlyStorage = sessionStorage.getItem("showTitleOnly");
+    } catch (ReferenceError) { } // there shouldn't be an error here, it just throws a message in ng serve
     if (titleOnlyStorage === null) {
       this._titleOnly = true;
     } else {
       this._titleOnly = JSON.parse(titleOnlyStorage);
     }
-    let pageSizeStorage = sessionStorage.getItem("selectedPageSize");
+    let pageSizeStorage: string | null = null;
+    try {
+      pageSizeStorage = sessionStorage.getItem("selectedPageSize");
+    } catch (ReferenceError) { } // there shouldn't be an error here, it just throws a message in ng serve
     if (pageSizeStorage === null) {
       this.pageSize = QuestionsWithPaginatingComponent.DEFAULT_PAGESIZE;
     } else {
@@ -193,5 +201,5 @@ export class QuestionsWithPaginatingComponent {
 
 interface PageSize {
   value: number | undefined,
-  display: string
+  display: string;
 }

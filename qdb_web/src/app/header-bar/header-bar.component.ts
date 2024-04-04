@@ -1,10 +1,9 @@
-import { Component } from '@angular/core';
-import { QueryService } from '../services/query.service';
 import { NgFor, NgIf } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { AlertComponent } from '../screens/common-elements/alert/alert.component';
+import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AlertComponent } from '../screens/common-elements/alert/alert.component';
+import { QueryService } from '../services/query.service';
 
 @Component({
   selector: 'app-header-bar',
