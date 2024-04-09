@@ -43,6 +43,7 @@ export class QuestionFullComponent implements AfterViewInit {
   public newImages: string[] = [];
   private imagesToDelete: string[] = [];
   public isInCreateMode: boolean = false;
+  private wasInCreateMode: boolean = false;
   public recommendedTagsShown = false;
   public recommendedTags: TagResponse[] = [];
 
@@ -55,6 +56,7 @@ export class QuestionFullComponent implements AfterViewInit {
           this.getQuestionData();
         } else {
           this.isInCreateMode = true;
+          this.wasInCreateMode = true;
           this.isInEditMode = true;
           this.question = {
             id: -1,
@@ -110,7 +112,11 @@ export class QuestionFullComponent implements AfterViewInit {
 
   public backButtonHandler(e: Event) {
     e.preventDefault();
-    history.back();
+    if (!this.wasInCreateMode) {
+      history.back();
+    } else {
+      this.router.navigate([""]);
+    }
   }
 
   public editButtonHandler() {
