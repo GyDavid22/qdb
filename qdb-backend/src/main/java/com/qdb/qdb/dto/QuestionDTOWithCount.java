@@ -14,6 +14,11 @@ public class QuestionDTOWithCount {
         this.questions = questions;
     }
 
+    public QuestionDTOWithCount(List<QuestionDTO> questions) {
+        this.questions = questions;
+        this.resultsCount = questions.size();
+    }
+
     public int getResultsCount() {
         return resultsCount;
     }
