@@ -25,7 +25,7 @@ public class Question implements Comparable<Question> {
     private Collection<Tag> tags;
     @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
     private Collection<Image> images;
-    @ManyToMany(mappedBy = "favorites", fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     private Collection<User> favoritedBy;
 
     public Question() {

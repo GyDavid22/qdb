@@ -16,8 +16,9 @@ public class QuestionDTO {
     private String createdby;
     private Boolean isReported;
     private boolean currentUserHasEditingRights;
+    private boolean isInFavorites;
 
-    public QuestionDTO(long id, String title, Collection<String> tags, Collection<String> imagesUrls, String createdby, Boolean isReported, boolean currentUserHasEditingRights) {
+    public QuestionDTO(long id, String title, Collection<String> tags, Collection<String> imagesUrls, String createdby, Boolean isReported, boolean currentUserHasEditingRights, boolean isInFavorites) {
         this.id = id;
         this.title = title;
         this.tags = tags;
@@ -25,10 +26,11 @@ public class QuestionDTO {
         this.createdby = createdby;
         this.isReported = isReported;
         this.currentUserHasEditingRights = currentUserHasEditingRights;
+        this.isInFavorites = isInFavorites;
     }
 
-    public static QuestionDTO toDto(Question q, boolean currentUserHasEditingRights) {
-        return new QuestionDTO(q.getId(), q.getTitle(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(Image::getName).toList(), q.getOwner() == null ? "null" : q.getOwner().getUserName(), q.isReported(), currentUserHasEditingRights);
+    public static QuestionDTO toDto(Question q, boolean currentUserHasEditingRights, boolean isInFavorites) {
+        return new QuestionDTO(q.getId(), q.getTitle(), q.getTags().stream().map(Tag::getName).toList(), q.getImages().stream().map(Image::getName).toList(), q.getOwner() == null ? "null" : q.getOwner().getUserName(), q.isReported(), currentUserHasEditingRights, isInFavorites);
     }
 
     public long getId() {
@@ -85,5 +87,13 @@ public class QuestionDTO {
 
     public void setIsReported(Boolean reported) {
         isReported = reported;
+    }
+
+    public boolean isInFavorites() {
+        return isInFavorites;
+    }
+
+    public void setInFavorites(boolean inFavorites) {
+        isInFavorites = inFavorites;
     }
 }

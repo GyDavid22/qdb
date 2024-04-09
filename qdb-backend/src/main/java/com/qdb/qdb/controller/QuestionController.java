@@ -55,7 +55,7 @@ public class QuestionController {
             } catch (NoRightException ignored) {
             }
         }
-        return ResponseEntity.status(HttpStatus.OK).body(QuestionDTO.toDto(result, editingrights));
+        return ResponseEntity.status(HttpStatus.OK).body(QuestionDTO.toDto(result, editingrights, u != null && u.getFavorites().contains(result)));
     }
 
     /**
@@ -170,7 +170,7 @@ public class QuestionController {
         User u = sService.checkCookieValidity(request.getCookies(), response);
         List<Question> results = new ArrayList<>();
         // filtering
-        if (search == null) {
+        if (search == null || search.isEmpty()) {
             results.addAll(service.getQuestions());
         } else {
             List<Question> searchResults = service.search(search, searchType);
@@ -179,8 +179,8 @@ public class QuestionController {
             }
             results.addAll(searchResults);
         }
-        if (tags != null) {
-            results.addAll(service.filterByTagsAnd(results, tags));
+        if (tags != null && !tags.isEmpty()) {
+            results = service.filterByTagsAnd(results, tags);
         }
         if (username != null) {
             try {
@@ -195,13 +195,15 @@ public class QuestionController {
         if (pageNumber == null || pageSize == null) {
             return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(count, results.stream().map(q -> {
                 boolean editingrights = false;
+                boolean isInFavorites = false;
                 if (u != null) {
                     try {
                         editingrights = service.checkEditingRights(q, u, true);
                     } catch (NoRightException ignored) {
                     }
+                    isInFavorites = u.getFavorites().contains(q);
                 }
-                return QuestionDTO.toDto(q, editingrights);
+                return QuestionDTO.toDto(q, editingrights, isInFavorites);
             }).toList()));
         }
         List<Question> resultsPaged = service.getQuestionPagedFromList(pageNumber, pageSize, results);
@@ -210,13 +212,15 @@ public class QuestionController {
         }
         return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(count, resultsPaged.stream().map(q -> {
             boolean editingrights = false;
+            boolean isInFavorites = false;
             if (u != null) {
                 try {
                     editingrights = service.checkEditingRights(q, u, true);
                 } catch (NoRightException ignored) {
                 }
+                isInFavorites = u.getFavorites().contains(q);
             }
-            return QuestionDTO.toDto(q, editingrights);
+            return QuestionDTO.toDto(q, editingrights, isInFavorites);
         }).toList()));
     }
 
@@ -282,5 +286,21 @@ public class QuestionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to remove a question from favorites");
         }
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("favorites")
+    public ResponseEntity<?> removeFromFavoritesCurrentUser(HttpServletRequest request, HttpServletResponse response) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(u.getFavorites().stream().map(q -> {
+            boolean editingRights = false;
+            try {
+                editingRights = service.checkEditingRights(q, u, true);
+            } catch (NoRightException ignored) {
+            }
+            return QuestionDTO.toDto(q, editingRights, u.getFavorites().contains(q));
+        }).toList()));
     }
 }

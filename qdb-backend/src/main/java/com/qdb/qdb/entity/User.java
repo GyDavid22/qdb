@@ -26,7 +26,7 @@ public class User {
     private Collection<Session> sessions;
     @OneToMany(mappedBy = "owner", fetch = FetchType.EAGER)
     private Collection<Question> questions;
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "favoritedBy", fetch = FetchType.EAGER)
     private Collection<Question> favorites;
 
     public User() {
