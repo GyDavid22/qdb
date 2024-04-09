@@ -33,6 +33,10 @@
             data-bs-target="#delete-account-modal">Delete my account</button>
     </div>
     <div *ngIf="this.qService.isLoggedIn" class="w-100">
+        <app-questions-with-paginating [message]="'Your favorite questions:'"
+            [listingType]="'FAVORITES'"></app-questions-with-paginating>
+    </div>
+    <div *ngIf="this.qService.isLoggedIn" class="w-100">
         <app-questions-with-paginating [message]="'Questions created by you:'"
             [listingType]="'PERUSER'"></app-questions-with-paginating>
     </div>

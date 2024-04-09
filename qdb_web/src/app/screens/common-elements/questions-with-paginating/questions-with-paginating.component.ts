@@ -15,18 +15,31 @@ import { QuestionCardComponent } from './question-card/question-card.component';
 })
 export class QuestionsWithPaginatingComponent {
   @Input() public message: string = "";
-  private _listingType: "GENERAL" | "SEARCH" | "PERUSER" | undefined;
-  @Input() public set listingType(val: "GENERAL" | "SEARCH" | "PERUSER" | undefined) {
+  private _listingType: "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | undefined;
+  @Input() public set listingType(val: "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | undefined) {
     this._listingType = val;
     if (this._listingType === "GENERAL" || this._listingType === "SEARCH") {
       this.setSearchParams();
     }
     this.updateEntries();
   }
-  public get listingType(): "GENERAL" | "SEARCH" | "PERUSER" | undefined {
+  public get listingType(): "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | undefined {
     return this._listingType;
   }
-  public questions: QuestionMetadataList | undefined;
+  private _questions: QuestionMetadataList | undefined;
+  public get questions(): QuestionMetadataList | undefined {
+    return this._questions;
+  }
+  public set questions(val: QuestionMetadataList | undefined) {
+    if (val !== undefined) {
+      if (val.resultsCount === 0) {
+        this.noQuestions = true;
+      } else {
+        this.noQuestions = false;
+      }
+    }
+    this._questions = val;
+  }
   public pageIndex: number = 0;
   private _pageSize: number | undefined;
   public set pageSize(val: number | undefined) {
@@ -87,6 +100,8 @@ export class QuestionsWithPaginatingComponent {
       }
     }
   }
+  public isLoading: boolean = true;
+  public noQuestions: boolean = false;
 
   public constructor(private qService: QueryService, private route: ActivatedRoute, private router: Router) {
     let titleOnlyStorage: string | null = null;
@@ -124,8 +139,10 @@ export class QuestionsWithPaginatingComponent {
       this.searchType = params["searchType"] ?? "ALL";
       this.tags = params["tags"] ?? undefined;
       this.setTagsRaw();
+      this.isLoading = true;
       this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize, this.search, this.searchType, this.tags)
         .then((value) => {
+          this.isLoading = false;
           this.questions = value;
           this.pageNumbers = this.pageOptions();
         });
@@ -135,7 +152,7 @@ export class QuestionsWithPaginatingComponent {
   public async searchButtonHandler(e: Event) {
     e.preventDefault();
     this.pageIndex = 0;
-    this.tags = this.tagsValueRaw.split(",");
+    this.tags = this.tagsValueRaw.split(/[, ]/);
     this.updateEntries();
   }
 
@@ -177,11 +194,22 @@ export class QuestionsWithPaginatingComponent {
       this.updateSearch();
     } else if (this._listingType === "PERUSER") {
       this.fetchForUser();
+    } else if (this._listingType === "FAVORITES") {
+      this.fetchFavoritesForUser();
     }
   }
 
-  public async fetchForUser() {
+  private async fetchForUser() {
+    this.isLoading = true;
     this.questions = await this.qService.getCurrentUserQuestions(this.pageSize, this.pageIndex) as QuestionMetadataList;
+    this.isLoading = false;
+    this.pageNumbers = this.pageOptions();
+  }
+
+  private async fetchFavoritesForUser() {
+    this.isLoading = true;
+    this.questions = await (await this.qService.getFavoritesForCurrentUser()).json() as QuestionMetadataList;
+    this.isLoading = false;
     this.pageNumbers = this.pageOptions();
   }
 
@@ -214,6 +242,12 @@ export class QuestionsWithPaginatingComponent {
       return "page-item active";
     }
     return "page-item";
+  }
+
+  public resetSearch() {
+    this.search = "";
+    this.searchType = "ALL";
+    this.tagsValueRaw = "";
   }
 }
 

@@ -206,6 +206,18 @@ export class QueryService {
     return this.queryBase(`question/unreport/${id}`, "POST");
   }
 
+  public async addToFavorites(id: number): Promise<Response> {
+    return this.queryBase(`question/favorite/${id}`, "POST");
+  }
+
+  public async removeFromFavorites(id: number): Promise<Response> {
+    return this.queryBase(`question/unfavorite/${id}`, "POST");
+  }
+
+  public async getFavoritesForCurrentUser(): Promise<Response> {
+    return this.queryBase("question/favorites", "GET");
+  }
+
   public getCurrentProfilePictureUrl(): string {
     return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture`;
   }

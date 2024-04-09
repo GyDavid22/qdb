@@ -63,7 +63,8 @@ export class QuestionFullComponent implements AfterViewInit {
             imagesUrls: [],
             createdby: "",
             isReported: false,
-            currentUserHasEditingRights: false
+            currentUserHasEditingRights: false,
+            inFavorites: false
           };
         }
       } else {
@@ -257,6 +258,26 @@ export class QuestionFullComponent implements AfterViewInit {
     let res = await this.qService.unReportQuestion(this.id);
     if (res.status == 200) {
       this.aService.pushAlert("SUCCESS", "Successfully unreported this question");
+      this.getQuestionData();
+    } else {
+      this.aService.pushAlert("ERROR", await res.text());
+    }
+  }
+
+  public async addToFavorites() {
+    let res = await this.qService.addToFavorites(this.id);
+    if (res.status == 200) {
+      this.aService.pushAlert("SUCCESS", "Successfully added to favorites");
+      this.getQuestionData();
+    } else {
+      this.aService.pushAlert("ERROR", await res.text());
+    }
+  }
+
+  public async removeFromFavorites() {
+    let res = await this.qService.removeFromFavorites(this.id);
+    if (res.status == 200) {
+      this.aService.pushAlert("SUCCESS", "Successfully removed from favorites");
       this.getQuestionData();
     } else {
       this.aService.pushAlert("ERROR", await res.text());

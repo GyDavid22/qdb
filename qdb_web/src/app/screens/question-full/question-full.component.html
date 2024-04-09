@@ -3,19 +3,30 @@
         <div class="d-flex w-100 justify-content-between">
             <button class="btn btn-outline-primary" (click)="this.backButtonHandler($event)">Back</button>
             <div class="d-flex">
+                <div *ngIf="this.qService.isLoggedIn && !this.isInEditMode && this.qService.rank !== 'RESTRICTED'">
+                    <div *ngIf="!this.question?.inFavorites; else elseBlock">
+                        <button class="btn btn-outline-primary mx-1" (click)="this.addToFavorites()">Add to
+                            favorites</button>
+                    </div>
+                    <ng-template #elseBlock>
+                        <button class="btn btn-outline-primary mx-1" (click)="this.removeFromFavorites()">Remove from
+                            favorites</button>
+                    </ng-template>
+                </div>
                 <div
                     *ngIf="this.qService.isLoggedIn && this.qService.rank !== 'RESTRICTED' && !this.isInEditMode && !this.isInCreateMode && !this.question?.isReported">
-                    <button class="btn btn-outline-danger mx-2" (click)="this.reportButton()">Report</button>
+                    <button class="btn btn-outline-danger mx-1" (click)="this.reportButton()">Report</button>
                 </div>
                 <div
                     *ngIf="this.qService.isLoggedIn && (this.qService.rank === 'ADMIN' || this.qService.rank === 'SUPERUSER') && !this.isInEditMode && !this.isInCreateMode && this.question?.isReported">
-                    <button class="btn btn-outline-danger mx-2" (click)="this.unReportButton()">Unreport</button>
+                    <button class="btn btn-outline-danger mx-1" (click)="this.unReportButton()">Unreport</button>
                 </div>
                 <div *ngIf="this.question?.currentUserHasEditingRights && !this.isInEditMode">
-                    <button class="btn btn-outline-primary" (click)="this.editButtonHandler()">Edit</button>
+                    <button class="btn btn-outline-primary mx-1" (click)="this.editButtonHandler()">Edit</button>
                 </div>
                 <div *ngIf="this.isInEditMode && !this.isInCreateMode">
-                    <button class="btn btn-outline-primary" (click)="this.abortButtonHandler()">Abort changes</button>
+                    <button class="btn btn-outline-primary mx-1" (click)="this.abortButtonHandler()">Abort
+                        changes</button>
                 </div>
             </div>
         </div>
