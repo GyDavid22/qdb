@@ -217,7 +217,7 @@ public class QuestionService {
         if (q == null) {
             throw new QuestionNotFoundException();
         }
-        checkEditingRights(q, u, false);
+        checkDeletingRights(q, u, false);
         List<Image> shallowCopy = new ArrayList<>(q.getImages());
         q.getImages().clear();
         q.getFavoritedBy().clear();
@@ -254,7 +254,9 @@ public class QuestionService {
         if (q == null) {
             throw new QuestionNotFoundException();
         }
-        q.getFavoritedBy().add(u);
+        if (!q.getFavoritedBy().contains(u)) {
+            q.getFavoritedBy().add(u);
+        }
         repo.saveAndFlush(q);
     }
 
@@ -292,6 +294,21 @@ public class QuestionService {
             }
         } else if (q.getOwner() == null && u.getRank() == User.Rank.SUPERUSER) {
             return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWNER_SUPERUSER, onlycheck);
+        }
+        return false;
+    }
+
+    public boolean checkDeletingRights(Question q, User u, boolean onlycheck) throws NoRightException {
+        if (q.getOwner() == null) {
+            return pService.checkPermission(u, Permission.Action.DELETE_QUESTION_OF_SUPERUSER, onlycheck);
+        } else if (q.getOwner().getRank() == User.Rank.SUPERUSER) {
+            return pService.checkPermission(u, Permission.Action.DELETE_QUESTION_OF_SUPERUSER, onlycheck);
+        } else if (q.getOwner().getRank() == User.Rank.ADMIN) {
+            return pService.checkPermission(u, Permission.Action.DELETE_QUESTION_OF_ADMIN, onlycheck);
+        } else if (q.getOwner().getRank() == User.Rank.NORMAL || q.getOwner().getRank() == User.Rank.RESTRICTED) {
+            return pService.checkPermission(u, Permission.Action.DELETE_QUESTION_OF_NORMAL_RESTRICTED, onlycheck);
+        } else if (q.getOwner() == u) {
+            return pService.checkPermission(u, Permission.Action.DELETE_QUESTION_OWN, onlycheck);
         }
         return false;
     }
