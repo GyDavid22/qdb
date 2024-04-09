@@ -1,9 +1,9 @@
 import { NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { QueryService } from '../../services/query.service';
-import { AlertService } from '../../services/alert.service';
 import { Router } from '@angular/router';
+import { AlertService } from '../../services/alert.service';
+import { QueryService } from '../../services/query.service';
 
 @Component({
   selector: 'app-login-screen',
@@ -79,7 +79,11 @@ export class LoginScreenComponent {
     }
     let response = await this.qService.registration(username.value, password.value);
     if (response.status == 200) {
-      this.aService.pushAlert("SUCCESS", await response.text());
+      this.aService.pushAlert("SUCCESS", `Account created: ${this.username}`);
+      this.isInRegistrationMode = false;
+      this.username = "";
+      this.password = "";
+      this.passwordRepeat = "";
     } else {
       this.aService.pushAlert("ERROR", await response.text());
     }

@@ -28,8 +28,11 @@ export class QuestionCardComponent {
   @Input() public set titleOnly(val: boolean | undefined) {
     this._titleOnly = val;
     if (val === false) {
+      this._body = "";
+      this.isLoading = true;
       this.qService.getQuestionBody(this.question.id).then((val) => {
         this.body = val;
+        this.isLoading = false;
       });
     }
   }
@@ -73,19 +76,24 @@ export class QuestionCardComponent {
   public set title(val: string) {
     this._title = this.sanitizer.sanitize(SecurityContext.HTML, val)!;
   }
+  public isLoading: boolean = false;
 
   constructor(private qService: QueryService, private sanitizer: DomSanitizer) { }
 
   private replaceWithHighlight(text: string): string {
     if (this.highlight !== undefined) {
-      let lowercase = text.toLowerCase();
-      let highlightLovercase = this.highlight.toLowerCase();
-      let index = lowercase.indexOf(highlightLovercase, 0);
-      while (index !== -1) {
-        let replaceValue = `<span class="mark">${text.substring(index, index + this.highlight.length)}</span>`;
-        text = text.substring(0, index) + replaceValue + text.substring(index + this.highlight.length);
-        lowercase = text.toLowerCase();
-        index = lowercase.indexOf(highlightLovercase, index + replaceValue.length);
+      let splitted = this.highlight.split(/[, ]/).sort((a, b) => b.length - a.length);
+      for (let i of splitted) {
+        let lowercase = text.toLowerCase();
+        let highlightLowercase = i.toLowerCase();
+        let index = lowercase.indexOf(highlightLowercase, 0);
+        while (index !== -1) {
+          // TODO highlighting is broken
+          let replaceValue = `<span class="mark">${text.substring(index, index + i.length)}</span>`;
+          text = text.substring(0, index) + replaceValue + text.substring(index + i.length);
+          lowercase = text.toLowerCase();
+          index = lowercase.indexOf(highlightLowercase, index + replaceValue.length);
+        }
       }
     }
     return text;

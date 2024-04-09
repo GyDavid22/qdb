@@ -42,5 +42,6 @@ export class HeaderBarComponent {
         "search": this.searchText
       }
     });
+    this.searchText = "";
   }
 }

@@ -13,7 +13,10 @@
         <label for="search-form-tags" class="form-label">Search by tags (separate tags with ",")</label>
         <input class="form-control" type="text" placeholder="Enter tags..." id="search-form-tags"
             [(ngModel)]="this.tagsValueRaw" name="search-form-tags">
-        <button type="submit" class="btn btn-primary my-1" (click)="this.searchButtonHandler($event)">Search</button>
+        <div class="d-flex my-2">
+            <button type="submit" class="btn btn-primary" (click)="this.searchButtonHandler($event)">Search</button>
+            <button type="submit" class="btn btn-primary mx-1" (click)="this.resetSearch()">Reset search</button>
+        </div>
     </form>
 </div>
 <div class="my-3 mx-1 d-flex justify-content-between align-items-center">
@@ -38,6 +41,12 @@
     <label class="form-check-label" for="titleOnlyCheckbox">
         Show titles only
     </label>
+</div>
+<div *ngIf="this.isLoading">
+    Questions are loading...
+</div>
+<div *ngIf="this.noQuestions" class="w-100 d-flex align-items-center justify-content-center">
+    <span class="fst-italic my-3">No results</span>
 </div>
 <div *ngFor="let i of this.questions?.questions; let idx = index">
     <app-question-card [question]="i" [titleOnly]="this.titleOnly"
