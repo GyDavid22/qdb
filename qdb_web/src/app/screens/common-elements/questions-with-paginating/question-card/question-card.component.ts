@@ -87,11 +87,20 @@ export class QuestionCardComponent {
         let lowercase = text.toLowerCase();
         let highlightLowercase = i.toLowerCase();
         let index = lowercase.indexOf(highlightLowercase, 0);
+        let lastIndex = 0;
         while (index !== -1) {
-          // TODO highlighting is broken
-          let replaceValue = `<span class="mark">${text.substring(index, index + i.length)}</span>`;
+          let indexOfPrevBeginningTag = lowercase.indexOf("<mark>", lastIndex);
+          let indexOfNextEndingTag = lowercase.indexOf("</mark>", index);
+          if (indexOfPrevBeginningTag !== -1 && indexOfNextEndingTag !== -1 &&
+            indexOfPrevBeginningTag <= index && indexOfNextEndingTag + 7 > index) {
+            lastIndex = index;
+            index = lowercase.indexOf(highlightLowercase, indexOfNextEndingTag + 7);
+            continue;
+          }
+          let replaceValue = `<mark>${text.substring(index, index + i.length)}</mark>`;
           text = text.substring(0, index) + replaceValue + text.substring(index + i.length);
           lowercase = text.toLowerCase();
+          lastIndex = index;
           index = lowercase.indexOf(highlightLowercase, index + replaceValue.length);
         }
       }

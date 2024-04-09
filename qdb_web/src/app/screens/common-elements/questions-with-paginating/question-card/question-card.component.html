@@ -3,12 +3,10 @@
         <div class="card-body">
             <div class="d-flex justify-content-between">
                 <h5 class="card-title">
-                    <span *ngIf="this.selfNumber !== undefined; else elseBlock">
-                        {{this.selfNumber}}. <span [innerHTML]="this.title"></span>
+                    <span *ngIf="this.selfNumber !== undefined">
+                        {{this.selfNumber}}.
                     </span>
-                    <ng-template #elseBlock>
-                        <span [innerHTML]="this.title"></span>
-                    </ng-template>
+                    <span [innerHTML]="this.title"></span>
                 </h5>
                 <div *ngIf="this.question.inFavorites" class="mx-2 h-100">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="1.25rem" height="1.25rem"
