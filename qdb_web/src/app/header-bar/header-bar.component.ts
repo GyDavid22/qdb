@@ -21,7 +21,11 @@ export class HeaderBarComponent {
     return this.qService.username;
   }
 
-  public constructor(public qService: QueryService, private router: Router) { }
+  public constructor(public qService: QueryService, private router: Router) {
+    this.router.events.subscribe(() => {
+      this.searchText = "";
+    });
+  }
 
   public logoutButtonHandler(e: Event) {
     e.preventDefault();
