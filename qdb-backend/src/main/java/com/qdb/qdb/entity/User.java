@@ -26,11 +26,13 @@ public class User {
     private Collection<Session> sessions;
     @OneToMany(mappedBy = "owner", fetch = FetchType.EAGER)
     private Collection<Question> questions;
+    @ManyToMany(fetch = FetchType.EAGER)
+    private Collection<Question> favorites;
 
     public User() {
     }
 
-    public User(Long id, String userName, Rank rank, @Nullable ProfilePicture profilePicture, char[] hashedPassword, char[] salt, Collection<Session> sessions, Collection<Question> questions) {
+    public User(Long id, String userName, Rank rank, @Nullable ProfilePicture profilePicture, char[] hashedPassword, char[] salt, Collection<Session> sessions, Collection<Question> questions, Collection<Question> favorites) {
         this.id = id;
         this.userName = userName;
         this.rank = rank;
@@ -39,6 +41,7 @@ public class User {
         this.salt = salt;
         this.sessions = sessions;
         this.questions = questions;
+        this.favorites = favorites;
     }
 
     public Long getId() {
@@ -104,6 +107,14 @@ public class User {
 
     public void setQuestions(Collection<Question> questions) {
         this.questions = questions;
+    }
+
+    public Collection<Question> getFavorites() {
+        return favorites;
+    }
+
+    public void setFavorites(Collection<Question> favorites) {
+        this.favorites = favorites;
     }
 
     public enum Rank {

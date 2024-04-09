@@ -209,7 +209,7 @@ public class ImportExportData implements ApplicationRunner {
                 String salt = (String) user.get("salt");
                 String hashedpassword = (String) user.get("hashedpassword");
                 String picturename = (String) user.get("profilepicture");
-                User u = new User(null, username, User.Rank.valueOf(rank), null, hashedpassword.toCharArray(), salt.toCharArray(), null, null);
+                User u = new User(null, username, User.Rank.valueOf(rank), null, hashedpassword.toCharArray(), salt.toCharArray(), null, null, null);
                 uRepo.saveAndFlush(u);
                 if (picturename != null) {
                     File pfp = new File("profilepictures/" + picturename);
@@ -231,7 +231,7 @@ public class ImportExportData implements ApplicationRunner {
         tRepo.deleteAll();
         qRepo.deleteAll();
         Set<String> loadedImageNames = new HashSet<>();
-        User mockUser = new User((long) -1, null, User.Rank.SUPERUSER, null, null, null, null, new ArrayList<>());
+        User mockUser = new User((long) -1, null, User.Rank.SUPERUSER, null, null, null, null, new ArrayList<>(), new ArrayList<>());
         try (FileReader fr = new FileReader("importdata/questionsmetadata.json")) {
             JSONParser p = new JSONParser();
             JSONArray questions = (JSONArray) p.parse(fr);
@@ -243,7 +243,7 @@ public class ImportExportData implements ApplicationRunner {
                 String bodyContent = String.join("\n", Files.readAllLines(Path.of("importdata/questions/" + body)));
                 JSONArray images = (JSONArray) question.get("images");
                 JSONArray tags = (JSONArray) question.get("tags");
-                Question q = new Question(null, title, bodyContent, uService.getByUserName(owner, mockUser), false, new ArrayList<>(), new ArrayList<>());
+                Question q = new Question(null, title, bodyContent, uService.getByUserName(owner, mockUser), false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
                 qRepo.saveAndFlush(q);
                 for (Object j : images) {
                     String imagename = (String) ((JSONObject) j).get("name");
@@ -287,7 +287,7 @@ public class ImportExportData implements ApplicationRunner {
     private void bindImagesToQuestions() throws Exception {
         Collection<Image> images = iRepo.findByQuestionIsNull();
         List<Image> found = new ArrayList<>();
-        User mockUser = new User((long) -1, null, User.Rank.SUPERUSER, null, null, null, null, new ArrayList<>());
+        User mockUser = new User((long) -1, null, User.Rank.SUPERUSER, null, null, null, null, new ArrayList<>(), new ArrayList<>());
         for (Question i : qRepo.findAll()) {
             String bodyInLowerCase = i.getMdbody().toLowerCase();
             for (Image j : images) {

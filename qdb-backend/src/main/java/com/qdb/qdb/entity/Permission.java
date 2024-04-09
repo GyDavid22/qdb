@@ -66,6 +66,7 @@ public class Permission {
         RESET_PROFILE_PICTURE_OWN,
         UPLOAD_IMAGE,
         REPORT_QUESTION,
-        UNREPORT_QUESTION
+        UNREPORT_QUESTION,
+        EDIT_FAVORITE_LIST_OWN
     }
 }

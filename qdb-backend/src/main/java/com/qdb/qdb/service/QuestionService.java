@@ -34,6 +34,7 @@ public class QuestionService {
         this.uService = uService;
     }
 
+    @Nullable
     public Question getById(long id) {
         Optional<Question> result = repo.findById(id);
         return result.orElse(null);
@@ -184,7 +185,7 @@ public class QuestionService {
 
     public Question createQuestion(QuestionModifyDTO q, User u) throws NoRightException {
         pService.checkPermission(u, Permission.Action.CREATE_QUESTION, false);
-        Question newQuestion = new Question(null, q.getTitle(), q.getMdbody(), u, false, new ArrayList<>(), new ArrayList<>());
+        Question newQuestion = new Question(null, q.getTitle(), q.getMdbody(), u, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         repo.saveAndFlush(newQuestion);
         updateTags(newQuestion, q.getTags(), u);
         return newQuestion;
@@ -198,6 +199,7 @@ public class QuestionService {
         checkEditingRights(q, u, false);
         List<Image> shallowCopy = new ArrayList<>(q.getImages());
         q.getImages().clear();
+        q.getFavoritedBy().clear();
         repo.saveAndFlush(q);
         iRepo.deleteAll(shallowCopy);
         updateTags(q, new ArrayList<>(), u);
@@ -206,22 +208,42 @@ public class QuestionService {
     }
 
     public void reportQuestion(long id, User u) throws QuestionNotFoundException, NoRightException {
+        pService.checkPermission(u, Permission.Action.REPORT_QUESTION, false);
         Question q = getById(id);
         if (q == null) {
             throw new QuestionNotFoundException();
         }
-        pService.checkPermission(u, Permission.Action.REPORT_QUESTION, false);
         q.setReported(true);
         repo.saveAndFlush(q);
     }
 
     public void unReportQuestion(long id, User u) throws QuestionNotFoundException, NoRightException {
+        pService.checkPermission(u, Permission.Action.UNREPORT_QUESTION, false);
         Question q = getById(id);
         if (q == null) {
             throw new QuestionNotFoundException();
         }
-        pService.checkPermission(u, Permission.Action.UNREPORT_QUESTION, false);
         q.setReported(false);
+        repo.saveAndFlush(q);
+    }
+
+    public void addToFavorites(long id, User u) throws QuestionNotFoundException, NoRightException {
+        pService.checkPermission(u, Permission.Action.EDIT_FAVORITE_LIST_OWN, false);
+        Question q = getById(id);
+        if (q == null) {
+            throw new QuestionNotFoundException();
+        }
+        q.getFavoritedBy().add(u);
+        repo.saveAndFlush(q);
+    }
+
+    public void removeFromFavorites(long id, User u) throws QuestionNotFoundException, NoRightException {
+        pService.checkPermission(u, Permission.Action.EDIT_FAVORITE_LIST_OWN, false);
+        Question q = getById(id);
+        if (q == null) {
+            throw new QuestionNotFoundException();
+        }
+        q.getFavoritedBy().remove(u);
         repo.saveAndFlush(q);
     }
 

@@ -251,4 +251,36 @@ public class QuestionController {
         }
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @PostMapping("favorite/{id}")
+    public ResponseEntity<?> addToFavoritesCurrentUser(HttpServletRequest request, HttpServletResponse response, @PathVariable long id) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            service.addToFavorites(id, u);
+        } catch (QuestionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to add a question to favorites");
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("unfavorite/{id}")
+    public ResponseEntity<?> removeFromFavoritesCurrentUser(HttpServletRequest request, HttpServletResponse response, @PathVariable long id) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            service.removeFromFavorites(id, u);
+        } catch (QuestionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to remove a question from favorites");
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }

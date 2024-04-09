@@ -95,7 +95,7 @@ public class UserService {
             return null;
         }
         char[] salt = generateSalt();
-        User u = new User(null, username, User.Rank.RESTRICTED, null, hashPassword(password, salt), salt, null, null);
+        User u = new User(null, username, User.Rank.RESTRICTED, null, hashPassword(password, salt), salt, null, null, null);
         repo.saveAndFlush(u);
         return u;
     }
@@ -206,6 +206,7 @@ public class UserService {
             pRepo.flush();
             repo.flush();
         }
+        u.getFavorites().clear();
         repo.delete(u);
         repo.flush();
         return true;

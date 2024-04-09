@@ -25,7 +25,7 @@ public class QuestionModifyDTO {
     }
 
     public static Question toQuestion(QuestionModifyDTO q, @Nullable User owner) {
-        return new Question(null, q.getTitle(), q.getMdbody(), owner, false, new ArrayList<>(), new ArrayList<>());
+        return new Question(null, q.getTitle(), q.getMdbody(), owner, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
     }
 
     public String getTitle() {

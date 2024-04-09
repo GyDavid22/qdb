@@ -25,11 +25,13 @@ public class Question {
     private Collection<Tag> tags;
     @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
     private Collection<Image> images;
+    @ManyToMany(mappedBy = "favorites", fetch = FetchType.EAGER)
+    private Collection<User> favoritedBy;
 
     public Question() {
     }
 
-    public Question(Long id, String title, String mdbody, @Nullable User owner, Boolean isReported, Collection<Tag> tags, Collection<Image> images) {
+    public Question(Long id, String title, String mdbody, @Nullable User owner, Boolean isReported, Collection<Tag> tags, Collection<Image> images, Collection<User> favoritedBy) {
         this.id = id;
         this.title = title;
         this.mdbody = mdbody;
@@ -37,6 +39,7 @@ public class Question {
         this.isReported = isReported;
         this.tags = tags;
         this.images = images;
+        this.favoritedBy = favoritedBy;
     }
 
     public Long getId() {
@@ -94,5 +97,13 @@ public class Question {
 
     public void setReported(Boolean reported) {
         isReported = reported;
+    }
+
+    public Collection<User> getFavoritedBy() {
+        return favoritedBy;
+    }
+
+    public void setFavoritedBy(Collection<User> favoritedBy) {
+        this.favoritedBy = favoritedBy;
     }
 }
