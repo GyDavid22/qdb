@@ -180,7 +180,7 @@ public class QuestionController {
             results.addAll(searchResults);
         }
         if (tags != null) {
-            results = service.filterByTags(results, tags);
+            results.addAll(service.filterByTagsAnd(results, tags));
         }
         if (username != null) {
             try {

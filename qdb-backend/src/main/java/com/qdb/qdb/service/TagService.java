@@ -35,7 +35,7 @@ public class TagService {
         if (name.isEmpty()) {
             return;
         }
-        name = name.trim().replace(",", "");
+        name = name.trim().replace(",", "").replace(" ", "_");
         Optional<Tag> result = repo.findByNameIgnoreCase(name);
         if (result.isPresent()) {
             if (!result.get().getQuestions().contains(q)) {

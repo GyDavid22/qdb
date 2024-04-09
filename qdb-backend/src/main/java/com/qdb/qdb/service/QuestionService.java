@@ -121,18 +121,24 @@ public class QuestionService {
      * @return A list of Questions matching the search criteria. An empty list, if no results were found, null is searchType is invalid
      */
     public List<Question> search(String term, String searchType) {
-        if (searchType == null) {
-            return repo.searchByStringInTitleAndBody(term);
+        Set<Question> results = new TreeSet<>();
+        String[] termSplitted = term.split(" ");
+        for (String i : termSplitted) {
+            results.addAll(searchInTitleBody(i, searchType));
         }
-        try {
-            return switch (SearchType.valueOf(searchType.toUpperCase())) {
-                case ALL -> repo.searchByStringInTitleAndBody(term);
-                case BODY -> repo.searchByStringInBody(term);
-                case TITLE -> repo.searchByStringInTitle(term);
-            };
-        } catch (IllegalArgumentException ignored) {
+        List<Question> questions = repo.findAll();
+        for (Question i : questions) {
+            for (Tag j : i.getTags()) {
+                for (String k : termSplitted) {
+                    if (j.getName().equalsIgnoreCase(k)) {
+                        results.add(i);
+                    } else {
+                        System.out.println();
+                    }
+                }
+            }
         }
-        return null;
+        return new ArrayList<>(results);
     }
 
     /**
@@ -142,7 +148,7 @@ public class QuestionService {
      * @param tags
      * @return
      */
-    public List<Question> filterByTags(List<Question> questions, List<String> tags) {
+    public List<Question> filterByTagsAnd(List<Question> questions, List<String> tags) {
         List<Question> potentialResults = new ArrayList<>();
         if (!tags.isEmpty()) {
             potentialResults.addAll(questions);
@@ -169,6 +175,21 @@ public class QuestionService {
             }
         }
         return potentialResults;
+    }
+
+    private List<Question> searchInTitleBody(String term, String searchType) {
+        if (searchType == null) {
+            return repo.searchByStringInTitleAndBody(term);
+        }
+        try {
+            return switch (SearchType.valueOf(searchType.toUpperCase())) {
+                case ALL -> repo.searchByStringInTitleAndBody(term);
+                case BODY -> repo.searchByStringInBody(term);
+                case TITLE -> repo.searchByStringInTitle(term);
+            };
+        } catch (IllegalArgumentException ignored) {
+        }
+        return new ArrayList<>();
     }
 
     public void updateQuestion(long id, QuestionModifyDTO updated, User u) throws QuestionNotFoundException, NoRightException {

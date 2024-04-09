@@ -9,7 +9,7 @@ import java.util.Collection;
  * Represents a Question.
  */
 @Entity
-public class Question {
+public class Question implements Comparable<Question> {
     @Id
     @GeneratedValue
     private Long id;
@@ -105,5 +105,10 @@ public class Question {
 
     public void setFavoritedBy(Collection<User> favoritedBy) {
         this.favoritedBy = favoritedBy;
+    }
+
+    @Override
+    public int compareTo(Question o) {
+        return this.getId().compareTo(o.getId());
     }
 }
