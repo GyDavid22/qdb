@@ -6,6 +6,7 @@ import { QuestionMetadataList } from '../entities/QuestionMetadataList';
 import { QuestionUpdate } from '../entities/QuestionModify';
 import { TagResponse } from '../entities/TagResponse';
 import { UserMetadata } from '../entities/UserMetadata';
+import { AlertService } from './alert.service';
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +29,7 @@ export class QueryService {
     this._isLoggedIn = val !== undefined;
   };
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private aService: AlertService) { }
 
   private queryBase(url: string, method: "GET" | "POST" | "PUT" | "DELETE", body: string | undefined = undefined): Promise<Response> {
     let res = fetch(`${QueryService.BASE_URL}${url}`, {
@@ -101,7 +102,10 @@ export class QueryService {
     }
     let response = await this.queryBase(`question${queryString}`, "GET");
     if (!response.ok) {
-      this.router.navigate(["404"]);
+      return {
+        resultsCount: 0,
+        questions: []
+      } as QuestionMetadataList;
     }
     return await (response).json() as QuestionMetadataList;
   }
@@ -123,7 +127,10 @@ export class QueryService {
     }
     let response = await this.queryBase(url, "GET");
     if (!response.ok) {
-      this.router.navigate(["404"]);
+      return {
+        resultsCount: 0,
+        questions: []
+      } as QuestionMetadataList;
     }
     return await (response).json() as QuestionMetadataList;
   }
@@ -131,7 +138,7 @@ export class QueryService {
   public async getQuestionBody(id: number): Promise<string> {
     let response = await this.queryBase(`question/body/${id}`, "GET");
     if (!response.ok) {
-      this.router.navigate(["404"]);
+      this.aService.pushAlert("ERROR", await response.text());
     }
     return await (response).text();
   }
