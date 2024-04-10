@@ -166,7 +166,7 @@ public class QuestionController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<?> getQuestions(HttpServletRequest request, HttpServletResponse response, @RequestParam(required = false) Integer pageNumber, @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, @RequestParam(required = false) List<String> tags, @RequestParam(required = false) String username) {
+    public ResponseEntity<?> getQuestions(HttpServletRequest request, HttpServletResponse response, @RequestParam(required = false) Integer pageNumber, @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, @RequestParam(required = false) List<String> tags, @RequestParam(required = false) String username, @RequestParam(required = false) Boolean reportedOnly) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
         List<Question> results = new ArrayList<>();
         // filtering
@@ -189,6 +189,9 @@ public class QuestionController {
             } catch (UserNotFoundException e) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
             }
+        }
+        if (reportedOnly != null && reportedOnly) {
+            results = results.stream().filter(Question::isReported).toList();
         }
         int count = results.size();
         // formatting
