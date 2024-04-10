@@ -155,6 +155,12 @@ export class QuestionsWithPaginatingComponent {
     e.preventDefault();
     this.pageIndex = 0;
     this.tags = this.tagsValueRaw.split(/[, ]/);
+    for (let i = 0; i < this.tags.length; i++) {
+      if (this.tags[i] == "") {
+        this.tags.splice(i, 1);
+        i--;
+      }
+    }
     this.updateEntries();
   }
 
