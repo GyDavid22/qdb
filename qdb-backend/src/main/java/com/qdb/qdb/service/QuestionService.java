@@ -8,6 +8,7 @@ import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.repository.ImageRepository;
 import com.qdb.qdb.repository.QuestionRepository;
 import jakarta.annotation.Nullable;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -122,9 +123,11 @@ public class QuestionService {
      */
     public List<Question> search(String term, String searchType) {
         Set<Question> results = new TreeSet<>();
-        String[] termSplitted = term.split(" ");
+        String[] termSplitted = term.split("[, !;?.]");
         for (String i : termSplitted) {
-            results.addAll(searchInTitleBody(i, searchType));
+            if (!i.isEmpty() && !i.equals(" ")) {
+                results.addAll(searchInTitleBody(i, searchType));
+            }
         }
         List<Question> questions = repo.findAll();
         for (Question i : questions) {
@@ -136,7 +139,36 @@ public class QuestionService {
                 }
             }
         }
-        return new ArrayList<>(results);
+        return sortResultsList(results, termSplitted, searchType);
+    }
+
+    private List<Question> sortResultsList(Collection<Question> results, String[] termSplitted, String searchType) {
+        SearchType enumValue;
+        try {
+            enumValue = SearchType.valueOf(searchType);
+        } catch (IllegalArgumentException e) {
+            enumValue = SearchType.ALL;
+        }
+        List<QuestionWithResultCount> withCount = new ArrayList<>();
+        for (Question i : results) {
+            int count = 0;
+            for (String j : termSplitted) {
+                switch (enumValue) {
+                    case TITLE -> count += StringUtils.countMatches(i.getTitle().toLowerCase(), j.toLowerCase());
+                    case BODY -> count += StringUtils.countMatches(i.getMdbody().toLowerCase(), j.toLowerCase());
+                    case ALL ->
+                            count += StringUtils.countMatches(i.getTitle().toLowerCase(), j.toLowerCase()) + StringUtils.countMatches(i.getMdbody().toLowerCase(), j.toLowerCase());
+                }
+                for (Tag k : i.getTags()) {
+                    if (k.getName().equalsIgnoreCase(j)) {
+                        count++;
+                    }
+                }
+            }
+            withCount.add(new QuestionWithResultCount(count, i));
+        }
+        withCount.sort(null);
+        return withCount.stream().map(QuestionWithResultCount::getQuestion).toList();
     }
 
     /**
@@ -313,5 +345,36 @@ public class QuestionService {
 
     private enum SearchType {
         TITLE, BODY, ALL
+    }
+
+    private class QuestionWithResultCount implements Comparable<QuestionWithResultCount> {
+        private Integer count;
+        private Question question;
+
+        public QuestionWithResultCount(Integer count, Question question) {
+            this.count = count;
+            this.question = question;
+        }
+
+        public Integer getCount() {
+            return count;
+        }
+
+        public void setCount(Integer count) {
+            this.count = count;
+        }
+
+        public Question getQuestion() {
+            return question;
+        }
+
+        public void setQuestion(Question question) {
+            this.question = question;
+        }
+
+        @Override
+        public int compareTo(QuestionWithResultCount o) {
+            return o.getCount().compareTo(this.count);
+        }
     }
 }
