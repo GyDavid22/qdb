@@ -132,8 +132,6 @@ public class QuestionService {
                 for (String k : termSplitted) {
                     if (j.getName().equalsIgnoreCase(k)) {
                         results.add(i);
-                    } else {
-                        System.out.println();
                     }
                 }
             }
