@@ -157,6 +157,10 @@ export class QueryService {
     return this.queryBase(`question`, "POST", JSON.stringify(newQuestion));
   }
 
+  public async randomQuestion(count: number): Promise<Response> {
+    return this.queryBase(`question/random?count=${count}`, "GET");
+  }
+
   public async getCurrentUserMetadata(): Promise<Response> {
     return this.queryBase("user", "GET");
   }
