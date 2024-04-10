@@ -36,11 +36,13 @@ export class QuestionCardComponent {
       });
     }
   }
+  private highlightSet: boolean = false;
   @Input() public set highlight(val: string | undefined) {
-    if (this._highlight === undefined && val !== undefined) {
+    if (!this.highlightSet && this._highlight === undefined && val !== undefined) {
       this._highlight = val;
       this.title = this.replaceWithHighlight(this.title);
     }
+    this.highlightSet = true;
   }
   public get highlight(): string | undefined {
     return this._highlight;
