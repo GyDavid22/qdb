@@ -102,6 +102,7 @@ export class QueryService {
     }
     let response = await this.queryBase(`question${queryString}`, "GET");
     if (!response.ok) {
+      this.aService.pushAlert("ERROR", await response.text());
       return {
         resultsCount: 0,
         questions: []
@@ -127,6 +128,7 @@ export class QueryService {
     }
     let response = await this.queryBase(url, "GET");
     if (!response.ok) {
+      this.aService.pushAlert("ERROR", await response.text());
       return {
         resultsCount: 0,
         questions: []
