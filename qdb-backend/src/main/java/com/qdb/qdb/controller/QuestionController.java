@@ -306,4 +306,27 @@ public class QuestionController {
             return QuestionDTO.toDto(q, editingRights, u.getFavorites().contains(q));
         }).toList()));
     }
+
+    @GetMapping("random")
+    public ResponseEntity<?> randomQuestions(HttpServletRequest request, HttpServletResponse response, @RequestParam(required = false) Integer count) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        final boolean loggedout = u == null;
+        if (count == null) {
+            count = 1;
+        } else if (count < 1) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please enter a number greater than 0");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(new QuestionDTOWithCount(service.getRandomQuestions(count).stream().map(q -> {
+            boolean editingRights = false;
+            boolean favorites = false;
+            if (!loggedout) {
+                try {
+                    editingRights = service.checkEditingRights(q, u, true);
+                    favorites = u.getFavorites().contains(q);
+                } catch (NoRightException ignored) {
+                }
+            }
+            return QuestionDTO.toDto(q, editingRights, favorites);
+        }).toList()));
+    }
 }

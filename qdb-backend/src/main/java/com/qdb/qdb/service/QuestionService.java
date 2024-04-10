@@ -311,6 +311,10 @@ public class QuestionService {
         return u.getQuestions().stream().toList();
     }
 
+    public List<Question> getRandomQuestions(int count) {
+        return repo.randomQuestion(count);
+    }
+
     public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {
         if (q.getOwner() == u && u.getRank() != User.Rank.RESTRICTED) {
             return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWN, onlycheck);
