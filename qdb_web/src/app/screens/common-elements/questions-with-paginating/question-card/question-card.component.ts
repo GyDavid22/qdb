@@ -84,8 +84,11 @@ export class QuestionCardComponent {
 
   private replaceWithHighlight(text: string): string {
     if (this.highlight !== undefined) {
-      let splitted = this.highlight.split(/[, ]/).sort((a, b) => b.length - a.length);
+      let splitted = this.highlight.split(/[, !;?.]/).sort((a, b) => b.length - a.length);
       for (let i of splitted) {
+        if (i == "") {
+          continue;
+        }
         let lowercase = text.toLowerCase();
         let highlightLowercase = i.toLowerCase();
         let index = lowercase.indexOf(highlightLowercase, 0);
