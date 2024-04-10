@@ -213,7 +213,7 @@ export class QuestionFullComponent implements AfterViewInit {
   }
 
   public imageCardClickHandler(name: string) {
-    this.questionBody += `\n\n![](${name})`;
+    this.questionBody += `\n\n<img src="${name}" width=100%>`;
   }
 
   public deleteImageHandler(name: string) {
