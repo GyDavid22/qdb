@@ -8,7 +8,7 @@
             <button class="btn btn-outline-primary my-2" routerLink="question/new">Create new question</button>
         </div>
         <button class="btn btn-outline-primary my-2" routerLink="search">Advanced search</button>
-        <button class="btn btn-outline-primary" (click)="this.randomQuestionButton()">Take me to a random
+        <button class="btn btn-outline-primary my-2" (click)="this.randomQuestionButton()">Take me to a random
             question!</button>
         <app-tags-box [tagsWithCount]="this.tagsWithCount"></app-tags-box>
     </div>
