@@ -100,6 +100,7 @@ export class QuestionsWithPaginatingComponent {
       }
     }
   }
+  public showReportedOnly: boolean = false;
   public isLoading: boolean = true;
   public noQuestions: boolean = false;
 
@@ -138,9 +139,10 @@ export class QuestionsWithPaginatingComponent {
       this.search = params["search"] ?? "";
       this.searchType = params["searchType"] ?? "ALL";
       this.tags = params["tags"] ?? undefined;
+      this.showReportedOnly = params["reportedOnly"] === "true";
       this.setTagsRaw();
       this.isLoading = true;
-      this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize, this.search, this.searchType, this.tags)
+      this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize, this.search, this.searchType, this.tags, this.showReportedOnly)
         .then((value) => {
           this.isLoading = false;
           this.questions = value;
@@ -183,7 +185,8 @@ export class QuestionsWithPaginatingComponent {
         "searchType": this.searchType,
         "tags": this.tags,
         "pageNumber": this.pageIndex,
-        "pageSize": this.pageSize
+        "pageSize": this.pageSize,
+        "reportedOnly": this.showReportedOnly
       },
       queryParamsHandling: "merge"
     });
@@ -248,6 +251,7 @@ export class QuestionsWithPaginatingComponent {
     this.search = "";
     this.searchType = "ALL";
     this.tagsValueRaw = "";
+    this.showReportedOnly = false;
   }
 }
 

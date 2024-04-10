@@ -73,7 +73,7 @@ export class QueryService {
     return await (await this.queryBase("tags", "GET")).json() as TagResponse[];
   }
 
-  public async getQuestionMetadataList(pageNumber: number | undefined = undefined, pageSize: number | undefined = undefined, search: string | undefined = undefined, searchType: "ALL" | "TITLE" | "BODY" | undefined = undefined, tags: string[] | string | undefined = undefined): Promise<QuestionMetadataList> {
+  public async getQuestionMetadataList(pageNumber: number | undefined = undefined, pageSize: number | undefined = undefined, search: string | undefined = undefined, searchType: "ALL" | "TITLE" | "BODY" | undefined = undefined, tags: string[] | string | undefined = undefined, showReportedOnly: boolean | undefined = undefined): Promise<QuestionMetadataList> {
     let queryString = "?";
     if (pageNumber || pageNumber === 0) {
       queryString += `&pageNumber=${pageNumber}`;
@@ -95,6 +95,9 @@ export class QueryService {
           queryString += `&tags=${tag}`;
         }
       }
+    }
+    if (showReportedOnly !== undefined) {
+      queryString += `&reportedOnly=${showReportedOnly}`;
     }
     let response = await this.queryBase(`question${queryString}`, "GET");
     if (!response.ok) {
