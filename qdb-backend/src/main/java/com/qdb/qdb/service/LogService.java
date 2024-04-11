@@ -1,5 +1,6 @@
 package com.qdb.qdb.service;
 
+import com.qdb.qdb.dto.LogWithCountDTO;
 import com.qdb.qdb.entity.Log;
 import com.qdb.qdb.entity.Permission;
 import com.qdb.qdb.entity.User;
@@ -13,7 +14,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class LogService {
@@ -31,15 +31,16 @@ public class LogService {
         repo.saveAndFlush(new Log(null, LocalDateTime.now(), u.getId(), u.getUserName(), action.toString(), u.getRank().toString(), didSucceed));
     }
 
-    public List<Log> getLogEntries(@NonNull User u, Integer pageSize, Integer pageIndex) throws IllegalArgumentException, NoRightException {
+    public LogWithCountDTO getLogEntries(@NonNull User u, Integer pageSize, Integer pageIndex) throws IllegalArgumentException, NoRightException {
         context.getBean(PermissionService.class).checkPermission(u, Permission.Action.READ_LOG, false);
+        long count = repo.count();
         if (pageSize == null || pageIndex == null) {
-            return repo.findAll(Sort.by("time").descending());
+            return new LogWithCountDTO(count, repo.findAll(Sort.by("time").descending()));
         }
-        if (pageSize < 1 || pageIndex < 0 || pageIndex >= pageCount(repo.count(), pageSize)) {
+        if (pageSize < 1 || pageIndex < 0 || pageIndex >= pageCount(count, pageSize)) {
             throw new IllegalArgumentException();
         }
-        return repo.findAll(PageRequest.of(pageIndex, pageSize, Sort.by("time").descending())).getContent();
+        return new LogWithCountDTO(count, repo.findAll(PageRequest.of(pageIndex, pageSize, Sort.by("time").descending())).getContent());
     }
 
     public void deleteEntriesOlderThan(int days) {
@@ -48,6 +49,9 @@ public class LogService {
     }
 
     private long pageCount(long numOfEntries, int pageSize) {
+        if (numOfEntries == 0) {
+            return 1;
+        }
         if (numOfEntries % pageSize == 0) {
             return numOfEntries / pageSize;
         }
