@@ -18,7 +18,7 @@ import { PageSize, QuestionsWithPaginatingComponent } from '../common-elements/q
 export class LogScreenComponent implements AfterViewInit {
   private _pageSize: number | undefined;
   public get pageSize(): number {
-    let value;
+    let value: string | null = null;
     try {
       value = sessionStorage.getItem("selectedPageSize");
     } catch (ReferenceError) { }
