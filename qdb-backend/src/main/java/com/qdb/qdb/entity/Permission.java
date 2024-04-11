@@ -71,6 +71,7 @@ public class Permission {
         DELETE_QUESTION_OF_SUPERUSER,
         DELETE_QUESTION_OF_ADMIN,
         DELETE_QUESTION_OF_NORMAL_RESTRICTED,
-        DELETE_QUESTION_OWN
+        DELETE_QUESTION_OWN,
+        READ_LOG
     }
 }
