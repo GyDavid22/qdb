@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { QuestionMetadataList } from '../../../entities/QuestionMetadataList';
 import { QueryService } from '../../../services/query.service';
+import { CommonMethods } from '../common-methods';
 import { QuestionCardComponent } from './question-card/question-card.component';
 
 @Component({
@@ -69,7 +70,7 @@ export class QuestionsWithPaginatingComponent {
   }
   public tagsValueRaw: string = "";
   public pageNumbers: number[] = [];
-  private static readonly DEFAULT_PAGESIZE = 25;
+  public static readonly DEFAULT_PAGESIZE = 25;
   public pageSizes: PageSize[] = [
     {
       value: 25,
@@ -222,35 +223,12 @@ export class QuestionsWithPaginatingComponent {
     this.pageNumbers = this.pageOptions();
   }
 
-  private calcNumPages(): number {
-    return Math.ceil(this.questions?.resultsCount! / this.pageSize!);
-  }
-
   private pageOptions(): number[] {
-    let result = [];
-    let numOfPages = this.calcNumPages();
-    for (let i = 1; i <= Math.min(numOfPages, 3); i++) {
-      result.push(i);
-    }
-    for (let i = Math.max(this.pageIndex, 4); i <= Math.min(numOfPages, this.pageIndex + 2); i++) {
-      if (!result.includes(i)) {
-        result.push(i);
-      }
-    }
-    for (let i = Math.max(1, numOfPages - 2); i <= numOfPages; i++) {
-      if (!result.includes(i)) {
-        result.push(i);
-      }
-    }
-    result.sort((n1, n2) => n1 - n2);
-    return result;
+    return CommonMethods.pageOptions(this.questions?.resultsCount!, this.pageSize!, this.pageIndex);
   }
 
   public getClass(pageNumber: number): string {
-    if (pageNumber == this.pageIndex + 1) {
-      return "page-item active";
-    }
-    return "page-item";
+    return CommonMethods.getPaginatingClass(pageNumber, this.pageIndex);
   }
 
   public resetSearch() {
@@ -261,7 +239,7 @@ export class QuestionsWithPaginatingComponent {
   }
 }
 
-interface PageSize {
+export interface PageSize {
   value: number | undefined,
   display: string;
 }

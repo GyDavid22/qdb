@@ -27,6 +27,7 @@ export class QuestionFullComponent implements AfterViewInit {
   public set questionBody(val: string) {
     this._questionBody = val;
     this.questionBodyFormatted = this.sanitizer.sanitize(SecurityContext.HTML, marked.parse(val));
+    this.questionBodyFormatted = this.questionBodyFormatted?.replaceAll("<blockquote>", '<blockquote class="ms-4">');
     for (let i of this.question!.imagesUrls) {
       this.questionBodyFormatted = this.questionBodyFormatted?.replaceAll(i, `${Constants.WEBPAGE_URL}java/api/image/${i}`);
     }

@@ -234,6 +234,13 @@ export class QueryService {
     return this.queryBase("question/favorites", "GET");
   }
 
+  public async getLog(pageIndex: number | undefined, pageSize: number | undefined): Promise<Response> {
+    if (pageIndex === undefined || pageSize === undefined) {
+      return this.queryBase("log", "GET");
+    }
+    return this.queryBase(`log?pageIndex=${pageIndex}&pageSize=${pageSize}`, "GET");
+  }
+
   public getCurrentProfilePictureUrl(): string {
     return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture`;
   }

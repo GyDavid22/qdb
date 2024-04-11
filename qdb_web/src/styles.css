@@ -1,8 +1,9 @@
 body {
-    margin-top: 3.5rem!important;
+    margin-top: 3.5rem !important;
 }
 
-.questionbody > img, .questionbody > p > img {
+.questionbody>img,
+.questionbody>p>img {
     max-width: 100%;
 }
 
@@ -25,4 +26,8 @@ body {
     height: 2rem;
     object-fit: cover;
     border-radius: 100%;
+}
+
+.page-item {
+    cursor: pointer;
 }

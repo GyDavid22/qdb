@@ -1,3 +1,4 @@
+<button class="btn btn-outline-primary my-2" (click)="this.goToLogPage()">Check action logs</button>
 <div *ngIf="this.hasRights; else elseBlock">
     <h5>List of users:</h5>
     <div *ngFor="let i of this.users">
