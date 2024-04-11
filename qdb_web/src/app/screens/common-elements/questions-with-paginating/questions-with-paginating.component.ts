@@ -42,19 +42,18 @@ export class QuestionsWithPaginatingComponent {
     this._questions = val;
   }
   public pageIndex: number = 0;
-  private _pageSize: number | undefined;
-  public set pageSize(val: number | undefined) {
+  private _pageSize: number = QuestionsWithPaginatingComponent.DEFAULT_PAGESIZE;
+  public set pageSize(val: number | string) {
+    if (typeof val == "string") {
+      val = parseInt(val);
+    }
     this._pageSize = val;
     try {
-      if (val === undefined) {
-        sessionStorage.setItem("selectedPageSize", JSON.stringify("ALL"));
-      } else {
-        sessionStorage.setItem("selectedPageSize", JSON.stringify(val));
-      }
+      sessionStorage.setItem("selectedPageSize", JSON.stringify(val));
     } catch (ReferenceError) { }
     this.pageIndex = 0;
   }
-  public get pageSize(): number | undefined {
+  public get pageSize(): number {
     return this._pageSize;
   }
   public search: string | undefined;
@@ -85,25 +84,20 @@ export class QuestionsWithPaginatingComponent {
       display: "100"
     },
     {
-      value: undefined,
+      value: -1,
       display: "All"
     }
   ];
-  private _pageSizeFormValue: string = "default";
-  public get pageSizeFormValue(): string {
-    return this._pageSizeFormValue;
-  }
-  public set pageSizeFormValue(value: string) {
-    for (let i of this.pageSizes) {
-      if (i.display == value) {
-        this.setPageSize(i.value);
-        break;
-      }
-    }
-  }
   public showReportedOnly: boolean = false;
   public isLoading: boolean = true;
   public noQuestions: boolean = false;
+  public get pageSizeForm(): number {
+    return this.pageSize;
+  }
+  public set pageSizeForm(val: number) {
+    this.pageSize = val;
+    this.updateEntries();
+  }
 
   public constructor(private qService: QueryService, private route: ActivatedRoute, private router: Router) {
     let titleOnlyStorage: string | null = null;
@@ -122,9 +116,9 @@ export class QuestionsWithPaginatingComponent {
     if (pageSizeStorage === null) {
       this.pageSize = QuestionsWithPaginatingComponent.DEFAULT_PAGESIZE;
     } else {
-      let storedValue = JSON.parse(pageSizeStorage);
-      if (storedValue == "ALL") {
-        this.pageSize = undefined;
+      let storedValue = parseInt(JSON.parse(pageSizeStorage));
+      if (Number.isNaN(storedValue) || (storedValue !== -1 && storedValue <= 0)) {
+        this.pageSize = QuestionsWithPaginatingComponent.DEFAULT_PAGESIZE;
       } else {
         this.pageSize = storedValue;
       }
@@ -143,7 +137,7 @@ export class QuestionsWithPaginatingComponent {
       this.showReportedOnly = params["reportedOnly"] === "true";
       this.setTagsRaw();
       this.isLoading = true;
-      this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize, this.search, this.searchType, this.tags, this.showReportedOnly)
+      this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize == -1 ? undefined : this._pageSize, this.search, this.searchType, this.tags, this.showReportedOnly)
         .then((value) => {
           this.isLoading = false;
           this.questions = value;
@@ -162,11 +156,6 @@ export class QuestionsWithPaginatingComponent {
         i--;
       }
     }
-    this.updateEntries();
-  }
-
-  public setPageSize(val: number | undefined) {
-    this.pageSize = val;
     this.updateEntries();
   }
 
@@ -192,7 +181,7 @@ export class QuestionsWithPaginatingComponent {
         "searchType": this.searchType,
         "tags": this.tags,
         "pageNumber": this.pageIndex,
-        "pageSize": this.pageSize,
+        "pageSize": this.pageSize == -1 ? undefined : this.pageSize,
         "reportedOnly": this.showReportedOnly
       },
       queryParamsHandling: "merge"
@@ -211,7 +200,7 @@ export class QuestionsWithPaginatingComponent {
 
   private async fetchForUser() {
     this.isLoading = true;
-    this.questions = await this.qService.getCurrentUserQuestions(this.pageSize, this.pageIndex) as QuestionMetadataList;
+    this.questions = await this.qService.getCurrentUserQuestions(this.pageSize == -1 ? undefined : this.pageSize, this.pageIndex) as QuestionMetadataList;
     this.isLoading = false;
     this.pageNumbers = this.pageOptions();
   }
@@ -224,7 +213,7 @@ export class QuestionsWithPaginatingComponent {
   }
 
   private pageOptions(): number[] {
-    return CommonMethods.pageOptions(this.questions?.resultsCount!, this.pageSize!, this.pageIndex);
+    return CommonMethods.pageOptions(this.questions?.resultsCount!, this.pageSize, this.pageIndex);
   }
 
   public getClass(pageNumber: number): string {
@@ -240,6 +229,6 @@ export class QuestionsWithPaginatingComponent {
 }
 
 export interface PageSize {
-  value: number | undefined,
+  value: number,
   display: string;
 }
