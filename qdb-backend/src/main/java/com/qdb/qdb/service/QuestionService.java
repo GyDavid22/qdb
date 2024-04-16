@@ -1,5 +1,6 @@
 package com.qdb.qdb.service;
 
+import com.qdb.qdb.QdbApplication;
 import com.qdb.qdb.dto.QuestionModifyDTO;
 import com.qdb.qdb.entity.*;
 import com.qdb.qdb.exception.NoRightException;
@@ -12,6 +13,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 @Service
@@ -26,6 +30,7 @@ public class QuestionService {
     private final ImageRepository iRepo;
     @Autowired
     private final UserService uService;
+    private final Random r = new Random();
 
     public QuestionService(QuestionRepository repo, TagService tService, PermissionService pService, ImageRepository iRepo, UserService uService) {
         this.repo = repo;
@@ -315,6 +320,48 @@ public class QuestionService {
         return repo.randomQuestion(count);
     }
 
+    @Nullable
+    public byte[] exportToPdf(long id, User u) throws QuestionNotFoundException, NoRightException {
+        pService.checkPermission(u, Permission.Action.EXPORT_QUESTION_TO_PDF, false);
+        Question q = getById(id);
+        if (q == null) {
+            throw new QuestionNotFoundException();
+        }
+        String folderName = "tempfiles/" + r.nextLong();
+        File folder = new File(folderName);
+        while (folder.exists()) {
+            folderName = "tempfiles/" + r.nextLong();
+            folder = new File(folderName);
+        }
+        folder.mkdir();
+        String filename = folderName + "/" + id + ".md";
+        File body = new File(filename);
+        try (FileWriter fw = new FileWriter(body)) {
+            try (BufferedWriter bw = new BufferedWriter(fw)) {
+                bw.write("**" + q.getTitle() + "**\n\n");
+                bw.write(q.getMdbody());
+            }
+        } catch (IOException ignored) {
+        }
+        for (Image i : q.getImages()) {
+            try (FileOutputStream fos = new FileOutputStream(folderName + "/" + i.getName())) {
+                fos.write(i.getContent());
+            } catch (IOException ignored) {
+            }
+        }
+        ProcessBuilder pb = new ProcessBuilder();
+        pb.directory(folder);
+        pb.command("pandoc", id + ".md", "-o", id + ".pdf");
+        byte[] content = null;
+        try {
+            pb.start().waitFor();
+            content = Files.readAllBytes(Path.of(folderName + "/" + id + ".pdf"));
+        } catch (Exception ignored) {
+        }
+        QdbApplication.cleanup(folder);
+        return content;
+    }
+
     public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {
         if (q.getOwner() == u && u.getRank() != User.Rank.RESTRICTED) {
             return pService.checkPermission(u, Permission.Action.UPDATE_QUESTION_OWN, onlycheck);
@@ -351,7 +398,7 @@ public class QuestionService {
         TITLE, BODY, ALL
     }
 
-    private class QuestionWithResultCount implements Comparable<QuestionWithResultCount> {
+    private static class QuestionWithResultCount implements Comparable<QuestionWithResultCount> {
         private Integer count;
         private Question question;
 

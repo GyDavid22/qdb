@@ -64,7 +64,7 @@ public class QuestionController {
      * @param id
      * @return
      */
-    @GetMapping(path = "/body/{id}")
+    @GetMapping(path = "/body/{id}", produces = MediaType.TEXT_MARKDOWN_VALUE)
     public ResponseEntity<?> getQuestionBody(@PathVariable long id) {
         Question result = service.getById(id);
         if (result == null) {
@@ -148,6 +148,27 @@ public class QuestionController {
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to delete this question");
+        } catch (QuestionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @GetMapping(path = "/pdf/{id}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<?> questionToPdf(HttpServletRequest request, HttpServletResponse response, @PathVariable long id) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            byte[] result = service.exportToPdf(id, u);
+            if (result == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+            return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + id + ".pdf").body(result);
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to export a question to PDF");
         } catch (QuestionNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {

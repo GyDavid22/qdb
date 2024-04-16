@@ -72,6 +72,7 @@ public class Permission {
         DELETE_QUESTION_OF_ADMIN,
         DELETE_QUESTION_OF_NORMAL_RESTRICTED,
         DELETE_QUESTION_OWN,
-        READ_LOG
+        READ_LOG,
+        EXPORT_QUESTION_TO_PDF
     }
 }
