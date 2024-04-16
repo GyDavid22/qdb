@@ -351,7 +351,9 @@ public class QuestionService {
         }
         ProcessBuilder pb = new ProcessBuilder();
         pb.directory(folder);
-        pb.command("pandoc", id + ".md", "-o", id + ".pdf");
+        pb.command("pandoc", id + ".md", "-t", "html", "--pdf-engine-opt=--enable-local-file-access", "-V", "margin-top=0.5in", "-V", "margin-left=0.5in", "-V", "margin-right=0.5in", "-V", "margin-bottom=0.5in", "-V", "fontsize=16pt", "-o", id + ".pdf");
+        pb.redirectErrorStream(true);
+        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         byte[] content = null;
         try {
             pb.start().waitFor();
