@@ -241,6 +241,10 @@ export class QueryService {
     return this.queryBase(`log?pageIndex=${pageIndex}&pageSize=${pageSize}`, "GET");
   }
 
+  public getDownloadPdfUrl(id: number): string {
+    return `${QueryService.BASE_URL}question/pdf/${id}`;
+  }
+
   public getCurrentProfilePictureUrl(): string {
     return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture`;
   }

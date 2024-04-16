@@ -21,6 +21,17 @@
                     *ngIf="this.qService.isLoggedIn && (this.qService.rank === 'ADMIN' || this.qService.rank === 'SUPERUSER') && !this.isInEditMode && !this.isInCreateMode && this.question?.isReported">
                     <button class="btn btn-outline-danger mx-1" (click)="this.unReportButton()">Unreport</button>
                 </div>
+                <div
+                    *ngIf="this.qService.isLoggedIn && (this.qService.rank === 'NORMAL' || this.qService.rank === 'ADMIN' || this.qService.rank === 'SUPERUSER') && !this.isInEditMode && !this.isInCreateMode">
+                    <button class="btn btn-outline-primary mx-1" (click)="this.downloadPdfButton()">
+                        <div *ngIf="!this.waitingForPdf; else elseBlock">
+                            Download PDF
+                        </div>
+                        <ng-template #elseBlock>
+                            Please wait...
+                        </ng-template>
+                    </button>
+                </div>
                 <div *ngIf="this.question?.currentUserHasEditingRights && !this.isInEditMode">
                     <button class="btn btn-outline-primary mx-1" (click)="this.editButtonHandler()">Edit</button>
                 </div>

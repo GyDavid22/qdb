@@ -47,6 +47,7 @@ export class QuestionFullComponent implements AfterViewInit {
   private wasInCreateMode: boolean = false;
   public recommendedTagsShown = false;
   public recommendedTags: TagResponse[] = [];
+  public waitingForPdf: boolean = false;
 
   constructor(public qService: QueryService, private aService: AlertService, private route: ActivatedRoute, private router: Router, private sanitizer: DomSanitizer) {
     this.route.params.subscribe((value) => {
@@ -288,6 +289,14 @@ export class QuestionFullComponent implements AfterViewInit {
       this.getQuestionData();
     } else {
       this.aService.pushAlert("ERROR", await res.text());
+    }
+  }
+
+  public async downloadPdfButton() {
+    if (!this.waitingForPdf) {
+      this.waitingForPdf = true;
+      window.open(this.qService.getDownloadPdfUrl(this.id), "_blank");
+      this.waitingForPdf = false;
     }
   }
 }
