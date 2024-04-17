@@ -2,14 +2,17 @@ package com.qdb.qdb.service;
 
 import com.qdb.qdb.entity.Permission;
 import com.qdb.qdb.entity.ProfilePicture;
+import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.repository.ProfilePictureRepository;
+import com.qdb.qdb.repository.QuestionRepository;
 import com.qdb.qdb.repository.UserRepository;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +42,15 @@ public class UserService {
     private final ProfilePictureRepository pRepo;
     @Autowired
     private final PermissionService pService;
+    @Autowired
+    private final ApplicationContext context;
 
-    public UserService(UserRepository repo, SessionService sService, ProfilePictureRepository pRepo, PermissionService pService) {
+    public UserService(UserRepository repo, SessionService sService, ProfilePictureRepository pRepo, PermissionService pService, ApplicationContext context) {
         this.repo = repo;
         this.sService = sService;
         this.pRepo = pRepo;
         this.pService = pService;
+        this.context = context;
     }
 
     /**
@@ -183,7 +189,7 @@ public class UserService {
         repo.flush();
     }
 
-    public boolean deleteUser(User u, @Nullable User withPerm) throws NoRightException {
+    public boolean deleteUser(User u, @Nullable User withPerm, boolean force) throws NoRightException {
         if (withPerm != null) {
             if (u.getRank() == User.Rank.SUPERUSER) {
                 pService.checkPermission(withPerm, Permission.Action.EDIT_SUPERUSER, false);
@@ -193,20 +199,32 @@ public class UserService {
                 pService.checkPermission(withPerm, Permission.Action.EDIT_NORMAL_RESTRICTED, false);
             }
         }
-        if (u.getRank() == User.Rank.SUPERUSER && repo.countByRank(User.Rank.SUPERUSER) == 1) {
+        if (u.getRank() == User.Rank.SUPERUSER && repo.countByRank(User.Rank.SUPERUSER) == 1 && !force) {
             return false;
         }
         sService.deleteAllSessionOfUser(u);
-        u.getQuestions().forEach(q -> q.setOwner(null));
+        u.getSessions().clear();
+        QuestionRepository qr = context.getBean(QuestionRepository.class);
+        u.getQuestions().forEach(q -> {
+            q.setOwner(null);
+            qr.saveAndFlush(q);
+        });
+        u.getQuestions().clear();
         if (u.getProfilePicture() != null) {
             ProfilePicture pic = u.getProfilePicture();
             pic.setOwner(null);
             u.setProfilePicture(null);
             pRepo.delete(pic);
             pRepo.flush();
-            repo.flush();
         }
+        List<Question> favs = new ArrayList<>(u.getFavorites());
         u.getFavorites().clear();
+        QuestionService qs = context.getBean(QuestionService.class);
+        for (Question i : favs) {
+            qs.removeFromFavoritesForUser(i, u);
+        }
+        repo.flush();
+        repo.saveAndFlush(u);
         repo.delete(u);
         repo.flush();
         return true;
