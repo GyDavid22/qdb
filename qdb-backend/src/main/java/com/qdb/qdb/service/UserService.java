@@ -9,6 +9,7 @@ import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.repository.ProfilePictureRepository;
 import com.qdb.qdb.repository.QuestionRepository;
+import com.qdb.qdb.repository.SessionRepository;
 import com.qdb.qdb.repository.UserRepository;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -202,31 +203,37 @@ public class UserService {
         if (u.getRank() == User.Rank.SUPERUSER && repo.countByRank(User.Rank.SUPERUSER) == 1 && !force) {
             return false;
         }
-        sService.deleteAllSessionOfUser(u);
-        u.getSessions().clear();
         QuestionRepository qr = context.getBean(QuestionRepository.class);
         u.getQuestions().forEach(q -> {
             q.setOwner(null);
             qr.saveAndFlush(q);
         });
         u.getQuestions().clear();
-        if (u.getProfilePicture() != null) {
-            ProfilePicture pic = u.getProfilePicture();
-            pic.setOwner(null);
-            u.setProfilePicture(null);
-            pRepo.delete(pic);
-            pRepo.flush();
-        }
+        SessionRepository sr = context.getBean(SessionRepository.class);
+        u.getSessions().forEach(s -> {
+            s.setUser(null);
+            sr.saveAndFlush(s);
+        });
+        u.getSessions().clear();
         List<Question> favs = new ArrayList<>(u.getFavorites());
         u.getFavorites().clear();
         QuestionService qs = context.getBean(QuestionService.class);
         for (Question i : favs) {
             qs.removeFromFavoritesForUser(i, u);
+            qr.flush();
         }
         repo.flush();
         repo.saveAndFlush(u);
         repo.delete(u);
         repo.flush();
+        if (u.getProfilePicture() != null) {
+            ProfilePicture pic = u.getProfilePicture();
+            pic.setOwner(null);
+            u.setProfilePicture(null);
+            pRepo.flush();
+            repo.flush();
+            pRepo.delete(pic);
+        }
         return true;
     }
 

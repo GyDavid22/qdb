@@ -206,7 +206,6 @@ public class ImportExportData implements ApplicationRunner {
     private void importUsers() throws Exception {
         for (User u : uRepo.findAll()) {
             uService.deleteUser(u, null, true);
-            u.getSessions().clear();
         }
         try (FileReader fr = new FileReader("importdata/users.json")) {
             JSONParser p = new JSONParser();
