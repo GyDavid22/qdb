@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PaginatingComponent } from './paginating.component';
+import { LogScreenComponent } from './log-screen.component';
 
-describe('PaginatingComponent', () => {
-  let component: PaginatingComponent;
-  let fixture: ComponentFixture<PaginatingComponent>;
+describe('LogScreenComponent', () => {
+  let component: LogScreenComponent;
+  let fixture: ComponentFixture<LogScreenComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PaginatingComponent]
+      imports: [LogScreenComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(PaginatingComponent);
+    fixture = TestBed.createComponent(LogScreenComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

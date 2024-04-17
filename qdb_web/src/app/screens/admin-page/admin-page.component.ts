@@ -1,10 +1,11 @@
-import { AfterViewInit, Component } from '@angular/core';
-import { QueryService } from '../../services/query.service';
-import { UserMetadata } from '../../entities/UserMetadata';
 import { NgFor, NgIf } from '@angular/common';
-import { UserAction, UserCardComponent } from './user-card/user-card.component';
+import { AfterViewInit, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { UserMetadata } from '../../entities/UserMetadata';
 import { AlertService } from '../../services/alert.service';
+import { QueryService } from '../../services/query.service';
+import { UserAction, UserCardComponent } from './user-card/user-card.component';
 
 @Component({
   selector: 'app-admin-page',
@@ -34,7 +35,7 @@ export class AdminPageComponent implements AfterViewInit {
   public updatedPassword: string = "";
   public updatedRank: "SUPERUSER" | "ADMIN" | "NORMAL" | "RESTRICTED" | null = null;
 
-  public constructor(public qService: QueryService, private aService: AlertService) {
+  public constructor(public qService: QueryService, private aService: AlertService, private router: Router) {
     this.updateList();
   }
 
@@ -100,5 +101,9 @@ export class AdminPageComponent implements AfterViewInit {
         this.aService.pushAlert("ERROR", await res.text());
       }
     });
+  }
+
+  public goToLogPage() {
+    this.router.navigate(["log"]);
   }
 }

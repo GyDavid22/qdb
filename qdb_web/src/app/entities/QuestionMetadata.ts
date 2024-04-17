@@ -1,9 +1,10 @@
 export interface QuestionMetadata {
     id: number,
     title: string,
-    bodyUrl: string,
     tags: string[],
     imagesUrls: string[],
-    createdBy: string,
-    currentUserHasEditingRights: boolean
+    createdby: string,
+    isReported: boolean,
+    currentUserHasEditingRights: boolean,
+    inFavorites: boolean;
 }

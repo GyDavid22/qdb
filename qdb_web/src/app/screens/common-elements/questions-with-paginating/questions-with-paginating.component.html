@@ -1,12 +1,60 @@
-<app-paginating [message]="this.message" [totalCount]="this.questions?.resultsCount ?? 0"
-    (selectedPagesize)="this.pageSize = $event"></app-paginating>
+<div *ngIf="this.listingType == 'SEARCH'">
+    <form>
+        <label for="search-form-term" class="form-label">Search term</label>
+        <input class="form-control" type="text" placeholder="Enter search term here..." id="search-form-term"
+            [(ngModel)]="this.search" name="search-form-term">
+        <label for="search-form-type" class="form-label">Search type</label>
+        <select class="form-select" id="search-form-type" [(ngModel)]="this.searchType" name="search-form-type">
+            <option [value]="undefined" disabled selected>Search in...</option>
+            <option value="TITLE">Title</option>
+            <option value="BODY">Text</option>
+            <option value="ALL">Both</option>
+        </select>
+        <label for="search-form-tags" class="form-label">Search by tags (separate tags with ",")</label>
+        <input class="form-control" type="text" placeholder="Enter tags..." id="search-form-tags"
+            [(ngModel)]="this.tagsValueRaw" name="search-form-tags">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" name="reported-only" id="reported-only-checkbox"
+                [(ngModel)]="this.showReportedOnly">
+            <label class="form-check-label" for="reported-only-checkbox">Show reported only</label>
+        </div>
+        <div class="d-flex my-2">
+            <button type="submit" class="btn btn-primary" (click)="this.searchButtonHandler($event)">Search</button>
+            <button type="submit" class="btn btn-primary mx-1" (click)="this.resetSearch()">Reset search</button>
+        </div>
+    </form>
+</div>
+<div class="my-3 mx-1 d-flex justify-content-between align-items-center">
+    {{this.message}} {{this.questions?.resultsCount}}
+    <div class="col-3">
+        <select class="form-select" [(ngModel)]="this.pageSizeForm">
+            <option disabled selected value="default">Page size</option>
+            <option *ngFor="let i of this.pageSizes" value="{{i.value}}">{{i.display}}</option>
+        </select>
+    </div>
+</div>
+<div class="d-flex justify-content-center align-items-center">
+    <nav>
+        <ul class="pagination">
+            <li [class]="this.getClass(i)" *ngFor="let i of this.pageNumbers"><a class="page-link"
+                    (click)="this.setPageIndex(i - 1)">{{i}}</a></li>
+        </ul>
+    </nav>
+</div>
 <div class="form-check">
     <input class="form-check-input" type="checkbox" [(ngModel)]="this.titleOnly" id="titleOnlyCheckbox">
     <label class="form-check-label" for="titleOnlyCheckbox">
         Show titles only
     </label>
 </div>
+<div *ngIf="this.isLoading">
+    Questions are loading...
+</div>
+<div *ngIf="this.noQuestions" class="w-100 d-flex align-items-center justify-content-center">
+    <span class="fst-italic my-3">No results</span>
+</div>
 <div *ngFor="let i of this.questions?.questions; let idx = index">
     <app-question-card [question]="i" [titleOnly]="this.titleOnly"
-        [selfNumber]="this.pageSize === undefined ? idx + 1 : this.pageIndex * this.pageSize + idx + 1" />
+        [selfNumber]="this.pageSize === undefined ? idx + 1 : this.pageIndex * this.pageSize + idx + 1"
+        [highlight]="this.search == '' ? undefined : this.search" />
 </div>

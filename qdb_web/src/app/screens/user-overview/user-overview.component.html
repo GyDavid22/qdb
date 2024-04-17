@@ -7,7 +7,8 @@
     </div>
     <form class="d-none" enctype="multipart/form-data" method="post"
         [action]="this.qService.getCurrentProfilePictureUrl()">
-        <input type="file" id="browsefilebutton" name="file" placeholder="Upload file" required>
+        <input type="file" accept=".jpg,.jpeg,.png" id="browsefilebutton" name="file" placeholder="Upload file"
+            required>
     </form>
     <h1>{{this.userMetadata?.userName}}</h1>
     <h5>{{this.userMetadata?.rank?.toLowerCase()}}</h5>
@@ -30,6 +31,14 @@
     <div class="d-flex align-items-center justify-content-center w-100 my-5">
         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
             data-bs-target="#delete-account-modal">Delete my account</button>
+    </div>
+    <div *ngIf="this.qService.isLoggedIn" class="w-100">
+        <app-questions-with-paginating [message]="'Your favorite questions:'"
+            [listingType]="'FAVORITES'"></app-questions-with-paginating>
+    </div>
+    <div *ngIf="this.qService.isLoggedIn" class="w-100">
+        <app-questions-with-paginating [message]="'Questions created by you:'"
+            [listingType]="'PERUSER'"></app-questions-with-paginating>
     </div>
 </div>
 <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" id="delete-account-modal"

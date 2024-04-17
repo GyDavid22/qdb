@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Constants } from '../../constants';
-import { LoginResponse } from '../entities/LoginResponse';
 import { Router } from '@angular/router';
-import { TagResponse } from '../entities/TagResponse';
+import { Constants } from '../../constants';
 import { QuestionMetadata } from '../entities/QuestionMetadata';
 import { QuestionMetadataList } from '../entities/QuestionMetadataList';
+import { QuestionUpdate } from '../entities/QuestionModify';
+import { TagResponse } from '../entities/TagResponse';
+import { UserMetadata } from '../entities/UserMetadata';
+import { AlertService } from './alert.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,18 +14,22 @@ import { QuestionMetadataList } from '../entities/QuestionMetadataList';
 export class QueryService {
   private static readonly BASE_URL = `${Constants.WEBPAGE_URL}java/api/`;
   private _isLoggedIn: boolean = false;
-  set isLoggedIn(value: boolean) {
-    this._isLoggedIn = value;
-  }
   public get isLoggedIn(): boolean {
     return this._isLoggedIn;
   }
-  private _username: string = "";
   public get username(): string {
-    return this._username;
+    return this._currentUser?.userName ?? "";
   }
+  public get rank(): "SUPERUSER" | "ADMIN" | "NORMAL" | "RESTRICTED" | undefined {
+    return this._currentUser?.rank ?? undefined;
+  }
+  private _currentUser: UserMetadata | undefined;
+  private set currentUser(val: UserMetadata | undefined) {
+    this._currentUser = val;
+    this._isLoggedIn = val !== undefined;
+  };
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private aService: AlertService) { }
 
   private queryBase(url: string, method: "GET" | "POST" | "PUT" | "DELETE", body: string | undefined = undefined): Promise<Response> {
     let res = fetch(`${QueryService.BASE_URL}${url}`, {
@@ -44,14 +50,11 @@ export class QueryService {
     })));;
     try {
       if (result.status == 200) {
-        this.isLoggedIn = true;
-        result.json().then((value) => {
-          this._username = (value as LoginResponse).username;
-        })
+        this.currentUser = await (await this.getCurrentUserMetadata()).json() as UserMetadata;
       } else if (result.status == 401) {
-        this.isLoggedIn = false;
+        this.currentUser = undefined;
       }
-    } catch (e) { }
+    } catch { }
     return result;
   }
 
@@ -63,19 +66,15 @@ export class QueryService {
   }
 
   public logout() {
-    this.queryBase("session/logout", "POST").then((value) => {
-      if (value.status == 200) {
-        this.isLoggedIn = false;
-        this._username = "";
-      }
-    });
+    this.queryBase("session/logout", "POST");
+    this.currentUser = undefined;
   }
 
   public async tagsWithCounts(): Promise<TagResponse[]> {
     return await (await this.queryBase("tags", "GET")).json() as TagResponse[];
   }
 
-  public async getQuestionMetadataList(pageNumber: number | undefined = undefined, pageSize: number | undefined = undefined, search: string | undefined = undefined, searchType: "ALL" | "TITLE" | "BODY" | undefined = undefined, tags: string[] | string | undefined = undefined): Promise<QuestionMetadataList> {
+  public async getQuestionMetadataList(pageNumber: number | undefined = undefined, pageSize: number | undefined = undefined, search: string | undefined = undefined, searchType: "ALL" | "TITLE" | "BODY" | undefined = undefined, tags: string[] | string | undefined = undefined, showReportedOnly: boolean | undefined = undefined): Promise<QuestionMetadataList> {
     let queryString = "?";
     if (pageNumber || pageNumber === 0) {
       queryString += `&pageNumber=${pageNumber}`;
@@ -98,9 +97,16 @@ export class QueryService {
         }
       }
     }
+    if (showReportedOnly !== undefined) {
+      queryString += `&reportedOnly=${showReportedOnly}`;
+    }
     let response = await this.queryBase(`question${queryString}`, "GET");
     if (!response.ok) {
-      this.router.navigate(["404"]);
+      this.aService.pushAlert("ERROR", await response.text());
+      return {
+        resultsCount: 0,
+        questions: []
+      } as QuestionMetadataList;
     }
     return await (response).json() as QuestionMetadataList;
   }
@@ -113,12 +119,46 @@ export class QueryService {
     return await (response).json() as QuestionMetadata;
   }
 
+  public async getCurrentUserQuestions(pageSize: number | undefined, pageNumber: number) {
+    let url: string;
+    if (pageSize !== undefined) {
+      url = `question?username=${this.username}&pageSize=${pageSize}&pageNumber=${pageNumber}`;
+    } else {
+      url = `question?username=${this.username}`;
+    }
+    let response = await this.queryBase(url, "GET");
+    if (!response.ok) {
+      this.aService.pushAlert("ERROR", await response.text());
+      return {
+        resultsCount: 0,
+        questions: []
+      } as QuestionMetadataList;
+    }
+    return await (response).json() as QuestionMetadataList;
+  }
+
   public async getQuestionBody(id: number): Promise<string> {
     let response = await this.queryBase(`question/body/${id}`, "GET");
     if (!response.ok) {
-      this.router.navigate(["404"]);
+      this.aService.pushAlert("ERROR", await response.text());
     }
     return await (response).text();
+  }
+
+  public async updateExistingQuestion(id: number, updated: QuestionUpdate): Promise<Response> {
+    return this.queryBase(`question/${id}`, "PUT", JSON.stringify(updated));
+  }
+
+  public async deleteQuestion(id: number): Promise<Response> {
+    return this.queryBase(`question/${id}`, "DELETE");
+  }
+
+  public async addQuestion(newQuestion: QuestionUpdate): Promise<Response> {
+    return this.queryBase(`question`, "POST", JSON.stringify(newQuestion));
+  }
+
+  public async randomQuestion(count: number): Promise<Response> {
+    return this.queryBase(`question/random?count=${count}`, "GET");
   }
 
   public async getCurrentUserMetadata(): Promise<Response> {
@@ -145,8 +185,7 @@ export class QueryService {
   public async deleteCurrentUser(): Promise<Response> {
     let response = await this.queryBase("user", "DELETE");
     if (response.status == 200) {
-      this.isLoggedIn = false;
-      this._username = "";
+      this.currentUser == undefined;
     }
     return response;
   }
@@ -165,11 +204,56 @@ export class QueryService {
     return this.queryBase("user/picture", "DELETE");
   }
 
+  public async bindImage(imagename: string, questionid: number): Promise<Response> {
+    return this.queryBase(`image/${imagename}`, "POST", JSON.stringify({
+      "id": questionid
+    }));
+  }
+
+  public async deleteImage(imagename: string): Promise<Response> {
+    return this.queryBase(`image/${imagename}`, "DELETE");
+  }
+
+  public async reportQuestion(id: number): Promise<Response> {
+    return this.queryBase(`question/report/${id}`, "POST");
+  }
+
+  public async unReportQuestion(id: number): Promise<Response> {
+    return this.queryBase(`question/unreport/${id}`, "POST");
+  }
+
+  public async addToFavorites(id: number): Promise<Response> {
+    return this.queryBase(`question/favorite/${id}`, "POST");
+  }
+
+  public async removeFromFavorites(id: number): Promise<Response> {
+    return this.queryBase(`question/unfavorite/${id}`, "POST");
+  }
+
+  public async getFavoritesForCurrentUser(): Promise<Response> {
+    return this.queryBase("question/favorites", "GET");
+  }
+
+  public async getLog(pageIndex: number | undefined, pageSize: number | undefined): Promise<Response> {
+    if (pageIndex === undefined || pageSize === undefined) {
+      return this.queryBase("log", "GET");
+    }
+    return this.queryBase(`log?pageIndex=${pageIndex}&pageSize=${pageSize}`, "GET");
+  }
+
+  public getDownloadPdfUrl(id: number): string {
+    return `${QueryService.BASE_URL}question/pdf/${id}`;
+  }
+
   public getCurrentProfilePictureUrl(): string {
     return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture`;
   }
 
   public getProfilePictureUrl(username: string): string {
     return this.username == "" ? "#" : `${QueryService.BASE_URL}user/picture/${username}`;
+  }
+
+  public getImagePostUrl(): string {
+    return `${QueryService.BASE_URL}image`;
   }
 }

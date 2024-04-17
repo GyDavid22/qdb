@@ -1,3 +1,7 @@
 .creatortext {
     font-weight: lighter;
 }
+
+.list-group-item {
+    cursor: pointer;
+}

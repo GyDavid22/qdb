@@ -1,0 +1,45 @@
+<div class="d-flex justify-content-between align-items-center py-2">
+    <button class="btn btn-outline-primary" (click)="this.backButton()">Back</button>
+    <div class="col-3">
+        <select class="form-select" [(ngModel)]="this.pageSize">
+            <option disabled selected value="default">Page size</option>
+            <option *ngFor="let i of this.pageSizes" value="{{i.value}}">{{i.display}}</option>
+        </select>
+    </div>
+</div>
+<div class="d-flex justify-content-center align-items-center">
+    <nav>
+        <ul class="pagination">
+            <li [class]="this.getClass(i)" *ngFor="let i of this.pageNumbers"><a class="page-link"
+                    (click)="this.pageIndex = i - 1">{{i}}</a></li>
+        </ul>
+    </nav>
+</div>
+<div *ngIf="this.isLoading">Loading...</div>
+<div>
+    Total number of events: {{this.entries?.totalCount ?? 0}}
+</div>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Event ID</th>
+            <th>Time</th>
+            <th>User ID</th>
+            <th>Username</th>
+            <th>Action string</th>
+            <th>User role</th>
+            <th>Permission granted</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let i of this.entries?.results">
+            <td>{{i.id}}</td>
+            <td>{{this.toLocaleString(i.time)}}</td>
+            <td>{{i.userId}}</td>
+            <td>{{i.userName}}</td>
+            <td>{{i.action}}</td>
+            <td>{{i.roleAtTheMoment}}</td>
+            <td>{{i.wasPermissionGranted}}</td>
+        </tr>
+    </tbody>
+</table>

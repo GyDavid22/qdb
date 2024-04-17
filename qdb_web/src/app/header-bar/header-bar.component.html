@@ -16,7 +16,8 @@
                     </div>
                 </form>
                 <div class="login-state">
-                    <div *ngIf="this.isLoggedIn; else elseBlock" class="d-flex justify-content-center align-items-center">
+                    <div *ngIf="this.isLoggedIn; else elseBlock"
+                        class="d-flex justify-content-center align-items-center">
                         Hello,
                         <a routerLink="user" class="username-link">{{this.username}}</a>!
                         <img class="mini-pfp" [src]="this.qService.getCurrentProfilePictureUrl()">
@@ -24,7 +25,7 @@
                             (click)="this.logoutButtonHandler($event)">Logout</button>
                     </div>
                     <ng-template #elseBlock>
-                        <a href="/login">
+                        <a href="login">
                             <button class="btn btn-outline-primary">Login</button>
                         </a>
                     </ng-template>

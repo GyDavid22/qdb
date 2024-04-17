@@ -1,15 +1,16 @@
-import { AfterViewInit, Component } from '@angular/core';
-import { QueryService } from '../../services/query.service';
-import { UserMetadata } from '../../entities/UserMetadata';
 import { NgIf } from '@angular/common';
+import { AfterViewInit, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AlertService } from '../../services/alert.service';
 import { Router, RouterLink } from '@angular/router';
+import { UserMetadata } from '../../entities/UserMetadata';
+import { AlertService } from '../../services/alert.service';
+import { QueryService } from '../../services/query.service';
+import { QuestionsWithPaginatingComponent } from '../common-elements/questions-with-paginating/questions-with-paginating.component';
 
 @Component({
   selector: 'app-user-overview',
   standalone: true,
-  imports: [NgIf, FormsModule, RouterLink],
+  imports: [NgIf, FormsModule, RouterLink, QuestionsWithPaginatingComponent],
   templateUrl: './user-overview.component.html',
   styleUrl: './user-overview.component.css'
 })
@@ -29,7 +30,10 @@ export class UserOverviewComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    let button = document.getElementById("browsefilebutton")! as HTMLInputElement;
+    let button: HTMLInputElement;
+    try {
+      button = document.getElementById("browsefilebutton")! as HTMLInputElement;
+    } catch { return; }
     button.addEventListener("change", () => {
       let formdata = new FormData();
       formdata.append("file", button.files?.item(0) as File);
@@ -39,9 +43,12 @@ export class UserOverviewComponent implements AfterViewInit {
       xhr.addEventListener("loadend", () => {
         if (xhr.status == 200) {
           location.reload();
+        } else if (xhr.responseText == "" || xhr.status == 413) {
+          this.aService.pushAlert("ERROR", "Please upload an image smaller than 5MB");
         } else {
-          this.aService.pushAlert("ERROR", xhr.responseText == "" ? "Please upload an image smaller than 5MB" : xhr.responseText);
+          this.aService.pushAlert("ERROR", xhr.responseText);
         }
+        button.value = "";
       });
       xhr.send(formdata);
     });
