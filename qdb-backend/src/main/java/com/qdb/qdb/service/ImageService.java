@@ -26,7 +26,7 @@ public class ImageService {
     private final PermissionService pService;
     @Autowired
     private final QuestionService qService;
-    private Random r = new Random();
+    private final Random r = new Random();
 
     public ImageService(ImageRepository repo, PermissionService pService, QuestionService qService) {
         this.repo = repo;
@@ -82,7 +82,7 @@ public class ImageService {
             String testname = "";
             while (!ok) {
                 LocalDateTime now = LocalDateTime.now();
-                testname = Long.toString(r.nextLong()) + now + extension;
+                testname = (Long.toString(r.nextLong()) + now + extension).replace(":", "-");
                 if (repo.findByNameIgnoreCase(testname).isEmpty()) {
                     ok = true;
                 }

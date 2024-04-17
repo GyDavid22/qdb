@@ -48,6 +48,10 @@ public class LogService {
         repo.flush();
     }
 
+    public void deleteImportActions() {
+        repo.findByUserId(-1);
+    }
+
     private long pageCount(long numOfEntries, int pageSize) {
         if (numOfEntries == 0) {
             return 1;

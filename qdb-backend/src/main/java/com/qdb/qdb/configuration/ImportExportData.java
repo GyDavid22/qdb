@@ -6,6 +6,7 @@ import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.exception.UserNotFoundException;
 import com.qdb.qdb.repository.*;
 import com.qdb.qdb.service.ImageService;
+import com.qdb.qdb.service.LogService;
 import com.qdb.qdb.service.QuestionService;
 import com.qdb.qdb.service.UserService;
 import org.json.simple.JSONArray;
@@ -50,8 +51,10 @@ public class ImportExportData implements ApplicationRunner {
     private final QuestionService qService;
     @Autowired
     private final PermissionRepository pRepo;
+    @Autowired
+    private final LogService lService;
 
-    public ImportExportData(ApplicationContext context, UserService uService, QuestionRepository qRepo, ImageRepository iRepo, UserRepository uRepo, TagRepository tRepo, ImageService iService, QuestionService qService, PermissionRepository pRepo) {
+    public ImportExportData(ApplicationContext context, UserService uService, QuestionRepository qRepo, ImageRepository iRepo, UserRepository uRepo, TagRepository tRepo, ImageService iService, QuestionService qService, PermissionRepository pRepo, LogService lService) {
         this.context = context;
         this.uService = uService;
         this.qRepo = qRepo;
@@ -61,6 +64,7 @@ public class ImportExportData implements ApplicationRunner {
         this.iService = iService;
         this.qService = qService;
         this.pRepo = pRepo;
+        this.lService = lService;
     }
 
     @Override
@@ -173,8 +177,11 @@ public class ImportExportData implements ApplicationRunner {
             jo.put("images", images);
             jo.put("body", q.getId() + ".md");
             try (FileWriter fw = new FileWriter("exportdata/questions/" + q.getId() + ".md")) {
-                fw.write(q.getMdbody());
+                String body = q.getMdbody();
+                fw.write(body);
             }
+            jo.put("isReported", q.isReported());
+            jo.put("favoritedBy", q.getFavoritedBy().stream().map(User::getUserName).toList());
             ja.add(jo);
         }
         try (FileWriter fw = new FileWriter("exportdata/questionsmetadata.json")) {
@@ -188,6 +195,7 @@ public class ImportExportData implements ApplicationRunner {
             importUsers();
             importQuestions();
             bindImagesToQuestions();
+            lService.deleteImportActions();
         } catch (Exception e) {
             System.err.println("An error happened during importing: ");
             e.printStackTrace();
@@ -197,7 +205,8 @@ public class ImportExportData implements ApplicationRunner {
 
     private void importUsers() throws Exception {
         for (User u : uRepo.findAll()) {
-            uService.deleteUser(u, null);
+            uService.deleteUser(u, null, true);
+            u.getSessions().clear();
         }
         try (FileReader fr = new FileReader("importdata/users.json")) {
             JSONParser p = new JSONParser();
@@ -243,7 +252,15 @@ public class ImportExportData implements ApplicationRunner {
                 String bodyContent = String.join("\n", Files.readAllLines(Path.of("importdata/questions/" + body)));
                 JSONArray images = (JSONArray) question.get("images");
                 JSONArray tags = (JSONArray) question.get("tags");
-                Question q = new Question(null, title, bodyContent, uService.getByUserName(owner, mockUser), false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+                Boolean isReported = (Boolean) question.get("isReported");
+                JSONArray favoritedBy = (JSONArray) question.get("favoritedBy");
+                List<User> users = new ArrayList<>();
+                for (Object j : favoritedBy) {
+                    String name = (String) j;
+                    Optional<User> res = uRepo.findByUserName(name);
+                    res.ifPresent(users::add);
+                }
+                Question q = new Question(null, title, bodyContent, uService.getByUserName(owner, mockUser), isReported, new ArrayList<>(), new ArrayList<>(), users);
                 qRepo.saveAndFlush(q);
                 for (Object j : images) {
                     String imagename = (String) ((JSONObject) j).get("name");

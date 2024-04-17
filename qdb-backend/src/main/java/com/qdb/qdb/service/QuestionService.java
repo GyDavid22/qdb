@@ -305,6 +305,11 @@ public class QuestionService {
         repo.saveAndFlush(q);
     }
 
+    public void removeFromFavoritesForUser(Question q, User u) {
+        q.getFavoritedBy().remove(u);
+        repo.saveAndFlush(q);
+    }
+
     public List<Question> findForUser(String username, @Nullable List<Question> q) throws NoRightException, UserNotFoundException {
         User u = uService.getByUserName(username, null);
         if (u == null) {
