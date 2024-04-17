@@ -15,4 +15,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     @Query("SELECT q FROM Question q WHERE LOWER(CAST(q.mdbody AS STRING)) LIKE CONCAT('%', LOWER(?1), '%')")
     List<Question> searchByStringInBody(String searchTerm);
+
+    @Query("SELECT q FROM Question q ORDER BY FUNCTION('RAND') LIMIT ?1")
+    List<Question> randomQuestion(int count);
 }

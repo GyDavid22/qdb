@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class ImageService {
@@ -25,6 +26,7 @@ public class ImageService {
     private final PermissionService pService;
     @Autowired
     private final QuestionService qService;
+    private final Random r = new Random();
 
     public ImageService(ImageRepository repo, PermissionService pService, QuestionService qService) {
         this.repo = repo;
@@ -35,6 +37,11 @@ public class ImageService {
     public byte[] getImageContent(String name) {
         Optional<Image> result = repo.findByNameIgnoreCase(name);
         return result.map(Image::getContent).orElse(null);
+    }
+
+    public Image getByName(String name) {
+        Optional<Image> result = repo.findByNameIgnoreCase(name);
+        return result.orElse(null);
     }
 
     public void deleteOrphanImagesWithExpiredTimeout() {
@@ -70,7 +77,17 @@ public class ImageService {
         if (originalName != null) {
             i.setName(originalName);
         } else {
-            i.setName(i.getId() + (mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg"));
+            boolean ok = false;
+            String extension = mediaType.equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ? ".png" : ".jpg";
+            String testname = "";
+            while (!ok) {
+                LocalDateTime now = LocalDateTime.now();
+                testname = (Long.toString(r.nextLong()) + now + extension).replace(":", "-");
+                if (repo.findByNameIgnoreCase(testname).isEmpty()) {
+                    ok = true;
+                }
+            }
+            i.setName(testname);
         }
         repo.flush();
         return i;
@@ -88,6 +105,16 @@ public class ImageService {
         qService.checkEditingRights(q, u, false);
         i.setTimeout(null);
         i.setQuestion(q);
+        repo.flush();
+    }
+
+    public void deleteImage(Image i) {
+        repo.delete(i);
+        repo.flush();
+    }
+
+    public void deleteImages(Collection<Image> i) {
+        repo.deleteAll(i);
         repo.flush();
     }
 }

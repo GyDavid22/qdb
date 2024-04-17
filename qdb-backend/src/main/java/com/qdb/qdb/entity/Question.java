@@ -9,7 +9,7 @@ import java.util.Collection;
  * Represents a Question.
  */
 @Entity
-public class Question {
+public class Question implements Comparable<Question> {
     @Id
     @GeneratedValue
     private Long id;
@@ -20,21 +20,26 @@ public class Question {
     @ManyToOne
     @Nullable
     private User owner;
+    private Boolean isReported;
     @ManyToMany(mappedBy = "questions", fetch = FetchType.EAGER)
     private Collection<Tag> tags;
     @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
     private Collection<Image> images;
+    @ManyToMany(fetch = FetchType.EAGER)
+    private Collection<User> favoritedBy;
 
     public Question() {
     }
 
-    public Question(Long id, String title, String mdbody, @Nullable User owner, Collection<Tag> tags, Collection<Image> images) {
+    public Question(Long id, String title, String mdbody, @Nullable User owner, Boolean isReported, Collection<Tag> tags, Collection<Image> images, Collection<User> favoritedBy) {
         this.id = id;
         this.title = title;
         this.mdbody = mdbody;
         this.owner = owner;
+        this.isReported = isReported;
         this.tags = tags;
         this.images = images;
+        this.favoritedBy = favoritedBy;
     }
 
     public Long getId() {
@@ -84,5 +89,26 @@ public class Question {
 
     public void setImages(Collection<Image> images) {
         this.images = images;
+    }
+
+    public Boolean isReported() {
+        return isReported;
+    }
+
+    public void setReported(Boolean reported) {
+        isReported = reported;
+    }
+
+    public Collection<User> getFavoritedBy() {
+        return favoritedBy;
+    }
+
+    public void setFavoritedBy(Collection<User> favoritedBy) {
+        this.favoritedBy = favoritedBy;
+    }
+
+    @Override
+    public int compareTo(Question o) {
+        return this.getId().compareTo(o.getId());
     }
 }

@@ -1,9 +1,13 @@
 package com.qdb.qdb.controller;
 
+import com.qdb.qdb.dto.QuestionBindingDTO;
+import com.qdb.qdb.entity.Image;
+import com.qdb.qdb.entity.Question;
 import com.qdb.qdb.entity.User;
 import com.qdb.qdb.exception.NoRightException;
 import com.qdb.qdb.exception.UnsupportedFileFormatException;
 import com.qdb.qdb.service.ImageService;
+import com.qdb.qdb.service.QuestionService;
 import com.qdb.qdb.service.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,10 +28,13 @@ public class ImageController {
     private final ImageService service;
     @Autowired
     private final SessionService sService;
+    @Autowired
+    private final QuestionService qService;
 
-    public ImageController(ImageService service, SessionService sService) {
+    public ImageController(ImageService service, SessionService sService, QuestionService qService) {
         this.service = service;
         this.sService = sService;
+        this.qService = qService;
     }
 
     /**
@@ -61,12 +68,59 @@ public class ImageController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         try {
-            service.addImage(file.getBytes(), file.getContentType(), u, null);
+            Image i = service.addImage(file.getBytes(), file.getContentType(), u, null);
+            return ResponseEntity.status(HttpStatus.CREATED).body(i.getName());
         } catch (UnsupportedFileFormatException | IOException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Only .jpg, .jpeg and .png are supported");
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
+
+    @DeleteMapping(path = "{name}")
+    ResponseEntity<?> deleteImage(HttpServletRequest request, HttpServletResponse response, @PathVariable String name) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Image i = service.getByName(name);
+        if (i == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        if (i.getQuestion() != null) {
+            Question q = i.getQuestion();
+            try {
+                qService.checkEditingRights(q, u, false);
+            } catch (NoRightException e) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to delete this image");
+            }
+        }
+        service.deleteImage(i);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping(path = "{name}")
+    ResponseEntity<?> bindImageToQuestion(HttpServletRequest request, HttpServletResponse response, @PathVariable String name, @RequestBody QuestionBindingDTO dto) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Image i = service.getByName(name);
+        if (i == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
+        }
+        if (i.getQuestion() != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Image already bound to question");
+        }
+        Question q = qService.getById(dto.getId());
+        if (q == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+        }
+        try {
+            service.bindImageToQuestion(i, q, u);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to modify this question");
+        }
     }
 }

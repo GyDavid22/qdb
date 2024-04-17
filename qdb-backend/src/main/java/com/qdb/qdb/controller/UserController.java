@@ -78,9 +78,9 @@ public class UserController {
                 if (u2 == null) {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("The given user doesn't exist");
                 }
-                service.deleteUser(u2, u);
+                service.deleteUser(u2, u, false);
             } else {
-                boolean result = service.deleteUser(u, null);
+                boolean result = service.deleteUser(u, null, false);
                 if (!result) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You're the last superuser, you can't delete your account");
                 }

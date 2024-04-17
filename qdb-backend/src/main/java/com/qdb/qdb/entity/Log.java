@@ -1,5 +1,6 @@
 package com.qdb.qdb.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
  * Class to represent log entries. Not directly linked to entities, so e.g. after an user gets deleted, the log entry will be kept
  */
 @Entity
+@JsonSerialize
 public class Log {
     @GeneratedValue
     @Id

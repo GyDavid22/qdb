@@ -1,5 +1,6 @@
 package com.qdb.qdb.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 
 @Entity
@@ -10,6 +11,7 @@ public class ProfilePicture {
     @Lob
     private byte[] content;
     @OneToOne
+    @Nullable
     private User owner;
     private Format format;
 
