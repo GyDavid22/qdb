@@ -16,8 +16,10 @@ def main():
         qDictList.append({
             "owner": None,
             "images": [],
+            "favoritedBy": [],
             "title" : i.title,
             "body": f"q{count}.md",
+            "isReported": False,
             "tags": []
         })
         count += 1
