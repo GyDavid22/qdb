@@ -347,8 +347,9 @@ public class QuestionService {
         File body = new File(filename);
         try (FileWriter fw = new FileWriter(body)) {
             try (BufferedWriter bw = new BufferedWriter(fw)) {
-                for (Question i : q) {
-                    bw.write("**" + i.getTitle() + "**\n\n");
+                for (int k = 0; k < q.size(); k++) {
+                    Question i = q.get(k);
+                    bw.write("**" + (k + 1) + ". " + i.getTitle() + "**\n\n");
                     bw.write(i.getMdbody() + "\n\n");
                     for (Image j : i.getImages()) {
                         try (FileOutputStream fos = new FileOutputStream(folderName + "/" + j.getName())) {
