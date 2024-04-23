@@ -295,7 +295,7 @@ export class QuestionFullComponent implements AfterViewInit {
   public async downloadPdfButton() {
     if (!this.waitingForPdf) {
       this.waitingForPdf = true;
-      window.open(this.qService.getDownloadPdfUrl(this.id), "_blank");
+      window.location.href = this.qService.getDownloadPdfUrl([this.id]);
       this.waitingForPdf = false;
     }
   }

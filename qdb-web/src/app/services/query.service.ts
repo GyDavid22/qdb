@@ -241,8 +241,12 @@ export class QueryService {
     return this.queryBase(`log?pageIndex=${pageIndex}&pageSize=${pageSize}`, "GET");
   }
 
-  public getDownloadPdfUrl(id: number): string {
-    return `${QueryService.BASE_URL}question/pdf/${id}`;
+  public getDownloadPdfUrl(ids: number[]): string {
+    let base = `${QueryService.BASE_URL}question/pdf?`;
+    for (let i of ids) {
+      base += `&id=${i}`;
+    }
+    return base;
   }
 
   public getCurrentProfilePictureUrl(): string {
@@ -255,5 +259,9 @@ export class QueryService {
 
   public getImagePostUrl(): string {
     return `${QueryService.BASE_URL}image`;
+  }
+
+  public hasExportRights(): boolean {
+    return this.isLoggedIn && (this.rank === "SUPERUSER" || this.rank === "ADMIN" || this.rank === "NORMAL");
   }
 }

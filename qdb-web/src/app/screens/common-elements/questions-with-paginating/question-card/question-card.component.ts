@@ -1,5 +1,6 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, Input, SecurityContext } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SecurityContext } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { marked } from 'marked';
@@ -11,7 +12,7 @@ import { TagBadgesComponent } from '../../tags-box/tag-badges/tag-badges.compone
 @Component({
   selector: 'app-question-card',
   standalone: true,
-  imports: [NgFor, NgIf, RouterLink, TagBadgesComponent],
+  imports: [NgFor, NgIf, RouterLink, TagBadgesComponent, FormsModule],
   templateUrl: './question-card.component.html',
   styleUrl: './question-card.component.css'
 })
@@ -47,6 +48,19 @@ export class QuestionCardComponent {
   public get highlight(): string | undefined {
     return this._highlight;
   }
+  private _isSelected = false;
+  public get isSelected(): boolean {
+    return this._isSelected;
+  }
+  @Input()
+  public set isSelected(val: boolean) {
+    if (val !== this._isSelected) {
+      this.isSelectedChange.emit(val);
+    }
+    this._isSelected = val;
+  }
+  @Output()
+  public isSelectedChange = new EventEmitter<boolean>();
   private _highlight: string | undefined;
   public get titleOnly(): boolean | undefined {
     return this._titleOnly;
@@ -80,7 +94,7 @@ export class QuestionCardComponent {
   }
   public isLoading: boolean = false;
 
-  constructor(private qService: QueryService, private sanitizer: DomSanitizer) { }
+  constructor(public qService: QueryService, private sanitizer: DomSanitizer) { }
 
   private replaceWithHighlight(text: string): string {
     if (this.highlight !== undefined) {

@@ -1,6 +1,10 @@
 <div class="card m-2">
-    <a [routerLink]="'/question/' + question.id" class="card-regular-text">
-        <div class="card-body">
+    <div class="card-body d-flex flex-row">
+        <form class="form" *ngIf="this.qService.hasExportRights()">
+            <input type="checkbox" class="form-check-input" [(ngModel)]="this.isSelected"
+                [ngModelOptions]="{standalone: true}">
+        </form>
+        <a [routerLink]="'/question/' + question.id" class="card-regular-text mx-1 w-100">
             <div class="d-flex justify-content-between">
                 <h5 class="card-title">
                     <span *ngIf="this.selfNumber !== undefined">
@@ -25,8 +29,8 @@
                 <div [innerHTML]="this.body" class="questionbody">
                 </div>
             </div>
-        </div>
-    </a>
+        </a>
+    </div>
     <div class="card-footer" *ngIf="this.question.tags.length > 0">
         <app-tag-badges [tags]="this.question.tags"></app-tag-badges>
     </div>

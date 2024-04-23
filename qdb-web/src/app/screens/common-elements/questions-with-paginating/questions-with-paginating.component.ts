@@ -98,8 +98,9 @@ export class QuestionsWithPaginatingComponent {
     this.pageSize = val;
     this.updateEntries();
   }
+  public selectedCards: number[] = [];
 
-  public constructor(private qService: QueryService, private route: ActivatedRoute, private router: Router) {
+  public constructor(public qService: QueryService, private route: ActivatedRoute, private router: Router) {
     let titleOnlyStorage: string | null = null;
     try {
       titleOnlyStorage = sessionStorage.getItem("showTitleOnly");
@@ -258,6 +259,26 @@ export class QuestionsWithPaginatingComponent {
     this.searchType = "ALL";
     this.tagsValueRaw = "";
     this.showReportedOnly = false;
+  }
+
+  public isCardSelected(id: number): boolean {
+    return this.selectedCards.includes(id);
+  }
+
+  public selectCard(isSelected: boolean, id: number) {
+    if (isSelected) {
+      if (!this.selectedCards.includes(id)) {
+        this.selectedCards.push(id);
+      }
+    } else {
+      if (this.selectedCards.includes(id)) {
+        this.selectedCards.splice(this.selectedCards.indexOf(id), 1);
+      }
+    }
+  }
+
+  public downloadSelectedPdf() {
+    window.location.href = this.qService.getDownloadPdfUrl(this.selectedCards);
   }
 }
 
