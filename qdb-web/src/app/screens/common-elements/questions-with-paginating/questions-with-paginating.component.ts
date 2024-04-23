@@ -16,15 +16,15 @@ import { QuestionCardComponent } from './question-card/question-card.component';
 })
 export class QuestionsWithPaginatingComponent {
   @Input() public message: string = "";
-  private _listingType: "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | undefined;
-  @Input() public set listingType(val: "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | undefined) {
+  private _listingType: "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | "RANDOM" | undefined;
+  @Input() public set listingType(val: "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | "RANDOM" | undefined) {
     this._listingType = val;
-    if (this._listingType === "GENERAL" || this._listingType === "SEARCH") {
+    if (this.listingType === "GENERAL" || this.listingType === "SEARCH") {
       this.setSearchParams();
     }
     this.updateEntries();
   }
-  public get listingType(): "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | undefined {
+  public get listingType(): "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | "RANDOM" | undefined {
     return this._listingType;
   }
   private _questions: QuestionMetadataList | undefined;
@@ -189,12 +189,14 @@ export class QuestionsWithPaginatingComponent {
   }
 
   private updateEntries() {
-    if (this._listingType === "GENERAL" || this._listingType === "SEARCH") {
+    if (this.listingType === "GENERAL" || this.listingType === "SEARCH") {
       this.updateSearch();
-    } else if (this._listingType === "PERUSER") {
+    } else if (this.listingType === "PERUSER") {
       this.fetchForUser();
-    } else if (this._listingType === "FAVORITES") {
+    } else if (this.listingType === "FAVORITES") {
       this.fetchFavoritesForUser();
+    } else if (this.listingType === "RANDOM") {
+      this.fetchRandom();
     }
   }
 
@@ -210,6 +212,37 @@ export class QuestionsWithPaginatingComponent {
     this.questions = await (await this.qService.getFavoritesForCurrentUser()).json() as QuestionMetadataList;
     this.isLoading = false;
     this.pageNumbers = this.pageOptions();
+  }
+
+  private async fetchRandom() {
+    this.isLoading = true;
+    let storedValues: string | null = null;
+    try {
+      storedValues = sessionStorage.getItem("randomQuestionIds");
+    } catch (e) { }
+    if (storedValues !== null) {
+      let ids: number[] = JSON.parse(storedValues);
+      let totalCount = ids.length;
+      let start = this.pageIndex * this.pageSize;
+      let end = start + this.pageSize > ids.length ? undefined : start + this.pageSize;
+      ids = ids.slice(start, end);
+      let result = {
+        resultsCount: totalCount,
+        questions: Array(ids.length)
+      } as QuestionMetadataList;
+      let doneCount = 0;
+      for (let i = 0; i < ids.length; i++) {
+        this.qService.getQuestionMetadata(ids[i]).then((res) => {
+          result.questions[i] = res;
+          doneCount++;
+          if (doneCount === ids.length) {
+            this.questions = result;
+            this.isLoading = false;
+            this.pageNumbers = this.pageOptions();
+          }
+        });
+      }
+    }
   }
 
   private pageOptions(): number[] {

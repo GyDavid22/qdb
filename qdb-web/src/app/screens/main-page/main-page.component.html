@@ -8,8 +8,19 @@
             <button class="btn btn-outline-primary my-2" routerLink="question/new">Create new question</button>
         </div>
         <button class="btn btn-outline-primary my-2" routerLink="search">Advanced search</button>
-        <button class="btn btn-outline-primary my-2" (click)="this.randomQuestionButton()">Take me to a random
-            question!</button>
+        <form class="row align-items-center">
+            <div class="col-auto">
+                Show me
+            </div>
+            <div class="col-auto">
+                <input class="form-control" type="number" min="1" [(ngModel)]="this.randomQuestionCount"
+                    [ngModelOptions]="{standalone: true}">
+            </div>
+            <div class="col-auto">
+                random questions!
+            </div>
+        </form>
+        <button class="btn btn-outline-primary my-2" (click)="this.multipleRandomQuestionButton()">Go!</button>
         <app-tags-box [tagsWithCount]="this.tagsWithCount"></app-tags-box>
     </div>
 </div>

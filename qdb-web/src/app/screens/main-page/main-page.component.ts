@@ -1,5 +1,6 @@
 import { NgIf } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { QuestionMetadataList } from '../../entities/QuestionMetadataList';
 import { TagResponse } from '../../entities/TagResponse';
@@ -11,7 +12,7 @@ import { TagsBoxComponent } from '../common-elements/tags-box/tags-box.component
 @Component({
   selector: 'app-main-page',
   standalone: true,
-  imports: [TagsBoxComponent, QuestionsWithPaginatingComponent, RouterLink, NgIf],
+  imports: [TagsBoxComponent, QuestionsWithPaginatingComponent, RouterLink, NgIf, FormsModule],
   templateUrl: './main-page.component.html',
   styleUrl: './main-page.component.css'
 })
@@ -23,6 +24,7 @@ export class MainPageComponent {
   public get tagsWithCount(): TagResponse[] {
     return this._tagsWithCount;
   }
+  public randomQuestionCount = 5;
 
   constructor(public qService: QueryService, private aService: AlertService, private router: Router) {
     this.qService.tagsWithCounts().then((value) => {
@@ -30,12 +32,18 @@ export class MainPageComponent {
     });
   }
 
-  public async randomQuestionButton() {
-    let result: QuestionMetadataList = await (await this.qService.randomQuestion(1)).json() as QuestionMetadataList;
-    if (result.resultsCount == 0) {
-      this.aService.pushAlert("ERROR", "There aren't any questions yet");
+  public async multipleRandomQuestionButton() {
+    let result = await this.qService.randomQuestion(this.randomQuestionCount);
+    if (result.status == 200) {
+      let resultJson: QuestionMetadataList = await result.json() as QuestionMetadataList;
+      let ids: number[] = [];
+      for (let i = 0; i < resultJson.resultsCount; i++) {
+        ids.push(resultJson.questions[i].id);
+      }
+      sessionStorage.setItem("randomQuestionIds", JSON.stringify(ids));
+      this.router.navigate(["/random"]);
     } else {
-      this.router.navigate([`/question/${result.questions[0].id}`]);
+      this.aService.pushAlert("ERROR", await result.text());
     }
   }
 }
