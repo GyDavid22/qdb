@@ -21,6 +21,8 @@ export class QuestionsWithPaginatingComponent {
     this._listingType = val;
     if (this.listingType === "GENERAL" || this.listingType === "SEARCH") {
       this.setSearchParams();
+    } else if (this.listingType === "RANDOM") {
+      this.subscribeToParamsRandom();
     }
     this.updateEntries();
   }
@@ -147,6 +149,43 @@ export class QuestionsWithPaginatingComponent {
     });
   }
 
+  private subscribeToParamsRandom() {
+    this.route.queryParams.subscribe((params) => {
+      this.pageIndex = parseInt(params["pageNumber"] ?? 0);
+      if (params["pageSize"]) {
+        this._pageSize = params["pageSize"];
+      }
+      this.isLoading = true;
+      let storedValues: string | null = null;
+      try {
+        storedValues = sessionStorage.getItem("randomQuestionIds");
+      } catch (e) { }
+      if (storedValues !== null) {
+        let ids: number[] = JSON.parse(storedValues);
+        let totalCount = ids.length;
+        let start = this.pageIndex * this.pageSize;
+        let end = start + this.pageSize > ids.length ? undefined : start + this.pageSize;
+        ids = ids.slice(start, end);
+        let result = {
+          resultsCount: totalCount,
+          questions: Array(ids.length)
+        } as QuestionMetadataList;
+        let doneCount = 0;
+        for (let i = 0; i < ids.length; i++) {
+          this.qService.getQuestionMetadata(ids[i]).then((res) => {
+            result.questions[i] = res;
+            doneCount++;
+            if (doneCount === ids.length) {
+              this.questions = result;
+              this.isLoading = false;
+              this.pageNumbers = this.pageOptions();
+            }
+          });
+        }
+      }
+    });
+  }
+
   public async searchButtonHandler(e: Event) {
     e.preventDefault();
     this.pageIndex = 0;
@@ -197,7 +236,7 @@ export class QuestionsWithPaginatingComponent {
     } else if (this.listingType === "FAVORITES") {
       this.fetchFavoritesForUser();
     } else if (this.listingType === "RANDOM") {
-      this.fetchRandom();
+      this.updateRandomEntries();
     }
   }
 
@@ -215,35 +254,14 @@ export class QuestionsWithPaginatingComponent {
     this.pageNumbers = this.pageOptions();
   }
 
-  private async fetchRandom() {
-    this.isLoading = true;
-    let storedValues: string | null = null;
-    try {
-      storedValues = sessionStorage.getItem("randomQuestionIds");
-    } catch (e) { }
-    if (storedValues !== null) {
-      let ids: number[] = JSON.parse(storedValues);
-      let totalCount = ids.length;
-      let start = this.pageIndex * this.pageSize;
-      let end = start + this.pageSize > ids.length ? undefined : start + this.pageSize;
-      ids = ids.slice(start, end);
-      let result = {
-        resultsCount: totalCount,
-        questions: Array(ids.length)
-      } as QuestionMetadataList;
-      let doneCount = 0;
-      for (let i = 0; i < ids.length; i++) {
-        this.qService.getQuestionMetadata(ids[i]).then((res) => {
-          result.questions[i] = res;
-          doneCount++;
-          if (doneCount === ids.length) {
-            this.questions = result;
-            this.isLoading = false;
-            this.pageNumbers = this.pageOptions();
-          }
-        });
-      }
-    }
+  private async updateRandomEntries() {
+    this.router.navigate([], {
+      queryParams: {
+        "pageNumber": this.pageIndex,
+        "pageSize": this.pageSize == -1 ? undefined : this.pageSize
+      },
+      queryParamsHandling: "merge"
+    });
   }
 
   private pageOptions(): number[] {
