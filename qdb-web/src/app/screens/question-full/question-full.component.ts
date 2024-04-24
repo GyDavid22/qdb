@@ -102,14 +102,13 @@ export class QuestionFullComponent implements AfterViewInit {
     });
   }
 
-  private getQuestionData() {
-    this.qService.getQuestionMetadata(this.id).then((value2) => {
-      this.question = value2;
-      this.qService.getQuestionBody(this.id).then((value3) => {
-        this.questionBody = value3;
-      });
-      this.tagsRaw = this.question.tags.join(",");
+  private async getQuestionData() {
+    let response = await this.qService.getQuestionMetadata(this.id);
+    this.question = await response.json() as QuestionMetadata;
+    this.qService.getQuestionBody(this.id).then((value) => {
+      this.questionBody = value;
     });
+    this.tagsRaw = this.question.tags.join(",");
   }
 
   public backButtonHandler(e: Event) {

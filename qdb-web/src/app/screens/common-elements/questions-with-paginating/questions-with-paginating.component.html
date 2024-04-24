@@ -48,12 +48,19 @@
             Show titles only
         </label>
     </div>
-    <div *ngIf="this.selectedCards.length > 0 && this.qService.hasExportRights()"
+    <div *ngIf="this.selectedCards.length > 0 && this.qService.showCheckboxes()"
         class="d-flex align-items-center justify-content-center">
-        <div class="mx-1">
+        <div>
             {{this.selectedCards.length}} items selected
         </div>
-        <button class="btn btn-outline-primary" (click)="this.downloadSelectedPdf()">Export to PDF</button>
+        <div class="mx-1">
+            <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                [attr.data-bs-target]="'#' + this.selfModalId">Delete
+                selected</button>
+        </div>
+        <div *ngIf="this.qService.rank === 'SUPERUSER' || this.qService.rank === 'ADMIN'">
+            <button class="btn btn-outline-primary" (click)="this.downloadSelectedPdf()">Export to PDF</button>
+        </div>
     </div>
 </div>
 <div *ngIf="this.isLoading">
@@ -67,4 +74,24 @@
         [selfNumber]="this.pageSize === undefined ? idx + 1 : this.pageIndex * this.pageSize + idx + 1"
         [highlight]="this.search == '' ? undefined : this.search" [isSelected]="this.isCardSelected(i.id)"
         (isSelectedChange)="this.selectCard($event, i.id)" />
+</div>
+<div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" [id]="this.selfModalId"
+    tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete selected questions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>You have selected {{this.selectedCards.length}} question(s). Are you sure you wish to delete them?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"
+                    (click)="this.deleteSelected()">Delete</button>
+            </div>
+        </div>
+    </div>
 </div>

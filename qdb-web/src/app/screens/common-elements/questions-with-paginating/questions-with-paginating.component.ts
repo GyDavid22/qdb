@@ -2,7 +2,9 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { QuestionMetadata } from '../../../entities/QuestionMetadata';
 import { QuestionMetadataList } from '../../../entities/QuestionMetadataList';
+import { AlertService } from '../../../services/alert.service';
 import { QueryService } from '../../../services/query.service';
 import { CommonMethods } from '../common-methods';
 import { QuestionCardComponent } from './question-card/question-card.component';
@@ -101,8 +103,14 @@ export class QuestionsWithPaginatingComponent {
     this.updateEntries();
   }
   public selectedCards: number[] = [];
+  private static instanceCount = 0;
+  private selfCount;
+  public get selfModalId(): string {
+    return `delete-selected-questions-modal-${this.selfCount}`;
+  }
 
-  public constructor(public qService: QueryService, private route: ActivatedRoute, private router: Router) {
+  public constructor(public qService: QueryService, private route: ActivatedRoute, private router: Router, private aService: AlertService) {
+    this.selfCount = QuestionsWithPaginatingComponent.instanceCount++;
     let titleOnlyStorage: string | null = null;
     try {
       titleOnlyStorage = sessionStorage.getItem("showTitleOnly");
@@ -129,7 +137,7 @@ export class QuestionsWithPaginatingComponent {
   }
 
   private setSearchParams() {
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.subscribe(async (params) => {
       this.pageIndex = parseInt(params["pageNumber"] ?? 0);
       if (params["pageSize"]) {
         this._pageSize = params["pageSize"];
@@ -139,51 +147,73 @@ export class QuestionsWithPaginatingComponent {
       this.tags = params["tags"] ?? undefined;
       this.showReportedOnly = params["reportedOnly"] === "true";
       this.setTagsRaw();
-      this.isLoading = true;
-      this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize == -1 ? undefined : this._pageSize, this.search, this.searchType, this.tags, this.showReportedOnly)
-        .then((value) => {
-          this.isLoading = false;
-          this.questions = value;
-          this.pageNumbers = this.pageOptions();
-        });
+      await this.loadData();
     });
   }
 
+  private async loadData() {
+    this.isLoading = true;
+    let response = await this.qService.getQuestionMetadataList(this.pageIndex, this._pageSize == -1 ? undefined : this._pageSize, this.search, this.searchType, this.tags, this.showReportedOnly);
+    if (response.status === 200) {
+      this.questions = await response.json() as QuestionMetadataList;
+      this.pageNumbers = this.pageOptions();
+    } else if (response.status === 400 && this.pageIndex !== 0) {
+      this.router.navigate([], {
+        queryParams: {
+          "pageNumber": 0
+        },
+        queryParamsHandling: "merge"
+      });
+    } else {
+      this.questions = {
+        resultsCount: 0,
+        questions: []
+      } as QuestionMetadataList;
+      this.pageNumbers = this.pageOptions();
+    }
+    this.isLoading = false;
+  }
+
   private subscribeToParamsRandom() {
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.subscribe(async (params) => {
       this.pageIndex = parseInt(params["pageNumber"] ?? 0);
       if (params["pageSize"]) {
         this._pageSize = params["pageSize"];
       }
-      this.isLoading = true;
-      let storedValues: string | null = null;
-      try {
-        storedValues = sessionStorage.getItem("randomQuestionIds");
-      } catch (e) { }
-      if (storedValues !== null) {
-        let ids: number[] = JSON.parse(storedValues);
-        let totalCount = ids.length;
-        let start = this.pageIndex * this.pageSize;
-        let end = start + this.pageSize > ids.length ? undefined : start + this.pageSize;
-        ids = ids.slice(start, end);
-        let result = {
-          resultsCount: totalCount,
-          questions: Array(ids.length)
-        } as QuestionMetadataList;
-        let doneCount = 0;
-        for (let i = 0; i < ids.length; i++) {
-          this.qService.getQuestionMetadata(ids[i]).then((res) => {
-            result.questions[i] = res;
-            doneCount++;
-            if (doneCount === ids.length) {
-              this.questions = result;
-              this.isLoading = false;
-              this.pageNumbers = this.pageOptions();
-            }
-          });
+      this.loadRandomEntries();
+    });
+  }
+
+  private async loadRandomEntries() {
+    this.isLoading = true;
+    let storedValues: string | null = null;
+    try {
+      storedValues = sessionStorage.getItem("randomQuestionIds");
+    } catch (e) { }
+    if (storedValues !== null) {
+      let ids: number[] = JSON.parse(storedValues);
+      let totalCount = ids.length;
+      let start = this.pageIndex * this.pageSize;
+      let end = start + this.pageSize > ids.length ? undefined : start + this.pageSize;
+      ids = ids.slice(start, end);
+      let result = {
+        resultsCount: totalCount,
+        questions: []
+      } as QuestionMetadataList;
+      let doneCount = 0;
+      for (let i = 0; i < ids.length; i++) {
+        let response = await this.qService.getQuestionMetadata(ids[i]);
+        if (response.status === 200) {
+          result.questions.push(await response.json() as QuestionMetadata);
+        }
+        doneCount++;
+        if (doneCount === ids.length) {
+          this.questions = result;
+          this.isLoading = false;
+          this.pageNumbers = this.pageOptions();
         }
       }
-    });
+    }
   }
 
   public async searchButtonHandler(e: Event) {
@@ -297,6 +327,29 @@ export class QuestionsWithPaginatingComponent {
 
   public downloadSelectedPdf() {
     window.location.href = this.qService.getDownloadPdfUrl(this.selectedCards);
+  }
+
+  public async deleteSelected() {
+    let failed: number[] = [];
+    for (let i of this.selectedCards) {
+      let response = await this.qService.deleteQuestion(i);
+      if (response.status !== 200) {
+        failed.push(i);
+      }
+    }
+    if (failed.length > 0) {
+      this.aService.pushAlert("ERROR", `Failed to delete question(s) with id: ${failed.join(", ")}\nDo you have rights to delete them?`);
+    } else {
+      this.aService.pushAlert("SUCCESS", "Successfully deleted selected questions");
+    }
+    this.selectedCards = [];
+    if (this.listingType === "GENERAL" || this.listingType === "SEARCH") {
+      this.loadData();
+    } else if (this.listingType === "RANDOM") {
+      this.loadRandomEntries();
+    } else {
+      this.updateEntries();
+    }
   }
 }
 

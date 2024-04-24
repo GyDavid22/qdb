@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Constants } from '../../constants';
-import { QuestionMetadata } from '../entities/QuestionMetadata';
 import { QuestionMetadataList } from '../entities/QuestionMetadataList';
 import { QuestionUpdate } from '../entities/QuestionModify';
 import { TagResponse } from '../entities/TagResponse';
@@ -74,7 +73,7 @@ export class QueryService {
     return await (await this.queryBase("tags", "GET")).json() as TagResponse[];
   }
 
-  public async getQuestionMetadataList(pageNumber: number | undefined = undefined, pageSize: number | undefined = undefined, search: string | undefined = undefined, searchType: "ALL" | "TITLE" | "BODY" | undefined = undefined, tags: string[] | string | undefined = undefined, showReportedOnly: boolean | undefined = undefined): Promise<QuestionMetadataList> {
+  public async getQuestionMetadataList(pageNumber: number | undefined = undefined, pageSize: number | undefined = undefined, search: string | undefined = undefined, searchType: "ALL" | "TITLE" | "BODY" | undefined = undefined, tags: string[] | string | undefined = undefined, showReportedOnly: boolean | undefined = undefined): Promise<Response> {
     let queryString = "?";
     if (pageNumber || pageNumber === 0) {
       queryString += `&pageNumber=${pageNumber}`;
@@ -100,23 +99,11 @@ export class QueryService {
     if (showReportedOnly !== undefined) {
       queryString += `&reportedOnly=${showReportedOnly}`;
     }
-    let response = await this.queryBase(`question${queryString}`, "GET");
-    if (!response.ok) {
-      this.aService.pushAlert("ERROR", await response.text());
-      return {
-        resultsCount: 0,
-        questions: []
-      } as QuestionMetadataList;
-    }
-    return await (response).json() as QuestionMetadataList;
+    return this.queryBase(`question${queryString}`, "GET");
   }
 
-  public async getQuestionMetadata(id: number): Promise<QuestionMetadata> {
-    let response = await this.queryBase(`question/${id}`, "GET");
-    if (!response.ok) {
-      this.router.navigate(["404"]);
-    }
-    return await (response).json() as QuestionMetadata;
+  public async getQuestionMetadata(id: number): Promise<Response> {
+    return this.queryBase(`question/${id}`, "GET");
   }
 
   public async getCurrentUserQuestions(pageSize: number | undefined, pageNumber: number) {
@@ -261,7 +248,7 @@ export class QueryService {
     return `${QueryService.BASE_URL}image`;
   }
 
-  public hasExportRights(): boolean {
+  public showCheckboxes(): boolean {
     return this.isLoggedIn && (this.rank === "SUPERUSER" || this.rank === "ADMIN" || this.rank === "NORMAL");
   }
 }
