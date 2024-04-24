@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AdminPageComponent } from './screens/admin-page/admin-page.component';
+import { HelpPageComponent } from './screens/help-page/help-page.component';
 import { LogScreenComponent } from './screens/log-screen/log-screen.component';
 import { LoginScreenComponent } from './screens/login-screen/login-screen.component';
 import { MainPageComponent } from './screens/main-page/main-page.component';
@@ -20,5 +21,6 @@ export const routes: Routes = [
     { path: "admin", component: AdminPageComponent },
     { path: "log", component: LogScreenComponent },
     { path: "random", component: RandomQuestionsScreenComponent },
+    { path: "help", component: HelpPageComponent },
     { path: "**", component: PageNotFoundComponent }
 ];

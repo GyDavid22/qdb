@@ -1,0 +1,10 @@
+ul>a,
+p>a {
+    color: blue;
+}
+
+ul>a:hover,
+p>a:hover {
+    color: blue;
+    text-decoration: underline;
+}

@@ -1,0 +1,86 @@
+<h2>Table of contents</h2>
+<ul>
+    <a (click)="navigateToSection('main-page')">
+        <li>Main page</li>
+    </a>
+    <a (click)="navigateToSection('search')">
+        <li>Search</li>
+    </a>
+    <a (click)="navigateToSection('question-list')">
+        <li>Question lists</li>
+    </a>
+    <a (click)="navigateToSection('question-full-page')">
+        <li>Question full page</li>
+    </a>
+    <a (click)="navigateToSection('account-login-registration')">
+        <li>Login, account creation</li>
+    </a>
+    <a (click)="navigateToSection('admin-page')">
+        <li>Admin page</li>
+    </a>
+</ul>
+
+<h4 id="main-page">Main page</h4>
+<p>On the main page you will find several options. Most visibly, you can see the questions added to the site, in
+    ascending order by time. <a (click)="navigateToSection('search')">(See question lists.)</a> On the right side you
+    can start an advanced search, below that you
+    can generate a desired amount of random questions. Below that you can see the already existing tags and how many
+    questions are bound to them. By clicking on them you can see all questions sharing the given tag.</p>
+<h4 id="search">Search</h4>
+<p>You can start a quick search on the top header bar, which will do the same thing as advanced search if you leave all
+    the fields untouched except the search term. By starting an advanced search you can see the following fields:</p>
+<ul>
+    <li>
+        <b>Search term:</b> This is what you can search for in the scope set by the next setting. Search works by
+        splitting the search term by spaces and the most common punctation marks, taking every question containing any
+        of the words and sorting them descending by the number of occurences. Using keywords and avoiding common words
+        (e.g. the, a) works the best.
+    </li>
+    <li>
+        <b>Search type:</b> Here you can set where to look for the search term. You can set title, text or both. Tags
+        are taken into account in every case.
+    </li>
+    <li>
+        <b>Tags:</b> If left empty, the system ignores it. Entering one or more tags however searches them with "and"
+        connection showing questions which have all of the given tags.
+    </li>
+    <li>
+        <b>Reported only:</b> Filters for reported questions, it doesn't affect the other options in any other way.
+    </li>
+</ul>
+<h4 id="question-list">Question lists</h4>
+<p>Question lists appear on more parts of the website. By clicking a question card, you are taken to the full view of
+    the question, seeing its full text and buttons for doing operations on the given question. By clicking on a tag of a
+    question
+    you perform the same operation as clicking on a tag on the right side of the main page. You can set if you would
+    like to see at most the first 500 characters of the question text, this setting will be remembered in your browsing
+    session as well as the selected size of a page. If you are logged in and have at least admin rights, you will see
+    tiny
+    checkboxes next to a question's name: you can use them to export multiple questions into a single PDF file or delete
+    multiple questions at once.</p>
+<h4 id="question-full-page">Question full page</h4>
+<p>This is where you can see the full text of a question, also with the needed rights you can edit, delete or export
+    them to a PDF file. You can also report inappropriate questions or mark them as your favorite. Reported questions
+    can be filtered using advanced search, meanwhile your favorites are visible on your user overview screen.</p>
+<p>
+    When editing a question, the question text is in markdown format. It means that you can use the standard markdown
+    syntax for formatting text, including HTML (scripts, stylesheets are forbidden because of the security risk, they
+    are sanitized when rendering the text, so they won't work).</p>
+<p>You can also upload images in .png, .jpg or .jpeg format for up to 5MB in size, after you have uploaded one, click on
+    its name to insert it into the text. By clicking the X next to it you will delete it from the servers. Tip: Standard
+    markdown doesn't support image resizing. You can use its HTML equivalent though, with the width attribute you can
+    easily set it in percents as well as pixels. This is how uploaded pictures are inserted into the text by default.
+</p>
+<h4 id="account-login-registration">Login, account creation</h4>
+<p>By clicking on the login button on the top bar, you can choose to create an account or login, if you already have
+    one. Every account have to have a unique username. After you create an account, you start as a restricted user and
+    can't make any permanent actions. You need to ask an admin or a superuser to promote you to a higher level.</p>
+<p>After you logged in, by clicking on your username you can go to your overview page. Here you can choose to have a
+    profile picture (same restrictions apply when uploading an image to a question) or reset it if you aready have one.
+    If you have the rights, you can go to the admin page where you can manage other users of this web application or see
+    the system logs. Here you can change your password or delete your account (except if you are the last superuser),
+    but you see your favorited questions and questions created with your account here too.</p>
+<h4 id="admin-page">Admin page</h4>
+<p>On the admin page you can perform operations on other users, if you have the rights. You can set their ranks, change
+    their password without knowing it or even delete their accounts. You can go to the action logs from here, where you
+    can see every permission checked by the system with relevant information.</p>
