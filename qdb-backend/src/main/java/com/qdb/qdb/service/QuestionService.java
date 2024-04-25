@@ -10,10 +10,15 @@ import com.qdb.qdb.repository.ImageRepository;
 import com.qdb.qdb.repository.QuestionRepository;
 import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -373,6 +378,20 @@ public class QuestionService {
         }
         QdbApplication.cleanup(folder);
         return content;
+    }
+
+    public void parseFromJson(User u, byte[] fileContent) throws NoRightException, ParseException {
+        pService.checkPermission(u, Permission.Action.CREATE_QUESTION_JSON, false);
+        String jsonContent = new String(fileContent, StandardCharsets.UTF_8);
+        JSONParser jp = new JSONParser();
+        JSONArray ja = (JSONArray) jp.parse(jsonContent);
+        for (Object i : ja) {
+            JSONObject obj = (JSONObject) i;
+            String title = (String) obj.get("title");
+            String text = (String) obj.get("text");
+            Question q = new Question(null, title, text, u, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            repo.saveAndFlush(q);
+        }
     }
 
     public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {

@@ -12,13 +12,16 @@ import com.qdb.qdb.service.QuestionService;
 import com.qdb.qdb.service.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -349,5 +352,21 @@ public class QuestionController {
             }
             return QuestionDTO.toDto(q, editingRights, favorites);
         }).toList()));
+    }
+
+    @PostMapping(value = "json", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadFromJson(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            service.parseFromJson(u, file.getBytes());
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have the rights to upload from JSON");
+        } catch (ParseException | IOException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This is not a valid JSON");
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
