@@ -1,7 +1,8 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable, Subscription } from 'rxjs';
 import { QuestionMetadata } from '../../../entities/QuestionMetadata';
 import { QuestionMetadataList } from '../../../entities/QuestionMetadataList';
 import { AlertService } from '../../../services/alert.service';
@@ -16,7 +17,7 @@ import { QuestionCardComponent } from './question-card/question-card.component';
   templateUrl: './questions-with-paginating.component.html',
   styleUrl: './questions-with-paginating.component.css'
 })
-export class QuestionsWithPaginatingComponent {
+export class QuestionsWithPaginatingComponent implements OnDestroy {
   @Input() public message: string = "";
   private _listingType: "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | "RANDOM" | undefined;
   @Input() public set listingType(val: "GENERAL" | "SEARCH" | "PERUSER" | "FAVORITES" | "RANDOM" | undefined) {
@@ -108,6 +109,20 @@ export class QuestionsWithPaginatingComponent {
   public get selfModalId(): string {
     return `delete-selected-questions-modal-${this.selfCount}`;
   }
+  private eventsSubscription: Subscription | undefined;
+  private _requestReceiver: Observable<void> | undefined;
+  @Input()
+  public set requestReceiver(val: Observable<void> | undefined) {
+    if (this.eventsSubscription !== undefined) {
+      this.eventsSubscription.unsubscribe();
+    }
+    if (val !== undefined) {
+      this._requestReceiver = val;
+      this.eventsSubscription = this._requestReceiver.subscribe((val2) => {
+        this.fetchForUser();
+      });
+    }
+  }
 
   public constructor(public qService: QueryService, private route: ActivatedRoute, private router: Router, private aService: AlertService) {
     this.selfCount = QuestionsWithPaginatingComponent.instanceCount++;
@@ -133,6 +148,11 @@ export class QuestionsWithPaginatingComponent {
       } else {
         this.pageSize = storedValue;
       }
+    }
+  }
+  ngOnDestroy(): void {
+    if (this.eventsSubscription !== undefined) {
+      this.eventsSubscription.unsubscribe();
     }
   }
 

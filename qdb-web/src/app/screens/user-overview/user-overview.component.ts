@@ -2,6 +2,7 @@ import { NgIf } from '@angular/common';
 import { AfterViewInit, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { Subject } from 'rxjs';
 import { UserMetadata } from '../../entities/UserMetadata';
 import { AlertService } from '../../services/alert.service';
 import { QueryService } from '../../services/query.service';
@@ -19,6 +20,7 @@ export class UserOverviewComponent implements AfterViewInit {
   public oldPassword: string = "";
   public newPassword: string = "";
   public newRePassword: string = "";
+  public requestUpdate: Subject<void> = new Subject<void>();
 
   public constructor(public qService: QueryService, private aService: AlertService, private router: Router) {
     (async () => {
@@ -45,6 +47,28 @@ export class UserOverviewComponent implements AfterViewInit {
           location.reload();
         } else if (xhr.responseText == "" || xhr.status == 413) {
           this.aService.pushAlert("ERROR", "Please upload an image smaller than 5MB");
+        } else {
+          this.aService.pushAlert("ERROR", xhr.responseText);
+        }
+        button.value = "";
+      });
+      xhr.send(formdata);
+    });
+    try {
+      button = document.getElementById("browsefilebuttonjson")! as HTMLInputElement;
+    } catch { return; }
+    button.addEventListener("change", () => {
+      let formdata = new FormData();
+      formdata.append("file", button.files?.item(0) as File);
+      let xhr = new XMLHttpRequest();
+      xhr.open("POST", this.qService.getJsonPostUrl());
+      xhr.withCredentials = true;
+      xhr.addEventListener("loadend", () => {
+        if (xhr.status == 201) {
+          this.aService.pushAlert("SUCCESS", "Questions successfully imported");
+          this.requestUpdate.next();
+        } else if (xhr.status == 413) {
+          this.aService.pushAlert("ERROR", "Please upload a file smaller than 5MB");
         } else {
           this.aService.pushAlert("ERROR", xhr.responseText);
         }
@@ -101,6 +125,11 @@ export class UserOverviewComponent implements AfterViewInit {
 
   public async updateProfilePicture(e: Event) {
     let button = document.getElementById("browsefilebutton")! as HTMLInputElement;
+    button.click();
+  }
+
+  public async uploadJson(e: Event) {
+    let button = document.getElementById("browsefilebuttonjson")! as HTMLInputElement;
     button.click();
   }
 

@@ -36,9 +36,15 @@
         <app-questions-with-paginating [message]="'Your favorite questions:'"
             [listingType]="'FAVORITES'"></app-questions-with-paginating>
     </div>
+    <div *ngIf="this.qService.rank === 'SUPERUSER' || this.qService.rank === 'ADMIN'" class="w-100">
+        <button class="btn btn-outline-primary" (click)="this.uploadJson($event)">Upload from JSON</button>
+    </div>
+    <form class="d-none" enctype="multipart/form-data" method="post" [action]="this.qService.getJsonPostUrl()">
+        <input type="file" accept=".json" id="browsefilebuttonjson" name="file" placeholder="Upload file" required>
+    </form>
     <div *ngIf="this.qService.isLoggedIn" class="w-100">
-        <app-questions-with-paginating [message]="'Questions created by you:'"
-            [listingType]="'PERUSER'"></app-questions-with-paginating>
+        <app-questions-with-paginating [message]="'Questions created by you:'" [listingType]="'PERUSER'"
+            [requestReceiver]="this.requestUpdate.asObservable()"></app-questions-with-paginating>
     </div>
 </div>
 <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" id="delete-account-modal"

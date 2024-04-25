@@ -251,4 +251,8 @@ export class QueryService {
   public showCheckboxes(): boolean {
     return this.isLoggedIn && (this.rank === "SUPERUSER" || this.rank === "ADMIN" || this.rank === "NORMAL");
   }
+
+  public getJsonPostUrl(): string {
+    return `${QueryService.BASE_URL}question/json`;
+  }
 }
