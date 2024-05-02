@@ -2,6 +2,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { QuestionMetadataList } from '../entities/QuestionMetadataList';
 import { AlertComponent } from '../screens/common-elements/alert/alert.component';
 import { QueryService } from '../services/query.service';
 
@@ -47,5 +48,12 @@ export class HeaderBarComponent {
       }
     });
     this.searchText = "";
+  }
+
+  public async randomQuestion() {
+    let result = await (await this.qService.randomQuestion(1)).json() as QuestionMetadataList;
+    try {
+      this.router.navigate([`question/${result.questions[0].id}`]);
+    } catch { } // only in case if database is empty
   }
 }
