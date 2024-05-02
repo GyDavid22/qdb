@@ -4,7 +4,7 @@
             [listingType]="'GENERAL'"></app-questions-with-paginating>
     </div>
     <div class="col-3 p-2">
-        <div *ngIf="this.qService.isLoggedIn && this.qService.rank !== 'RESTRICTED'">
+        <div *ngIf="this.qService.hasRightsToCreate">
             <button class="btn btn-outline-primary my-2" routerLink="question/new">Create new question</button>
         </div>
         <button class="btn btn-outline-primary my-2" routerLink="search">Advanced search</button>

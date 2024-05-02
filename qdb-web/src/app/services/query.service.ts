@@ -255,4 +255,8 @@ export class QueryService {
   public getJsonPostUrl(): string {
     return `${QueryService.BASE_URL}question/json`;
   }
+
+  public get hasRightsToCreate(): boolean {
+    return this.isLoggedIn && this.rank !== "RESTRICTED";
+  }
 }

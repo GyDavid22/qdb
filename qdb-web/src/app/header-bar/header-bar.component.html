@@ -7,10 +7,13 @@
         </button>
         <div class="collapse navbar-collapse" id="navbar-content">
             <div class="w-100 d-flex flex-column flex-md-row justify-content-end">
-                <div><button class="btn btn-outline-primary" (click)="this.randomQuestion()">Random question</button>
-                </div>
-                <div class="mx-md-2">
-                    <button class="btn btn-outline-primary" routerLink="help">Help</button>
+                <div>
+                    <button class="btn btn-outline-primary mx-1" *ngIf="this.qService.hasRightsToCreate"
+                        routerLink="question/new">Create new
+                        question</button>
+                    <button class="btn btn-outline-primary mx-1" (click)="this.randomQuestion()">Random
+                        question</button>
+                    <button class="btn btn-outline-primary mx-1" routerLink="help">Help</button>
                 </div>
                 <form class="my-2 my-md-0">
                     <div class="input-group">

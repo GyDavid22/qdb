@@ -70,6 +70,10 @@ export class QuestionFullComponent implements AfterViewInit {
             currentUserHasEditingRights: false,
             inFavorites: false
           };
+          this.questionBody = "";
+          this.tagsRaw = "";
+          this.newImages = [];
+          this.imagesToDelete = [];
         }
       } else {
         this.router.navigate(["404"]);
