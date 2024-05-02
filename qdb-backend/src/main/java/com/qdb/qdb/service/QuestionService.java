@@ -380,18 +380,19 @@ public class QuestionService {
         return content;
     }
 
-    public void parseFromJson(User u, byte[] fileContent) throws NoRightException, ParseException {
+    public void parseFromJson(User u, byte[] fileContent) throws NoRightException, ParseException, ClassCastException {
         pService.checkPermission(u, Permission.Action.CREATE_QUESTION_JSON, false);
         String jsonContent = new String(fileContent, StandardCharsets.UTF_8);
         JSONParser jp = new JSONParser();
         JSONArray ja = (JSONArray) jp.parse(jsonContent);
+        List<Question> qList = new ArrayList<>();
         for (Object i : ja) {
             JSONObject obj = (JSONObject) i;
             String title = (String) obj.get("title");
             String text = (String) obj.get("text");
-            Question q = new Question(null, title, text, u, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-            repo.saveAndFlush(q);
+            qList.add(new Question(null, title, text, u, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
         }
+        repo.saveAllAndFlush(qList);
     }
 
     public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {

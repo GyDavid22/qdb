@@ -364,7 +364,7 @@ public class QuestionController {
             service.parseFromJson(u, file.getBytes());
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have the rights to upload from JSON");
-        } catch (ParseException | IOException e) {
+        } catch (ParseException | ClassCastException | IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This is not a valid JSON");
         }
         return ResponseEntity.status(HttpStatus.CREATED).build();
