@@ -391,16 +391,18 @@ public class QuestionService {
             String title = (String) obj.get("title");
             String text = (String) obj.get("text");
             boolean found = false;
-            for (Question q : qList) {
-                if (q.getTitle().equals(title) && q.getMdbody().equals(text)) {
-                    found = true;
-                    break;
+            if (title != null && !title.isBlank() && text != null && !text.isBlank()) {
+                for (Question q : qList) {
+                    if (q.getTitle().equals(title) && q.getMdbody().equals(text)) {
+                        found = true;
+                        break;
+                    }
                 }
-            }
-            if (!found) {
-                List<Question> result = repo.findAllByTitleAndMdbody(title, text);
-                if (result.isEmpty()) {
-                    qList.add(new Question(null, title, text, u, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+                if (!found) {
+                    List<Question> result = repo.findAllByTitleAndMdbody(title, text);
+                    if (result.isEmpty()) {
+                        qList.add(new Question(null, title, text, u, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+                    }
                 }
             }
         }
