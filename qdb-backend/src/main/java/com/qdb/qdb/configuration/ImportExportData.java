@@ -264,7 +264,7 @@ public class ImportExportData implements ApplicationRunner {
                 for (Object j : images) {
                     String imagename = (String) ((JSONObject) j).get("name");
                     byte[] content = Files.readAllBytes(Path.of("importdata/questions/" + imagename));
-                    Image image = iService.addImage(content, imagename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE, mockUser, null);
+                    Image image = iService.addImage(content, imagename.toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG_VALUE : MediaType.IMAGE_JPEG_VALUE, mockUser, imagename);
                     loadedImageNames.add(imagename.toLowerCase());
                     iService.bindImageToQuestion(image, q, mockUser);
                     iRepo.saveAndFlush(image);

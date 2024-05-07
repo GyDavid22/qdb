@@ -12,13 +12,16 @@ import com.qdb.qdb.service.QuestionService;
 import com.qdb.qdb.service.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +59,24 @@ public class QuestionController {
             }
         }
         return ResponseEntity.status(HttpStatus.OK).body(QuestionDTO.toDto(result, editingrights, u != null && u.getFavorites().contains(result)));
+    }
+
+    @GetMapping(path = "{id}/left")
+    public ResponseEntity<?> getLeftNeighbor(@PathVariable long id) {
+        Question result = service.getLeftNeighbor(id);
+        if (result == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(result.getId());
+    }
+
+    @GetMapping(path = "{id}/right")
+    public ResponseEntity<?> getRightNeighbor(@PathVariable long id) {
+        Question result = service.getRightNeighbor(id);
+        if (result == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(result.getId());
     }
 
     /**
@@ -155,8 +176,8 @@ public class QuestionController {
         }
     }
 
-    @GetMapping(path = "/pdf/{id}", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<?> questionToPdf(HttpServletRequest request, HttpServletResponse response, @PathVariable long id) {
+    @GetMapping(path = "/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<?> questionToPdf(HttpServletRequest request, HttpServletResponse response, @RequestParam List<Long> id) {
         User u = sService.checkCookieValidity(request.getCookies(), response);
         if (u == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -166,7 +187,7 @@ public class QuestionController {
             if (result == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
-            return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + id + ".pdf").body(result);
+            return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=export.pdf").body(result);
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to export a question to PDF");
         } catch (QuestionNotFoundException e) {
@@ -349,5 +370,21 @@ public class QuestionController {
             }
             return QuestionDTO.toDto(q, editingRights, favorites);
         }).toList()));
+    }
+
+    @PostMapping(value = "json", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadFromJson(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) {
+        User u = sService.checkCookieValidity(request.getCookies(), response);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            service.parseFromJson(u, file.getBytes());
+        } catch (NoRightException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have the rights to upload from JSON");
+        } catch (ParseException | ClassCastException | IOException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This is not a valid JSON");
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

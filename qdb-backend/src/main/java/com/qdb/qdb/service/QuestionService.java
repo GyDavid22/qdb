@@ -10,10 +10,15 @@ import com.qdb.qdb.repository.ImageRepository;
 import com.qdb.qdb.repository.QuestionRepository;
 import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -326,11 +331,15 @@ public class QuestionService {
     }
 
     @Nullable
-    public byte[] exportToPdf(long id, User u) throws QuestionNotFoundException, NoRightException {
+    public byte[] exportToPdf(List<Long> ids, User u) throws QuestionNotFoundException, NoRightException {
         pService.checkPermission(u, Permission.Action.EXPORT_QUESTION_TO_PDF, false);
-        Question q = getById(id);
-        if (q == null) {
-            throw new QuestionNotFoundException();
+        List<Question> q = new ArrayList<>();
+        for (Long i : ids) {
+            Question q2 = getById(i);
+            if (q2 == null) {
+                throw new QuestionNotFoundException();
+            }
+            q.add(q2);
         }
         String folderName = "tempfiles/" + r.nextLong();
         File folder = new File(folderName);
@@ -339,34 +348,72 @@ public class QuestionService {
             folder = new File(folderName);
         }
         folder.mkdir();
-        String filename = folderName + "/" + id + ".md";
+        String filename = folderName + "/export" + ".md";
         File body = new File(filename);
         try (FileWriter fw = new FileWriter(body)) {
             try (BufferedWriter bw = new BufferedWriter(fw)) {
-                bw.write("**" + q.getTitle() + "**\n\n");
-                bw.write(q.getMdbody());
+                for (int k = 0; k < q.size(); k++) {
+                    Question i = q.get(k);
+                    bw.write("**" + (k + 1) + ". " + i.getTitle() + "**\n\n");
+                    bw.write(i.getMdbody() + "\n\n");
+                    for (Image j : i.getImages()) {
+                        try (FileOutputStream fos = new FileOutputStream(folderName + "/" + j.getName())) {
+                            fos.write(j.getContent());
+                        }
+                    }
+                }
             }
         } catch (IOException ignored) {
         }
-        for (Image i : q.getImages()) {
-            try (FileOutputStream fos = new FileOutputStream(folderName + "/" + i.getName())) {
-                fos.write(i.getContent());
-            } catch (IOException ignored) {
-            }
-        }
         ProcessBuilder pb = new ProcessBuilder();
         pb.directory(folder);
-        pb.command("pandoc", id + ".md", "-t", "html", "--css", "assets/styles.css", "--pdf-engine=wkhtmltopdf", "--pdf-engine-opt=--enable-local-file-access", "-V", "margin-top=1in", "-V", "margin-left=1in", "-V", "margin-right=1in", "-V", "margin-bottom=1in", "-o", id + ".pdf");
+        pb.command("pandoc", "export.md", "-t", "html", "--css", "assets/styles.css", "--pdf-engine=wkhtmltopdf", "--pdf-engine-opt=--enable-local-file-access", "-V", "margin-top=1in", "-V", "margin-left=1in", "-V", "margin-right=1in", "-V", "margin-bottom=1in", "-o", "export.pdf");
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         byte[] content = null;
         try {
             pb.start().waitFor();
-            content = Files.readAllBytes(Path.of(folderName + "/" + id + ".pdf"));
+            content = Files.readAllBytes(Path.of(folderName + "/" + "export.pdf"));
         } catch (Exception ignored) {
         }
         QdbApplication.cleanup(folder);
         return content;
+    }
+
+    public void parseFromJson(User u, byte[] fileContent) throws NoRightException, ParseException, ClassCastException {
+        pService.checkPermission(u, Permission.Action.CREATE_QUESTION_JSON, false);
+        String jsonContent = new String(fileContent, StandardCharsets.UTF_8);
+        JSONParser jp = new JSONParser();
+        JSONArray ja = (JSONArray) jp.parse(jsonContent);
+        List<Question> qList = new ArrayList<>();
+        for (Object i : ja) {
+            JSONObject obj = (JSONObject) i;
+            String title = (String) obj.get("title");
+            String text = (String) obj.get("text");
+            boolean found = false;
+            for (Question q : qList) {
+                if (q.getTitle().equals(title) && q.getMdbody().equals(text)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                List<Question> result = repo.findAllByTitleAndMdbody(title, text);
+                if (result.isEmpty()) {
+                    qList.add(new Question(null, title, text, u, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+                }
+            }
+        }
+        repo.saveAllAndFlush(qList);
+    }
+
+    @Nullable
+    public Question getLeftNeighbor(long id) {
+        return repo.findFirstByIdLessThanOrderByIdDesc(id).orElse(null);
+    }
+
+    public Question getRightNeighbor(long id) {
+        return repo.findFirstByIdGreaterThanOrderByIdAsc(id).orElse(null);
     }
 
     public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {

@@ -53,6 +53,7 @@ public class Permission {
 
     public enum Action {
         CREATE_QUESTION,
+        CREATE_QUESTION_JSON,
         UPDATE_QUESTION_OWN,
         UPDATE_QUESTION_OWNER_ADMIN,
         UPDATE_QUESTION_OWNER_SUPERUSER,
