@@ -9,5 +9,9 @@ import { QuestionsWithPaginatingComponent } from '../common-elements/questions-w
   styleUrl: './random-questions-screen.component.css'
 })
 export class RandomQuestionsScreenComponent {
-
+  constructor() {
+    try {
+      sessionStorage.setItem("lastvisit", "random");
+    } catch { }
+  }
 }

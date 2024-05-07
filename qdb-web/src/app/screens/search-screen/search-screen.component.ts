@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
 import { NgIf } from '@angular/common';
+import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { QuestionsWithPaginatingComponent } from '../common-elements/questions-with-paginating/questions-with-paginating.component';
 
@@ -17,5 +17,8 @@ export class SearchScreenComponent {
     this.route.queryParams.subscribe((params) => {
       this.search = params["search"] ?? "";
     });
+    try {
+      sessionStorage.setItem("lastvisit", "search");
+    } catch { }
   }
 }

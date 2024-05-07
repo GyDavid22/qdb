@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { QuestionMetadataList } from '../entities/QuestionMetadataList';
@@ -13,7 +13,7 @@ import { QueryService } from '../services/query.service';
   templateUrl: './header-bar.component.html',
   styleUrl: './header-bar.component.css'
 })
-export class HeaderBarComponent {
+export class HeaderBarComponent implements AfterViewInit {
   public searchText: string = "";
   public get isLoggedIn(): boolean {
     return this.qService.isLoggedIn;
@@ -25,6 +25,16 @@ export class HeaderBarComponent {
   public constructor(public qService: QueryService, private router: Router) {
     this.router.events.subscribe(() => {
       this.searchText = "";
+    });
+  }
+
+  ngAfterViewInit(): void {
+    let button: HTMLInputElement;
+    try {
+      button = document.getElementById("browsefilebuttonjsonheaderbar")! as HTMLInputElement;
+    } catch { return; }
+    button.addEventListener("change", () => {
+      this.qService.postJson(button);
     });
   }
 
@@ -55,5 +65,9 @@ export class HeaderBarComponent {
     try {
       this.router.navigate([`question/${result.questions[0].id}`]);
     } catch { } // only in case if database is empty
+  }
+
+  public async jsonUploadButton() {
+    document.getElementById("browsefilebuttonjsonheaderbar")?.click();
   }
 }

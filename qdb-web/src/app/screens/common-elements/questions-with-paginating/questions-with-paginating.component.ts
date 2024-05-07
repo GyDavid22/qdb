@@ -2,7 +2,6 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, Input, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subscription } from 'rxjs';
 import { QuestionMetadata } from '../../../entities/QuestionMetadata';
 import { QuestionMetadataList } from '../../../entities/QuestionMetadataList';
 import { AlertService } from '../../../services/alert.service';
@@ -109,20 +108,7 @@ export class QuestionsWithPaginatingComponent implements OnDestroy {
   public get selfModalId(): string {
     return `delete-selected-questions-modal-${this.selfCount}`;
   }
-  private eventsSubscription: Subscription | undefined;
-  private _requestReceiver: Observable<void> | undefined;
-  @Input()
-  public set requestReceiver(val: Observable<void> | undefined) {
-    if (this.eventsSubscription !== undefined) {
-      this.eventsSubscription.unsubscribe();
-    }
-    if (val !== undefined) {
-      this._requestReceiver = val;
-      this.eventsSubscription = this._requestReceiver.subscribe((val2) => {
-        this.fetchForUser();
-      });
-    }
-  }
+  private static instances: QuestionsWithPaginatingComponent[] = [];
 
   public constructor(public qService: QueryService, private route: ActivatedRoute, private router: Router, private aService: AlertService) {
     this.selfCount = QuestionsWithPaginatingComponent.instanceCount++;
@@ -149,11 +135,11 @@ export class QuestionsWithPaginatingComponent implements OnDestroy {
         this.pageSize = storedValue;
       }
     }
+    QuestionsWithPaginatingComponent.instances.push(this);
   }
+
   ngOnDestroy(): void {
-    if (this.eventsSubscription !== undefined) {
-      this.eventsSubscription.unsubscribe();
-    }
+    QuestionsWithPaginatingComponent.instances.splice(QuestionsWithPaginatingComponent.instances.indexOf(this), 1);
   }
 
   private setSearchParams() {
@@ -168,6 +154,9 @@ export class QuestionsWithPaginatingComponent implements OnDestroy {
       this.showReportedOnly = params["reportedOnly"] === "true";
       this.setTagsRaw();
       await this.loadData();
+      try {
+        sessionStorage.setItem("lastvisit", window.location.pathname + window.location.search);
+      } catch { }
     });
   }
 
@@ -201,6 +190,9 @@ export class QuestionsWithPaginatingComponent implements OnDestroy {
         this._pageSize = params["pageSize"];
       }
       this.loadRandomEntries();
+      try {
+        sessionStorage.setItem("lastvisit", window.location.pathname + window.location.search);
+      } catch { }
     });
   }
 
@@ -369,6 +361,18 @@ export class QuestionsWithPaginatingComponent implements OnDestroy {
       this.loadRandomEntries();
     } else {
       this.updateEntries();
+    }
+  }
+
+  public static async requestUpdateFromInstances() {
+    for (let i of QuestionsWithPaginatingComponent.instances) {
+      if (i.listingType === "GENERAL" || i.listingType === "SEARCH") {
+        i.loadData();
+      } else if (i.listingType === "RANDOM") {
+        i.loadRandomEntries();
+      } else {
+        i.updateEntries();
+      }
     }
   }
 }

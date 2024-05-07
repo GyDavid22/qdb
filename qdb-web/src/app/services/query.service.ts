@@ -5,6 +5,7 @@ import { QuestionMetadataList } from '../entities/QuestionMetadataList';
 import { QuestionUpdate } from '../entities/QuestionModify';
 import { TagResponse } from '../entities/TagResponse';
 import { UserMetadata } from '../entities/UserMetadata';
+import { QuestionsWithPaginatingComponent } from '../screens/common-elements/questions-with-paginating/questions-with-paginating.component';
 import { AlertService } from './alert.service';
 
 @Injectable({
@@ -228,6 +229,42 @@ export class QueryService {
     return this.queryBase(`log?pageIndex=${pageIndex}&pageSize=${pageSize}`, "GET");
   }
 
+  public async getLeftNeighbor(id: number): Promise<number | undefined> {
+    let result = await this.queryBase(`question/${id}/left`, "GET");
+    if (result.status == 404) {
+      return undefined;
+    }
+    return parseInt(await result.text());
+  }
+
+  public async getRightNeighbor(id: number): Promise<number | undefined> {
+    let result = await this.queryBase(`question/${id}/right`, "GET");
+    if (result.status == 404) {
+      return undefined;
+    }
+    return parseInt(await result.text());
+  }
+
+  public postJson(button: HTMLInputElement) {
+    let formdata = new FormData();
+    formdata.append("file", button.files?.item(0) as File);
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", this.getJsonPostUrl());
+    xhr.withCredentials = true;
+    xhr.addEventListener("loadend", () => {
+      if (xhr.status == 201) {
+        this.aService.pushAlert("SUCCESS", "Questions successfully imported");
+        QuestionsWithPaginatingComponent.requestUpdateFromInstances();
+      } else if (xhr.status == 413) {
+        this.aService.pushAlert("ERROR", "Please upload a file smaller than 5MB");
+      } else {
+        this.aService.pushAlert("ERROR", xhr.responseText);
+      }
+      button.value = "";
+    });
+    xhr.send(formdata);
+  }
+
   public getDownloadPdfUrl(ids: number[]): string {
     let base = `${QueryService.BASE_URL}question/pdf?`;
     for (let i of ids) {
@@ -258,5 +295,9 @@ export class QueryService {
 
   public get hasRightsToCreate(): boolean {
     return this.isLoggedIn && this.rank !== "RESTRICTED";
+  }
+
+  public get canUploadJson(): boolean {
+    return this.rank === 'SUPERUSER' || this.rank === 'ADMIN';
   }
 }

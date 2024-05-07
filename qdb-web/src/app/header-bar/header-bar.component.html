@@ -7,10 +7,17 @@
         </button>
         <div class="collapse navbar-collapse" id="navbar-content">
             <div class="w-100 d-flex flex-column flex-md-row justify-content-end">
-                <div>
+                <div class="d-block d-md-none d-xl-block">
+                    <button class="btn btn-outline-primary mx-1" *ngIf="this.qService.canUploadJson"
+                        (click)="this.jsonUploadButton()">Upload
+                        JSON</button>
+                    <form class="d-none" enctype="multipart/form-data" method="post"
+                        [action]="this.qService.getJsonPostUrl()">
+                        <input type="file" accept=".json" id="browsefilebuttonjsonheaderbar" name="file"
+                            placeholder="Upload file" required>
+                    </form>
                     <button class="btn btn-outline-primary mx-1" *ngIf="this.qService.hasRightsToCreate"
-                        routerLink="question/new">Create new
-                        question</button>
+                        routerLink="question/new">Create question</button>
                     <button class="btn btn-outline-primary mx-1" (click)="this.randomQuestion()">Random
                         question</button>
                     <button class="btn btn-outline-primary mx-1" routerLink="help">Help</button>

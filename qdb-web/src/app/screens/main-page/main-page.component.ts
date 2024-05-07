@@ -30,6 +30,9 @@ export class MainPageComponent {
     this.qService.tagsWithCounts().then((value) => {
       this.tagsWithCount = value;
     });
+    try {
+      sessionStorage.setItem("lastvisit", "");
+    } catch { }
   }
 
   public async multipleRandomQuestionButton() {

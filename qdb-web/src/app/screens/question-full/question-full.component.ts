@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { AfterViewInit, Component, SecurityContext } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, SecurityContext } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,7 +20,7 @@ import { ImageListCardComponent } from './image-list-card/image-list-card.compon
   templateUrl: './question-full.component.html',
   styleUrl: './question-full.component.css'
 })
-export class QuestionFullComponent implements AfterViewInit {
+export class QuestionFullComponent implements AfterViewInit, OnDestroy {
   private id!: number;
   public question: QuestionMetadata | undefined;
   private _questionBody: string = "";
@@ -45,16 +45,22 @@ export class QuestionFullComponent implements AfterViewInit {
   private imagesToDelete: string[] = [];
   public isInCreateMode: boolean = false;
   private wasInCreateMode: boolean = false;
-  public recommendedTagsShown = false;
+  public recommendedTagsShown: boolean;
   public recommendedTags: TagResponse[] = [];
-  public waitingForPdf: boolean = false;
+  public waitingForPdf: boolean;
+  private eventHandler: (e: KeyboardEvent) => any;
 
   constructor(public qService: QueryService, private aService: AlertService, private route: ActivatedRoute, private router: Router, private sanitizer: DomSanitizer) {
+    this.recommendedTagsShown = false;
+    this.waitingForPdf = false;
     this.route.params.subscribe((value) => {
       let page = value["id"];
       if (page) {
         if (page !== "new") {
           this.id = page as number;
+          this.isInCreateMode = false;
+          this.wasInCreateMode = false;
+          this.isInEditMode = false;
           this.getQuestionData();
         } else {
           this.isInCreateMode = true;
@@ -79,6 +85,23 @@ export class QuestionFullComponent implements AfterViewInit {
         this.router.navigate(["404"]);
       }
     });
+    this.eventHandler = (e: KeyboardEvent) => {
+      e = e || window.event;
+      if (e.keyCode === 37) {
+        this.goBack();
+      } else if (e.keyCode === 39) {
+        this.goForward();
+      }
+    };
+    try {
+      document.addEventListener("keydown", this.eventHandler);
+    } catch { }
+  }
+
+  ngOnDestroy(): void {
+    try {
+      document.removeEventListener("keydown", this.eventHandler);
+    } catch { }
   }
 
   ngAfterViewInit(): void {
@@ -117,10 +140,18 @@ export class QuestionFullComponent implements AfterViewInit {
 
   public backButtonHandler(e: Event) {
     e.preventDefault();
-    if (!this.wasInCreateMode) {
-      history.back();
+    let val: string | null = null;
+    try {
+      val = sessionStorage.getItem("lastvisit");
+    } catch { }
+    if (val !== null) {
+      this.router.navigateByUrl(val);
     } else {
-      this.router.navigate([""]);
+      if (!this.wasInCreateMode) {
+        history.back();
+      } else {
+        this.router.navigate([""]);
+      }
     }
   }
 
@@ -300,6 +331,24 @@ export class QuestionFullComponent implements AfterViewInit {
       this.waitingForPdf = true;
       window.location.href = this.qService.getDownloadPdfUrl([this.id]);
       this.waitingForPdf = false;
+    }
+  }
+
+  public async goBack() {
+    let number = await this.qService.getLeftNeighbor(this.id);
+    if (number === undefined) {
+      this.aService.pushAlert("INFO", "There are no more questions in this direction");
+    } else {
+      this.router.navigate([`question/${number}`]);
+    }
+  }
+
+  public async goForward() {
+    let number = await this.qService.getRightNeighbor(this.id);
+    if (number === undefined) {
+      this.aService.pushAlert("INFO", "There are no more questions in this direction");
+    } else {
+      this.router.navigate([`question/${number}`]);
     }
   }
 }

@@ -1,7 +1,11 @@
 <div class="container py-3">
     <div class="d-flex flex-column">
         <div class="d-flex w-100 justify-content-between">
-            <button class="btn btn-outline-primary" (click)="this.backButtonHandler($event)">Back</button>
+            <div class="d-flex">
+                <button class="btn btn-outline-primary mx-1" *ngIf="!this.isInEditMode"
+                    (click)="this.goBack()">◄</button>
+                <button class="btn btn-outline-primary mx-1" (click)="this.backButtonHandler($event)">Back</button>
+            </div>
             <div class="d-flex">
                 <div *ngIf="this.qService.isLoggedIn && !this.isInEditMode && this.qService.rank !== 'RESTRICTED'">
                     <div *ngIf="!this.question?.inFavorites; else elseBlock">
@@ -38,6 +42,9 @@
                 <div *ngIf="this.isInEditMode && !this.isInCreateMode">
                     <button class="btn btn-outline-primary mx-1" (click)="this.abortButtonHandler()">Abort
                         changes</button>
+                </div>
+                <div *ngIf="!this.isInEditMode">
+                    <button class="btn btn-outline-primary mx-1" (click)="this.goForward()">►</button>
                 </div>
             </div>
         </div>
