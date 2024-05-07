@@ -390,9 +390,30 @@ public class QuestionService {
             JSONObject obj = (JSONObject) i;
             String title = (String) obj.get("title");
             String text = (String) obj.get("text");
-            qList.add(new Question(null, title, text, u, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+            boolean found = false;
+            for (Question q : qList) {
+                if (q.getTitle().equals(title) && q.getMdbody().equals(text)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                List<Question> result = repo.findAllByTitleAndMdbody(title, text);
+                if (result.isEmpty()) {
+                    qList.add(new Question(null, title, text, u, false, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+                }
+            }
         }
         repo.saveAllAndFlush(qList);
+    }
+
+    @Nullable
+    public Question getLeftNeighbor(long id) {
+        return repo.findFirstByIdLessThanOrderByIdDesc(id).orElse(null);
+    }
+
+    public Question getRightNeighbor(long id) {
+        return repo.findFirstByIdGreaterThanOrderByIdAsc(id).orElse(null);
     }
 
     public boolean checkEditingRights(Question q, User u, boolean onlycheck) throws NoRightException {

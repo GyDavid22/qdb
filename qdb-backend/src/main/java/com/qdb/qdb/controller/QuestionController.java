@@ -61,6 +61,24 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.OK).body(QuestionDTO.toDto(result, editingrights, u != null && u.getFavorites().contains(result)));
     }
 
+    @GetMapping(path = "{id}/left")
+    public ResponseEntity<?> getLeftNeighbor(@PathVariable long id) {
+        Question result = service.getLeftNeighbor(id);
+        if (result == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(result.getId());
+    }
+
+    @GetMapping(path = "{id}/right")
+    public ResponseEntity<?> getRightNeighbor(@PathVariable long id) {
+        Question result = service.getRightNeighbor(id);
+        if (result == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(result.getId());
+    }
+
     /**
      * Responds with markdown body text of Question of the given ID
      *
