@@ -5,6 +5,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as marked from 'marked';
 import { Constants } from '../../../constants';
+import { environment } from '../../../environments/environment';
 import { QuestionMetadata } from '../../entities/QuestionMetadata';
 import { QuestionUpdate } from '../../entities/QuestionModify';
 import { TagResponse } from '../../entities/TagResponse';
@@ -145,7 +146,11 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
       val = sessionStorage.getItem("lastvisit");
     } catch { }
     if (val !== null) {
-      this.router.navigateByUrl(val);
+      let url = val;
+      if (environment.production && url.indexOf(Constants.BASE_HREF) == 0) {
+        url = url.slice(Constants.BASE_HREF.length);
+      }
+      this.router.navigateByUrl(url);
     } else {
       if (!this.wasInCreateMode) {
         history.back();
