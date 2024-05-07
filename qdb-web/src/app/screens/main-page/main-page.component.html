@@ -1,0 +1,26 @@
+<div class="d-flex">
+    <div class="col-9">
+        <app-questions-with-paginating [message]="'Total number of questions:'"
+            [listingType]="'GENERAL'"></app-questions-with-paginating>
+    </div>
+    <div class="col-3 p-2">
+        <div *ngIf="this.qService.hasRightsToCreate">
+            <button class="btn btn-outline-primary my-2" routerLink="question/new">Create new question</button>
+        </div>
+        <button class="btn btn-outline-primary my-2" routerLink="search">Advanced search</button>
+        <form class="row align-items-center">
+            <div class="col-auto">
+                Show me
+            </div>
+            <div class="col-auto">
+                <input class="form-control" type="number" min="1" [(ngModel)]="this.randomQuestionCount"
+                    [ngModelOptions]="{standalone: true}">
+            </div>
+            <div class="col-auto">
+                random questions!
+            </div>
+        </form>
+        <button class="btn btn-outline-primary my-2" (click)="this.multipleRandomQuestionButton()">Go!</button>
+        <app-tags-box [tagsWithCount]="this.tagsWithCount"></app-tags-box>
+    </div>
+</div>

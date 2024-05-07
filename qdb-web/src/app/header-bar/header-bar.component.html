@@ -1,0 +1,51 @@
+<nav class="navbar fixed-top navbar-expand-md bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" routerLink="">Question Database</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-content"
+            aria-controls="navbar-content" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbar-content">
+            <div class="w-100 d-flex flex-column flex-md-row justify-content-end">
+                <div class="d-block d-md-none d-xl-block">
+                    <button class="btn btn-outline-primary mx-1" *ngIf="this.qService.canUploadJson"
+                        (click)="this.jsonUploadButton()">Upload
+                        JSON</button>
+                    <form class="d-none" enctype="multipart/form-data" method="post"
+                        [action]="this.qService.getJsonPostUrl()">
+                        <input type="file" accept=".json" id="browsefilebuttonjsonheaderbar" name="file"
+                            placeholder="Upload file" required>
+                    </form>
+                    <button class="btn btn-outline-primary mx-1" *ngIf="this.qService.hasRightsToCreate"
+                        routerLink="question/new">Create question</button>
+                    <button class="btn btn-outline-primary mx-1" (click)="this.randomQuestion()">Random
+                        question</button>
+                    <button class="btn btn-outline-primary mx-1" routerLink="help">Help</button>
+                </div>
+                <form class="my-2 my-md-0">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Quick search..." id="search_field"
+                            name="search-value" required [(ngModel)]="this.searchText">
+                        <button type="submit" class="btn btn-outline-primary"
+                            (click)="this.searchButtonHandler($event)">Search</button>
+                    </div>
+                </form>
+                <div class="login-state">
+                    <div *ngIf="this.isLoggedIn; else elseBlock"
+                        class="d-flex justify-content-center align-items-center">
+                        Hello,
+                        <a routerLink="user" class="username-link">{{this.username}}</a>!
+                        <img class="mini-pfp" [src]="this.qService.getCurrentProfilePictureUrl()">
+                        <button class="btn btn-outline-secondary logout-button"
+                            (click)="this.logoutButtonHandler($event)">Logout</button>
+                    </div>
+                    <ng-template #elseBlock>
+                        <a href="login">
+                            <button class="btn btn-outline-primary">Login</button>
+                        </a>
+                    </ng-template>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,86 @@
+<button class="btn btn-outline-primary my-2" (click)="this.goToLogPage()">Check action logs</button>
+<div *ngIf="this.hasRights; else elseBlock">
+    <h5>List of users:</h5>
+    <div *ngFor="let i of this.users">
+        <app-user-card [user]="i" (selectedUser)="this.actionReceiver($event)"
+            *ngIf="this.qService.username != i.userName"></app-user-card>
+    </div>
+</div>
+<ng-template #elseBlock>
+    <div class="d-flex align-items-center justify-content-center py-5">
+        <h1>It looks like you don't have rights to view this page</h1>
+    </div>
+</ng-template>
+<button class="d-none" id="change-password-modal-opener" data-bs-toggle="modal"
+    data-bs-target="#change-password-modal"></button>
+<div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" id="change-password-modal"
+    tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form>
+                <div class="modal-header">
+                    <h5 class="modal-title">Change password: {{this.currentAction?.selectedUsername}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="password" class="form-control" placeholder="Enter new password"
+                        [(ngModel)]="this.updatedPassword" name="new-password-field" id="new-password-field">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-outline-primary" data-bs-dismiss="modal"
+                        (click)="this.changePasswordButtonHandler($event)">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<button class="d-none" id="change-rank-modal-opener" data-bs-toggle="modal"
+    data-bs-target="#change-rank-modal"></button>
+<div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" id="change-rank-modal"
+    tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form>
+                <div class="modal-header">
+                    <h5 class="modal-title">Change rank: {{this.currentAction?.selectedUsername}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <select class="form-select" [(ngModel)]="this.updatedRank" name="newrankselector">
+                        <option value="RESTRICTED">restricted</option>
+                        <option value="NORMAL">normal</option>
+                        <option value="ADMIN">admin</option>
+                        <option value="SUPERUSER">superuser</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-outline-primary" data-bs-dismiss="modal"
+                        (click)="this.changeRankButtonHandler()">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<button class="d-none" id="delete-account-modal-opener" data-bs-toggle="modal"
+    data-bs-target="#delete-account-modal"></button>
+<div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" id="delete-account-modal"
+    tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete account: {{this.currentAction?.selectedUsername}}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure? This cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"
+                    (click)="this.deleteAccountButtonHandler()">Delete this account</button>
+            </div>
+        </div>
+    </div>
+</div>
