@@ -85,7 +85,7 @@ public class ImageController {
         }
         Image i = service.getByName(name);
         if (i == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         if (i.getQuestion() != null) {
             Question q = i.getQuestion();
@@ -96,7 +96,7 @@ public class ImageController {
             }
         }
         service.deleteImage(i);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PostMapping(path = "{name}")
