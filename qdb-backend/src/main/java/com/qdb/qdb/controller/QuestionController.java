@@ -166,11 +166,11 @@ public class QuestionController {
         }
         try {
             service.deleteQuestion(id, u);
-            return ResponseEntity.status(HttpStatus.OK).build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have rights to delete this question");
         } catch (QuestionNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }

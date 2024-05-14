@@ -76,7 +76,7 @@ public class UserController {
                 }
                 User u2 = service.getByUserName(username, null);
                 if (u2 == null) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("The given user doesn't exist");
+                    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
                 }
                 service.deleteUser(u2, u, false);
             } else {
@@ -88,7 +88,7 @@ public class UserController {
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You don't have the rights to perform this action.");
         }
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     /**
@@ -289,10 +289,10 @@ public class UserController {
         try {
             service.deleteProfilePicture(u.getUserName());
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (NoRightException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
