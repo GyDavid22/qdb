@@ -220,7 +220,7 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
     }
     for (let i = 0; i < this.imagesToDelete.length; i++) {
       let res = await this.qService.deleteImage(this.imagesToDelete[i]);
-      if (res.status != 200) {
+      if (res.status != 204) {
         this.aService.pushAlert("ERROR", await res.text());
         allOk = false;
       } else {
@@ -254,7 +254,7 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
 
   public async sendDeleteRequest() {
     let response = await this.qService.deleteQuestion(this.question?.id!);
-    if (response.status == 200) {
+    if (response.status == 204) {
       history.back();
       this.aService.pushAlert("SUCCESS", "Question successfully deleted");
     } else {

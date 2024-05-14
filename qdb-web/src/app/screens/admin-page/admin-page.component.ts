@@ -94,7 +94,7 @@ export class AdminPageComponent implements AfterViewInit {
 
   public deleteAccountButtonHandler() {
     this.qService.deleteUser(this.currentAction?.selectedUsername!).then(async (res) => {
-      if (res.status == 200) {
+      if (res.status == 204) {
         this.aService.pushAlert("SUCCESS", "Successfully deleted user");
         this.updateList();
       } else {
