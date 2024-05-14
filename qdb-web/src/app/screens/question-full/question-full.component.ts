@@ -40,7 +40,18 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
     return this._questionBody;
   }
   public questionBodyFormatted: string | null | undefined;
-  public isInEditMode: boolean = false;
+  private _isInEditMode: boolean = false;
+  public set isInEditMode(val: boolean) {
+    this._isInEditMode = val;
+    if (val) {
+      this.unsubscribeFromArrowKeys();
+    } else {
+      this.subscribeToArrowKeys();
+    }
+  }
+  public get isInEditMode(): boolean {
+    return this._isInEditMode;
+  }
   public tagsRaw: string = "";
   public newImages: string[] = [];
   private imagesToDelete: string[] = [];
@@ -94,15 +105,13 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
         this.goForward();
       }
     };
-    try {
-      document.addEventListener("keydown", this.eventHandler);
-    } catch { }
+    if (!this.isInEditMode) {
+      this.subscribeToArrowKeys();
+    }
   }
 
   ngOnDestroy(): void {
-    try {
-      document.removeEventListener("keydown", this.eventHandler);
-    } catch { }
+    this.unsubscribeFromArrowKeys();
   }
 
   ngAfterViewInit(): void {
@@ -355,5 +364,17 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
     } else {
       this.router.navigate([`question/${number}`]);
     }
+  }
+
+  private subscribeToArrowKeys() {
+    try {
+      document.addEventListener("keydown", this.eventHandler);
+    } catch { }
+  }
+
+  private unsubscribeFromArrowKeys() {
+    try {
+      document.removeEventListener("keydown", this.eventHandler);
+    } catch { }
   }
 }
