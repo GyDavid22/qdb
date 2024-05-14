@@ -345,7 +345,7 @@ export class QuestionsWithPaginatingComponent implements OnDestroy {
     let failed: number[] = [];
     for (let i of this.selectedCards) {
       let response = await this.qService.deleteQuestion(i);
-      if (response.status !== 200) {
+      if (response.status !== 204) {
         failed.push(i);
       }
     }

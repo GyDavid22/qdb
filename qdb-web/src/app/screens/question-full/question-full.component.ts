@@ -40,7 +40,18 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
     return this._questionBody;
   }
   public questionBodyFormatted: string | null | undefined;
-  public isInEditMode: boolean = false;
+  private _isInEditMode: boolean = false;
+  public set isInEditMode(val: boolean) {
+    this._isInEditMode = val;
+    if (val) {
+      this.unsubscribeFromArrowKeys();
+    } else {
+      this.subscribeToArrowKeys();
+    }
+  }
+  public get isInEditMode(): boolean {
+    return this._isInEditMode;
+  }
   public tagsRaw: string = "";
   public newImages: string[] = [];
   private imagesToDelete: string[] = [];
@@ -94,15 +105,13 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
         this.goForward();
       }
     };
-    try {
-      document.addEventListener("keydown", this.eventHandler);
-    } catch { }
+    if (!this.isInEditMode) {
+      this.subscribeToArrowKeys();
+    }
   }
 
   ngOnDestroy(): void {
-    try {
-      document.removeEventListener("keydown", this.eventHandler);
-    } catch { }
+    this.unsubscribeFromArrowKeys();
   }
 
   ngAfterViewInit(): void {
@@ -211,7 +220,7 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
     }
     for (let i = 0; i < this.imagesToDelete.length; i++) {
       let res = await this.qService.deleteImage(this.imagesToDelete[i]);
-      if (res.status != 200) {
+      if (res.status != 204) {
         this.aService.pushAlert("ERROR", await res.text());
         allOk = false;
       } else {
@@ -245,7 +254,7 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
 
   public async sendDeleteRequest() {
     let response = await this.qService.deleteQuestion(this.question?.id!);
-    if (response.status == 200) {
+    if (response.status == 204) {
       history.back();
       this.aService.pushAlert("SUCCESS", "Question successfully deleted");
     } else {
@@ -355,5 +364,17 @@ export class QuestionFullComponent implements AfterViewInit, OnDestroy {
     } else {
       this.router.navigate([`question/${number}`]);
     }
+  }
+
+  private subscribeToArrowKeys() {
+    try {
+      document.addEventListener("keydown", this.eventHandler);
+    } catch { }
+  }
+
+  private unsubscribeFromArrowKeys() {
+    try {
+      document.removeEventListener("keydown", this.eventHandler);
+    } catch { }
   }
 }

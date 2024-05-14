@@ -101,7 +101,7 @@ export class UserOverviewComponent implements AfterViewInit {
   public async deleteAccountButtonHandler(e: Event) {
     e.preventDefault();
     let response = await this.qService.deleteCurrentUser();
-    if (response.status == 200) {
+    if (response.status == 204) {
       this.aService.pushAlert("SUCCESS", "Your account has been deleted successfully");
       this.router.navigate([""]);
     } else {

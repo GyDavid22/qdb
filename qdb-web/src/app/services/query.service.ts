@@ -172,7 +172,7 @@ export class QueryService {
 
   public async deleteCurrentUser(): Promise<Response> {
     let response = await this.queryBase("user", "DELETE");
-    if (response.status == 200) {
+    if (response.status == 204) {
       this.currentUser == undefined;
     }
     return response;
