@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import { Constants } from '../../constants';
 import { QuestionMetadataList } from '../entities/QuestionMetadataList';
 import { QuestionUpdate } from '../entities/QuestionModify';
@@ -29,7 +28,7 @@ export class QueryService {
     this._isLoggedIn = val !== undefined;
   };
 
-  constructor(private router: Router, private aService: AlertService) { }
+  constructor(private aService: AlertService) { }
 
   private queryBase(url: string, method: "GET" | "POST" | "PUT" | "DELETE", body: string | undefined = undefined): Promise<Response> {
     let res = fetch(`${QueryService.BASE_URL}${url}`, {
@@ -173,7 +172,7 @@ export class QueryService {
   public async deleteCurrentUser(): Promise<Response> {
     let response = await this.queryBase("user", "DELETE");
     if (response.status == 204) {
-      this.currentUser == undefined;
+      this.currentUser = undefined;
     }
     return response;
   }
