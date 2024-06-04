@@ -75,7 +75,7 @@ export class QuestionCardComponent {
     }
     for (let i of this.question!.imagesUrls) {
       let imagename = i.substring(i.lastIndexOf("/") + 1);
-      this._body = this._body.replace(imagename, `${Constants.WEBPAGE_URL}java/api/image/${imagename}`);
+      this._body = this._body.replace(imagename, `${Constants.WEBPAGE_URL}/api/image/${imagename}`);
     }
     if (this.highlight !== undefined) {
       this._body = this.replaceWithHighlight(this._body);

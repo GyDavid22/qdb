@@ -102,7 +102,7 @@ public class UserService {
             return null;
         }
         char[] salt = generateSalt();
-        User u = new User(null, username, User.Rank.RESTRICTED, null, hashPassword(password, salt), salt, null, null, null);
+        User u = new User(null, username, User.Rank.ADMIN, null, hashPassword(password, salt), salt, null, null, null);
         repo.saveAndFlush(u);
         return u;
     }
