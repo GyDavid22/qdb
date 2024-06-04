@@ -192,7 +192,6 @@ public class ImportExportData implements ApplicationRunner {
             System.err.println("An error happened during importing: ");
             e.printStackTrace();
         }
-        SpringApplication.exit(context);
     }
 
     private void importUsers() throws Exception {
