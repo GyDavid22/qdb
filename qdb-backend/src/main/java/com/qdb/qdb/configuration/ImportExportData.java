@@ -69,15 +69,7 @@ public class ImportExportData implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        for (String i : args.getSourceArgs()) {
-            if (i.equalsIgnoreCase("--import")) {
-                importData();
-                break;
-            } else if (i.equalsIgnoreCase("--export")) {
-                exportData();
-                break;
-            }
-        }
+        importData();
     }
 
     private void exportData() {

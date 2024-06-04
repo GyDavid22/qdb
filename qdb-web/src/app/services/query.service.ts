@@ -11,7 +11,7 @@ import { AlertService } from './alert.service';
   providedIn: 'root'
 })
 export class QueryService {
-  private static readonly BASE_URL = `${Constants.WEBPAGE_URL}java/api/`;
+  private static readonly BASE_URL = `${Constants.WEBPAGE_URL}api/`;
   private _isLoggedIn: boolean = false;
   public get isLoggedIn(): boolean {
     return this._isLoggedIn;
